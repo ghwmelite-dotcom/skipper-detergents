@@ -42,6 +42,25 @@ curl http://localhost:8787/health
 │       └── plans/   # Milestone implementation plans
 ```
 
+## Deployment
+
+Deployment is gated by GitHub Actions on push to `main`. The workflow needs two repository secrets configured under **Settings → Secrets and variables → Actions**:
+
+- `CLOUDFLARE_API_TOKEN` — scoped to Workers Scripts, D1, R2, KV Edit permissions
+- `CLOUDFLARE_ACCOUNT_ID` — from the Cloudflare dashboard
+
+Until these are set the deploy workflow fails with a clear error; CI still runs on every push.
+
+Worker secrets (not GitHub secrets) are set via Wrangler:
+
+```bash
+wrangler secret put JWT_SECRET
+wrangler secret put PAYSTACK_SECRET_KEY
+wrangler secret put PAYSTACK_WEBHOOK_SECRET
+```
+
+These are populated during milestone 2 (public API) and milestone 5 (admin auth).
+
 ## Documentation
 
 - Design spec: `docs/superpowers/specs/2026-04-21-skipper-detergents-design.md`
