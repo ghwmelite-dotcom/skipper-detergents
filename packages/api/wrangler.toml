@@ -1,0 +1,35 @@
+name = "skipper-api"
+main = "src/index.ts"
+compatibility_date = "2026-04-20"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[vars]
+APP_ENV = "development"
+STOREFRONT_ORIGIN = "http://localhost:5173"
+ADMIN_ORIGIN = "http://localhost:5174"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "skipper-detergents-db"
+database_id = "PLACEHOLDER_FILL_IN_TASK_17"
+
+[[r2_buckets]]
+binding = "R2_PRODUCTS"
+bucket_name = "skipper-products"
+
+[[r2_buckets]]
+binding = "R2_PROOFS"
+bucket_name = "skipper-payment-proofs"
+
+[[kv_namespaces]]
+binding = "KV_SESSIONS"
+id = "PLACEHOLDER_FILL_IN_TASK_17"
+
+[[kv_namespaces]]
+binding = "KV_RATE_LIMIT"
+id = "PLACEHOLDER_FILL_IN_TASK_17"
+
+[[kv_namespaces]]
+binding = "KV_CACHE"
+id = "PLACEHOLDER_FILL_IN_TASK_17"

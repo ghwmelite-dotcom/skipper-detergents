@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "types": ["@cloudflare/workers-types", "vitest/globals"],
+    "paths": {
+      "@skipper/shared": ["../shared/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "tests/**/*"]
+}

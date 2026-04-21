@@ -1,0 +1,29 @@
+{
+  "name": "@skipper/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:setup": "wrangler d1 execute skipper-detergents-db --local --file=./src/db/schema.sql && wrangler d1 execute skipper-detergents-db --local --file=./src/db/seed.sql",
+    "db:migrate": "wrangler d1 migrations apply skipper-detergents-db --remote",
+    "db:reset:local": "wrangler d1 execute skipper-detergents-db --local --command=\"SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';\" && pnpm run db:setup"
+  },
+  "dependencies": {
+    "@skipper/shared": "workspace:*",
+    "hono": "^4.6.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.5.0",
+    "@cloudflare/workers-types": "^4.20240925.0",
+    "vitest": "^2.1.0",
+    "wrangler": "^3.80.0"
+  }
+}
