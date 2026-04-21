@@ -9,6 +9,7 @@ Production-grade e-commerce platform with bulk-quantity pricing, Paystack &amp; 
 <br />
 
 [![CI](https://github.com/ghwmelite-dotcom/skipper-detergents/actions/workflows/ci.yml/badge.svg)](https://github.com/ghwmelite-dotcom/skipper-detergents/actions/workflows/ci.yml)
+[![Live API](https://img.shields.io/badge/API-live-10B981?logo=cloudflare&logoColor=white)](https://skipper-api.ghwmelite.workers.dev/health)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 [![Hono](https://img.shields.io/badge/Hono-4-E36002)](https://hono.dev/)
