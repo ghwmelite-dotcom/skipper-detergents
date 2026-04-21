@@ -25,42 +25,42 @@
 
 **New files in `packages/api/src/`:**
 
-| File | Responsibility |
-|---|---|
-| `utils/db.ts` | Typed D1 helpers: `first<T>`, `all<T>`, `run`, `many<T>`, with `.bind()` enforced |
-| `middleware/rateLimit.ts` | KV-based rate limiter factory; `rateLimit(kv, { limit, windowSeconds, keyPrefix })` |
-| `services/products.ts` | Pure-function queries: list, featured, bySlug, withRelations |
-| `services/categories.ts` | Pure-function queries: list with product counts, productsBySlug |
-| `services/search.ts` | FTS5 search query builder + sanitizer |
-| `services/settings.ts` | Read `store_settings` as a typed map; pick the public subset |
-| `services/sitemap.ts` | Assemble URL list for sitemap.xml (products + categories + static) |
-| `routes/products.ts` | Hono router with 4 routes: `/`, `/featured`, `/search`, `/:slug` |
-| `routes/categories.ts` | Hono router: `/`, `/:slug/products` |
-| `routes/settings.ts` | Hono router: `/public` |
-| `routes/sitemap.ts` | Hono router: `/` (returns `application/xml`) |
-| `tests/services/products.test.ts` | Unit tests for product service (Miniflare-pool, Linux CI) |
-| `tests/services/categories.test.ts` | Unit tests for category service |
-| `tests/services/search.test.ts` | FTS5 search tests |
-| `tests/services/settings.test.ts` | Settings read/shape tests |
-| `tests/services/sitemap.test.ts` | Sitemap URL-set assembly tests |
-| `tests/utils/db.test.ts` | D1 helper unit tests |
-| `tests/middleware/rateLimit.test.ts` | Rate-limit middleware tests |
-| `tests/routes/products.test.ts` | Product route integration tests |
-| `tests/routes/categories.test.ts` | Category route integration tests |
-| `tests/routes/settings.test.ts` | Settings route tests |
-| `tests/routes/sitemap.test.ts` | Sitemap route tests |
-| `tests/helpers/db-fixtures.ts` | Reusable D1 seeding helper for integration tests |
-| `scripts/smoke-test.sh` | curl-driven smoke test against a live base URL |
+| File                                 | Responsibility                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------------- |
+| `utils/db.ts`                        | Typed D1 helpers: `first<T>`, `all<T>`, `run`, `many<T>`, with `.bind()` enforced   |
+| `middleware/rateLimit.ts`            | KV-based rate limiter factory; `rateLimit(kv, { limit, windowSeconds, keyPrefix })` |
+| `services/products.ts`               | Pure-function queries: list, featured, bySlug, withRelations                        |
+| `services/categories.ts`             | Pure-function queries: list with product counts, productsBySlug                     |
+| `services/search.ts`                 | FTS5 search query builder + sanitizer                                               |
+| `services/settings.ts`               | Read `store_settings` as a typed map; pick the public subset                        |
+| `services/sitemap.ts`                | Assemble URL list for sitemap.xml (products + categories + static)                  |
+| `routes/products.ts`                 | Hono router with 4 routes: `/`, `/featured`, `/search`, `/:slug`                    |
+| `routes/categories.ts`               | Hono router: `/`, `/:slug/products`                                                 |
+| `routes/settings.ts`                 | Hono router: `/public`                                                              |
+| `routes/sitemap.ts`                  | Hono router: `/` (returns `application/xml`)                                        |
+| `tests/services/products.test.ts`    | Unit tests for product service (Miniflare-pool, Linux CI)                           |
+| `tests/services/categories.test.ts`  | Unit tests for category service                                                     |
+| `tests/services/search.test.ts`      | FTS5 search tests                                                                   |
+| `tests/services/settings.test.ts`    | Settings read/shape tests                                                           |
+| `tests/services/sitemap.test.ts`     | Sitemap URL-set assembly tests                                                      |
+| `tests/utils/db.test.ts`             | D1 helper unit tests                                                                |
+| `tests/middleware/rateLimit.test.ts` | Rate-limit middleware tests                                                         |
+| `tests/routes/products.test.ts`      | Product route integration tests                                                     |
+| `tests/routes/categories.test.ts`    | Category route integration tests                                                    |
+| `tests/routes/settings.test.ts`      | Settings route tests                                                                |
+| `tests/routes/sitemap.test.ts`       | Sitemap route tests                                                                 |
+| `tests/helpers/db-fixtures.ts`       | Reusable D1 seeding helper for integration tests                                    |
+| `scripts/smoke-test.sh`              | curl-driven smoke test against a live base URL                                      |
 
 **Modified files:**
 
-| File | Change |
-|---|---|
-| `packages/api/src/index.ts` | Register all route modules, attach rate limit middleware to public `/api/*` |
-| `packages/api/vitest.config.ts` | Include new test directories; Linux-CI workers pool picks them up |
-| `packages/shared/src/schemas.ts` | Add `productListQuerySchema`, `productSearchQuerySchema` |
-| `packages/shared/src/index.ts` | Re-export the new schemas (automatic via `export *`) |
-| `packages/shared/tests/schemas.test.ts` | Add tests for the two new query schemas |
+| File                                    | Change                                                                      |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| `packages/api/src/index.ts`             | Register all route modules, attach rate limit middleware to public `/api/*` |
+| `packages/api/vitest.config.ts`         | Include new test directories; Linux-CI workers pool picks them up           |
+| `packages/shared/src/schemas.ts`        | Add `productListQuerySchema`, `productSearchQuerySchema`                    |
+| `packages/shared/src/index.ts`          | Re-export the new schemas (automatic via `export *`)                        |
+| `packages/shared/tests/schemas.test.ts` | Add tests for the two new query schemas                                     |
 
 **Route URL conventions (all prefixed with `/api`):**
 
@@ -94,6 +94,7 @@ Existing `GET /health` and `GET /` stay unprefixed (operational endpoints).
 ## Task 1: D1 query helpers
 
 **Files:**
+
 - Create: `packages/api/src/utils/db.ts`
 - Create: `packages/api/tests/utils/db.test.ts`
 
@@ -186,9 +187,11 @@ describe('run', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test tests/utils/db.test.ts
 ```
+
 Expected: FAIL — "Cannot find module '../../src/utils/db'".
 
 - [ ] **Step 3: Implement `packages/api/src/utils/db.ts`**
@@ -203,11 +206,7 @@ export async function first<T>(
   return (await stmt.first<T>()) ?? null;
 }
 
-export async function all<T>(
-  db: D1Database,
-  sql: string,
-  params: unknown[] = [],
-): Promise<T[]> {
+export async function all<T>(db: D1Database, sql: string, params: unknown[] = []): Promise<T[]> {
   const stmt = db.prepare(sql).bind(...params);
   const result = await stmt.all<T>();
   return result.results ?? [];
@@ -227,9 +226,11 @@ export async function run(
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test tests/utils/db.test.ts
 ```
+
 Expected: PASS — 6 tests.
 
 - [ ] **Step 5: Commit**
@@ -244,6 +245,7 @@ git commit -m "feat(api): add typed D1 helpers (first, all, run) with bind enfor
 ## Task 2: Rate-limit middleware
 
 **Files:**
+
 - Create: `packages/api/src/middleware/rateLimit.ts`
 - Create: `packages/api/tests/middleware/rateLimit.test.ts`
 
@@ -282,7 +284,10 @@ function makeKV() {
 
 function buildApp(kv: KVNamespace, options: { limit: number; windowSeconds: number }) {
   const app = new Hono<{ Bindings: Env }>();
-  app.use('*', rateLimit({ limit: options.limit, windowSeconds: options.windowSeconds, keyPrefix: 'test' }));
+  app.use(
+    '*',
+    rateLimit({ limit: options.limit, windowSeconds: options.windowSeconds, keyPrefix: 'test' }),
+  );
   app.get('/ping', (c) => c.json({ pong: true }));
   return app;
 }
@@ -301,11 +306,7 @@ describe('rateLimit', () => {
     const app = buildApp(kv, { limit: 3, windowSeconds: 60 });
     const env = envWith(kv);
     for (let i = 0; i < 3; i++) {
-      const res = await app.request(
-        '/ping',
-        { headers: { 'cf-connecting-ip': '1.2.3.4' } },
-        env,
-      );
+      const res = await app.request('/ping', { headers: { 'cf-connecting-ip': '1.2.3.4' } }, env);
       expect(res.status).toBe(200);
     }
   });
@@ -344,11 +345,7 @@ describe('rateLimit', () => {
   it('includes X-RateLimit headers on allowed responses', async () => {
     const app = buildApp(kv, { limit: 5, windowSeconds: 60 });
     const env = envWith(kv);
-    const res = await app.request(
-      '/ping',
-      { headers: { 'cf-connecting-ip': '3.3.3.3' } },
-      env,
-    );
+    const res = await app.request('/ping', { headers: { 'cf-connecting-ip': '3.3.3.3' } }, env);
     expect(res.headers.get('X-RateLimit-Limit')).toBe('5');
     expect(res.headers.get('X-RateLimit-Remaining')).toBe('4');
   });
@@ -358,9 +355,11 @@ describe('rateLimit', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test tests/middleware/rateLimit.test.ts
 ```
+
 Expected: FAIL — "Cannot find module '../../src/middleware/rateLimit'".
 
 - [ ] **Step 3: Implement `packages/api/src/middleware/rateLimit.ts`**
@@ -403,9 +402,11 @@ export function rateLimit(options: RateLimitOptions): MiddlewareHandler<{ Bindin
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test tests/middleware/rateLimit.test.ts
 ```
+
 Expected: PASS — 5 tests.
 
 - [ ] **Step 5: Commit**
@@ -420,6 +421,7 @@ git commit -m "feat(api): add KV-backed rate-limit middleware with IP isolation"
 ## Task 3: DB fixtures helper
 
 **Files:**
+
 - Create: `packages/api/tests/helpers/db-fixtures.ts`
 
 No dedicated test — this helper is exercised by every subsequent service/route test.
@@ -488,10 +490,7 @@ export async function resetDatabase(db: D1Database): Promise<void> {
   }
 }
 
-export async function seedCategories(
-  db: D1Database,
-  categories: SeedCategory[],
-): Promise<void> {
+export async function seedCategories(db: D1Database, categories: SeedCategory[]): Promise<void> {
   for (const c of categories) {
     await db
       .prepare(
@@ -574,6 +573,7 @@ git commit -m "test(api): add D1 fixture helpers for integration tests"
 ## Task 4: Product list + query schemas (shared)
 
 **Files:**
+
 - Modify: `packages/shared/src/schemas.ts` (add at end)
 - Modify: `packages/shared/tests/schemas.test.ts` (add tests)
 
@@ -644,9 +644,11 @@ describe('productSearchQuerySchema', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared test
 ```
+
 Expected: FAIL — `productListQuerySchema` and `productSearchQuerySchema` not exported.
 
 - [ ] **Step 3: Implement the schemas**
@@ -685,9 +687,11 @@ export type ProductSearchQuery = z.infer<typeof productSearchQuerySchema>;
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared test
 ```
+
 Expected: PASS — all existing + 7 new tests.
 
 - [ ] **Step 5: Commit**
@@ -702,6 +706,7 @@ git commit -m "feat(shared): add product list and search query schemas"
 ## Task 5: Products service — list + featured + bySlug
 
 **Files:**
+
 - Create: `packages/api/src/services/products.ts`
 - Create: `packages/api/tests/services/products.test.ts`
 
@@ -846,14 +851,33 @@ beforeEach(async () => {
     { id: 'i2', product_id: 'p1', url: 'https://example/p1-alt.jpg', is_primary: 0 },
   ]);
   await seedBulkTiers(env.DB, [
-    { id: 'b1', product_id: 'p1', min_quantity: 10, max_quantity: 49, unit_price: 38, label: 'Bulk' },
-    { id: 'b2', product_id: 'p1', min_quantity: 50, max_quantity: null, unit_price: 33, label: 'Wholesale' },
+    {
+      id: 'b1',
+      product_id: 'p1',
+      min_quantity: 10,
+      max_quantity: 49,
+      unit_price: 38,
+      label: 'Bulk',
+    },
+    {
+      id: 'b2',
+      product_id: 'p1',
+      min_quantity: 50,
+      max_quantity: null,
+      unit_price: 33,
+      label: 'Wholesale',
+    },
   ]);
 });
 
 describe('listProducts', () => {
   it('returns only active products by default', async () => {
-    const { products, total } = await listProducts(env.DB, { page: 1, per_page: 20, sort: 'newest', bulk_only: false });
+    const { products, total } = await listProducts(env.DB, {
+      page: 1,
+      per_page: 20,
+      sort: 'newest',
+      bulk_only: false,
+    });
     expect(total).toBe(3);
     expect(products.map((p) => p.id).sort()).toEqual(['p1', 'p2', 'p3']);
   });
@@ -892,11 +916,25 @@ describe('listProducts', () => {
   });
 
   it('paginates correctly', async () => {
-    const page1 = await listProducts(env.DB, { page: 1, per_page: 2, sort: 'name_asc', bulk_only: false });
-    const page2 = await listProducts(env.DB, { page: 2, per_page: 2, sort: 'name_asc', bulk_only: false });
+    const page1 = await listProducts(env.DB, {
+      page: 1,
+      per_page: 2,
+      sort: 'name_asc',
+      bulk_only: false,
+    });
+    const page2 = await listProducts(env.DB, {
+      page: 2,
+      per_page: 2,
+      sort: 'name_asc',
+      bulk_only: false,
+    });
     expect(page1.products).toHaveLength(2);
     expect(page2.products).toHaveLength(1);
-    expect([...page1.products, ...page2.products].map((p) => p.id).sort()).toEqual(['p1', 'p2', 'p3']);
+    expect([...page1.products, ...page2.products].map((p) => p.id).sort()).toEqual([
+      'p1',
+      'p2',
+      'p3',
+    ]);
   });
 
   it('sorts by price_asc', async () => {
@@ -964,9 +1002,11 @@ describe('getProductBySlug', () => {
 - [ ] **Step 3: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/products.test.ts
 ```
+
 Expected (on Linux CI): FAIL — "Cannot find module '../../src/services/products'". On Windows local machine: test pool fails to start, which is expected — skip this step locally.
 
 - [ ] **Step 4: Implement `packages/api/src/services/products.ts`**
@@ -1107,9 +1147,11 @@ export async function getProductBySlug(
 - [ ] **Step 5: Run tests to verify they pass (Linux CI)**
 
 Run in CI (or on a machine whose path has no spaces):
+
 ```bash
 pnpm --filter @skipper/api test tests/services/products.test.ts
 ```
+
 Expected: PASS — 13 tests.
 
 On Windows with OneDrive path: the workers pool will refuse to start. Skip local verification; rely on CI.
@@ -1126,6 +1168,7 @@ git commit -m "feat(api): add products service (list, featured, bySlug) with rel
 ## Task 6: Categories service
 
 **Files:**
+
 - Create: `packages/api/src/services/categories.ts`
 - Create: `packages/api/tests/services/categories.test.ts`
 
@@ -1193,7 +1236,10 @@ describe('listCategories', () => {
 
 describe('getCategoryBySlugWithProducts', () => {
   it('returns category + products', async () => {
-    const result = await getCategoryBySlugWithProducts(env.DB, 'detergents', { page: 1, per_page: 20 });
+    const result = await getCategoryBySlugWithProducts(env.DB, 'detergents', {
+      page: 1,
+      per_page: 20,
+    });
     expect(result).not.toBeNull();
     expect(result!.category.slug).toBe('detergents');
     expect(result!.products.map((p) => p.id).sort()).toEqual(['p1', 'p2']);
@@ -1201,8 +1247,12 @@ describe('getCategoryBySlugWithProducts', () => {
   });
 
   it('returns null for unknown or inactive slug', async () => {
-    expect(await getCategoryBySlugWithProducts(env.DB, 'nope', { page: 1, per_page: 20 })).toBeNull();
-    expect(await getCategoryBySlugWithProducts(env.DB, 'hidden', { page: 1, per_page: 20 })).toBeNull();
+    expect(
+      await getCategoryBySlugWithProducts(env.DB, 'nope', { page: 1, per_page: 20 }),
+    ).toBeNull();
+    expect(
+      await getCategoryBySlugWithProducts(env.DB, 'hidden', { page: 1, per_page: 20 }),
+    ).toBeNull();
   });
 
   it('paginates the products list', async () => {
@@ -1218,9 +1268,11 @@ describe('getCategoryBySlugWithProducts', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/categories.test.ts
 ```
+
 Expected: FAIL — module not found.
 
 - [ ] **Step 3: Implement `packages/api/src/services/categories.ts`**
@@ -1288,9 +1340,11 @@ export async function getCategoryBySlugWithProducts(
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/categories.test.ts
 ```
+
 Expected: PASS — 5 tests.
 
 - [ ] **Step 5: Commit**
@@ -1305,6 +1359,7 @@ git commit -m "feat(api): add categories service (list with counts, bySlug with 
 ## Task 7: Search service
 
 **Files:**
+
 - Create: `packages/api/src/services/search.ts`
 - Create: `packages/api/tests/services/search.test.ts`
 
@@ -1406,9 +1461,11 @@ describe('searchProducts', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/search.test.ts
 ```
+
 Expected: FAIL — module not found.
 
 - [ ] **Step 3: Implement `packages/api/src/services/search.ts`**
@@ -1427,11 +1484,7 @@ export function sanitizeFtsQuery(q: string): string {
   return `${cleaned}*`;
 }
 
-export async function searchProducts(
-  db: D1Database,
-  q: string,
-  limit: number,
-): Promise<Product[]> {
+export async function searchProducts(db: D1Database, q: string, limit: number): Promise<Product[]> {
   const ftsQuery = sanitizeFtsQuery(q);
   if (!ftsQuery) return [];
 
@@ -1451,9 +1504,11 @@ export async function searchProducts(
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/search.test.ts
 ```
+
 Expected: PASS — 9 tests.
 
 - [ ] **Step 5: Commit**
@@ -1468,6 +1523,7 @@ git commit -m "feat(api): add FTS5-backed product search with input sanitization
 ## Task 8: Settings service
 
 **Files:**
+
 - Create: `packages/api/src/services/settings.ts`
 - Create: `packages/api/tests/services/settings.test.ts`
 
@@ -1517,9 +1573,11 @@ describe('getPublicSettings', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/settings.test.ts
 ```
+
 Expected: FAIL — module not found.
 
 - [ ] **Step 3: Implement `packages/api/src/services/settings.ts`**
@@ -1543,7 +1601,9 @@ export const PUBLIC_SETTING_KEYS = [
 
 export type PublicSettingKey = (typeof PUBLIC_SETTING_KEYS)[number];
 
-export async function getPublicSettings(db: D1Database): Promise<Partial<Record<PublicSettingKey, string>>> {
+export async function getPublicSettings(
+  db: D1Database,
+): Promise<Partial<Record<PublicSettingKey, string>>> {
   const placeholders = PUBLIC_SETTING_KEYS.map(() => '?').join(', ');
   const rows = await all<{ key: string; value: string }>(
     db,
@@ -1561,9 +1621,11 @@ export async function getPublicSettings(db: D1Database): Promise<Partial<Record<
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/settings.test.ts
 ```
+
 Expected: PASS — 3 tests.
 
 - [ ] **Step 5: Commit**
@@ -1578,6 +1640,7 @@ git commit -m "feat(api): add public-settings service (whitelisted keys only)"
 ## Task 9: Sitemap service
 
 **Files:**
+
 - Create: `packages/api/src/services/sitemap.ts`
 - Create: `packages/api/tests/services/sitemap.test.ts`
 
@@ -1672,9 +1735,11 @@ describe('renderSitemapXml', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/sitemap.test.ts
 ```
+
 Expected: FAIL — module not found.
 
 - [ ] **Step 3: Implement `packages/api/src/services/sitemap.ts`**
@@ -1767,9 +1832,11 @@ export function renderSitemapXml(urls: SitemapUrl[]): string {
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/services/sitemap.test.ts
 ```
+
 Expected: PASS — 5 tests.
 
 - [ ] **Step 5: Commit**
@@ -1784,6 +1851,7 @@ git commit -m "feat(api): add sitemap service (URL assembly + XML renderer)"
 ## Task 10: Products routes
 
 **Files:**
+
 - Create: `packages/api/src/routes/products.ts`
 - Create: `packages/api/tests/routes/products.test.ts`
 
@@ -1914,9 +1982,11 @@ describe('GET /api/products/:slug', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/routes/products.test.ts
 ```
+
 Expected: FAIL — `/api/products` returns 404 from the 404 handler because the route isn't defined yet.
 
 - [ ] **Step 3: Implement `packages/api/src/routes/products.ts`**
@@ -1934,9 +2004,7 @@ export const productsRouter = new Hono<{ Bindings: Env }>();
 productsRouter.get('/', async (c) => {
   const query = productListQuerySchema.parse(Object.fromEntries(new URL(c.req.url).searchParams));
   const { products, total } = await listProducts(c.env.DB, query);
-  return c.json(
-    ok(products, { page: query.page, per_page: query.per_page, total }),
-  );
+  return c.json(ok(products, { page: query.page, per_page: query.per_page, total }));
 });
 
 productsRouter.get('/featured', async (c) => {
@@ -1982,9 +2050,7 @@ app.onError(errorHandler);
 
 app.get('/', (c) => c.text('Skipper API'));
 app.get('/health', (c) =>
-  c.json(
-    ok({ status: 'ok', timestamp: new Date().toISOString(), env: c.env.APP_ENV }),
-  ),
+  c.json(ok({ status: 'ok', timestamp: new Date().toISOString(), env: c.env.APP_ENV })),
 );
 
 app.use('/api/*', rateLimit({ limit: 100, windowSeconds: 60, keyPrefix: 'rl:public' }));
@@ -1998,9 +2064,11 @@ export default app;
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/routes/products.test.ts
 ```
+
 Expected: PASS — 7 tests.
 
 - [ ] **Step 6: Commit**
@@ -2015,6 +2083,7 @@ git commit -m "feat(api): wire /api/products routes (list, featured, search, det
 ## Task 11: Categories routes
 
 **Files:**
+
 - Create: `packages/api/src/routes/categories.ts`
 - Create: `packages/api/tests/routes/categories.test.ts`
 
@@ -2082,9 +2151,11 @@ describe('GET /api/categories/:slug/products', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/routes/categories.test.ts
 ```
+
 Expected: FAIL — routes return 404.
 
 - [ ] **Step 3: Implement `packages/api/src/routes/categories.ts`**
@@ -2105,13 +2176,19 @@ categoriesRouter.get('/', async (c) => {
 categoriesRouter.get('/:slug/products', async (c) => {
   const slug = c.req.param('slug');
   const page = Math.max(1, Number.parseInt(c.req.query('page') ?? '1', 10) || 1);
-  const perPage = Math.min(100, Math.max(1, Number.parseInt(c.req.query('per_page') ?? '20', 10) || 20));
+  const perPage = Math.min(
+    100,
+    Math.max(1, Number.parseInt(c.req.query('per_page') ?? '20', 10) || 20),
+  );
   const result = await getCategoryBySlugWithProducts(c.env.DB, slug, { page, per_page: perPage });
   if (!result) {
     return c.json(fail('NOT_FOUND', 'Category not found'), 404);
   }
   return c.json(
-    ok({ category: result.category, products: result.products }, { page, per_page: perPage, total: result.total }),
+    ok(
+      { category: result.category, products: result.products },
+      { page, per_page: perPage, total: result.total },
+    ),
   );
 });
 ```
@@ -2129,9 +2206,11 @@ app.route('/api/categories', categoriesRouter);
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/routes/categories.test.ts
 ```
+
 Expected: PASS — 3 tests.
 
 - [ ] **Step 6: Commit**
@@ -2146,6 +2225,7 @@ git commit -m "feat(api): wire /api/categories routes (list, bySlug with product
 ## Task 12: Settings route
 
 **Files:**
+
 - Create: `packages/api/src/routes/settings.ts`
 - Create: `packages/api/tests/routes/settings.test.ts`
 
@@ -2181,9 +2261,11 @@ describe('GET /api/settings/public', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/routes/settings.test.ts
 ```
+
 Expected: FAIL — route returns 404.
 
 - [ ] **Step 3: Implement `packages/api/src/routes/settings.ts`**
@@ -2205,6 +2287,7 @@ settingsRouter.get('/public', async (c) => {
 - [ ] **Step 4: Wire the router into `src/index.ts`**
 
 Add:
+
 ```typescript
 import { settingsRouter } from './routes/settings';
 // ...
@@ -2214,9 +2297,11 @@ app.route('/api/settings', settingsRouter);
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/routes/settings.test.ts
 ```
+
 Expected: PASS — 1 test.
 
 - [ ] **Step 6: Commit**
@@ -2231,6 +2316,7 @@ git commit -m "feat(api): wire /api/settings/public route"
 ## Task 13: Sitemap route
 
 **Files:**
+
 - Create: `packages/api/src/routes/sitemap.ts`
 - Create: `packages/api/tests/routes/sitemap.test.ts`
 
@@ -2284,9 +2370,11 @@ describe('GET /api/sitemap.xml', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/routes/sitemap.test.ts
 ```
+
 Expected: FAIL — route not defined.
 
 - [ ] **Step 3: Implement `packages/api/src/routes/sitemap.ts`**
@@ -2315,18 +2403,21 @@ sitemapRouter.get('/sitemap.xml', async (c) => {
 - [ ] **Step 4: Wire the router into `src/index.ts`**
 
 Add:
+
 ```typescript
 import { sitemapRouter } from './routes/sitemap';
 // ...
-app.route('/api', sitemapRouter);  // mounts /api/sitemap.xml
+app.route('/api', sitemapRouter); // mounts /api/sitemap.xml
 ```
 
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run in CI:
+
 ```bash
 pnpm --filter @skipper/api test tests/routes/sitemap.test.ts
 ```
+
 Expected: PASS — 2 tests.
 
 - [ ] **Step 6: Commit**
@@ -2341,14 +2432,17 @@ git commit -m "feat(api): wire /api/sitemap.xml route with cacheable XML respons
 ## Task 14: Deploy + smoke test suite
 
 **Files:**
+
 - Create: `scripts/smoke-test.sh`
 
 - [ ] **Step 1: Deploy to Cloudflare**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api exec wrangler deploy
 ```
+
 Expected output ends with: `https://skipper-api.ghwmelite.workers.dev` and `Current Version ID: ...`.
 
 - [ ] **Step 2: Create `scripts/smoke-test.sh`**
@@ -2404,10 +2498,12 @@ echo "PASS: $pass   FAIL: $fail"
 - [ ] **Step 3: Make it executable and run**
 
 Run:
+
 ```bash
 chmod +x scripts/smoke-test.sh
 ./scripts/smoke-test.sh
 ```
+
 Expected: all 11 checks PASS.
 
 - [ ] **Step 4: Commit**
@@ -2420,11 +2516,13 @@ git commit -m "test: add curl smoke-test suite for public read API"
 - [ ] **Step 5: Push and verify CI on PR / main**
 
 Run:
+
 ```bash
 git push -u origin feat/milestone-2a-read-api
 ```
 
 Then either create a PR or (for solo dev) merge:
+
 ```bash
 git checkout main
 git merge feat/milestone-2a-read-api
