@@ -116,3 +116,30 @@ export const categoryCreateSchema = z.object({
 export type CategoryCreateInput = z.infer<typeof categoryCreateSchema>;
 
 export const adminRoleSchema = z.enum(ADMIN_ROLES);
+
+const numericFromString = z
+  .union([z.string(), z.number()])
+  .transform((v) => (typeof v === 'string' ? Number(v) : v))
+  .refine((v) => !Number.isNaN(v), { message: 'must be a number' });
+
+const booleanFromString = z
+  .union([z.string(), z.boolean()])
+  .transform((v) => (typeof v === 'boolean' ? v : v === 'true' || v === '1'));
+
+export const productListQuerySchema = z.object({
+  page: numericFromString.pipe(z.number().int().positive()).default(1),
+  per_page: numericFromString.pipe(z.number().int().positive().max(100)).default(20),
+  sort: z.enum(['newest', 'price_asc', 'price_desc', 'name_asc', 'popular']).default('newest'),
+  category: z.string().min(1).max(100).optional(),
+  brand: z.string().min(1).max(100).optional(),
+  bulk_only: booleanFromString.default(false),
+  min_price: numericFromString.pipe(z.number().nonnegative()).optional(),
+  max_price: numericFromString.pipe(z.number().nonnegative()).optional(),
+});
+export type ProductListQuery = z.infer<typeof productListQuerySchema>;
+
+export const productSearchQuerySchema = z.object({
+  q: z.string().min(2).max(100),
+  limit: numericFromString.pipe(z.number().int().positive().max(50)).default(20),
+});
+export type ProductSearchQuery = z.infer<typeof productSearchQuerySchema>;

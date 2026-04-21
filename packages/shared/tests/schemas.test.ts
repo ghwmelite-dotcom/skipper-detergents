@@ -4,6 +4,8 @@ import {
   cartItemSchema,
   adminLoginSchema,
   productCreateSchema,
+  productListQuerySchema,
+  productSearchQuerySchema,
 } from '../src/schemas';
 
 describe('createOrderSchema', () => {
@@ -100,5 +102,61 @@ describe('productCreateSchema', () => {
 
   it('requires a slug', () => {
     expect(() => productCreateSchema.parse({ ...validProduct, slug: '' })).toThrow();
+  });
+});
+
+describe('productListQuerySchema', () => {
+  it('accepts an empty query (all defaults)', () => {
+    const parsed = productListQuerySchema.parse({});
+    expect(parsed.page).toBe(1);
+    expect(parsed.per_page).toBe(20);
+    expect(parsed.sort).toBe('newest');
+  });
+
+  it('coerces string query params to numbers', () => {
+    const parsed = productListQuerySchema.parse({ page: '2', per_page: '30' });
+    expect(parsed.page).toBe(2);
+    expect(parsed.per_page).toBe(30);
+  });
+
+  it('rejects per_page above max', () => {
+    expect(() => productListQuerySchema.parse({ per_page: '500' })).toThrow();
+  });
+
+  it('rejects unknown sort values', () => {
+    expect(() => productListQuerySchema.parse({ sort: 'trending' })).toThrow();
+  });
+
+  it('accepts filter fields', () => {
+    const parsed = productListQuerySchema.parse({
+      category: 'detergents-laundry',
+      brand: 'Skipper',
+      bulk_only: 'true',
+      min_price: '10',
+      max_price: '100',
+    });
+    expect(parsed.category).toBe('detergents-laundry');
+    expect(parsed.brand).toBe('Skipper');
+    expect(parsed.bulk_only).toBe(true);
+    expect(parsed.min_price).toBe(10);
+    expect(parsed.max_price).toBe(100);
+  });
+});
+
+describe('productSearchQuerySchema', () => {
+  it('requires q with at least 2 chars', () => {
+    expect(() => productSearchQuerySchema.parse({ q: '' })).toThrow();
+    expect(() => productSearchQuerySchema.parse({ q: 'a' })).toThrow();
+    expect(() => productSearchQuerySchema.parse({ q: 'ab' })).not.toThrow();
+  });
+
+  it('caps q at 100 chars', () => {
+    const long = 'a'.repeat(101);
+    expect(() => productSearchQuerySchema.parse({ q: long })).toThrow();
+  });
+
+  it('defaults limit to 20, max 50', () => {
+    expect(productSearchQuerySchema.parse({ q: 'omo' }).limit).toBe(20);
+    expect(() => productSearchQuerySchema.parse({ q: 'omo', limit: '200' })).toThrow();
   });
 });
