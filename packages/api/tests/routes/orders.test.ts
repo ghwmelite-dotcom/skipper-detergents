@@ -1,12 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { env } from 'cloudflare:test';
 import app from '../../src/index';
-import {
-  resetDatabase,
-  seedCategories,
-  seedProducts,
-  seedSetting,
-} from '../helpers/db-fixtures';
+import { resetDatabase, seedCategories, seedProducts, seedSetting } from '../helpers/db-fixtures';
 
 beforeEach(async () => {
   await resetDatabase(env.DB);
@@ -25,11 +20,7 @@ beforeEach(async () => {
   ]);
   await seedSetting(env.DB, 'delivery_fee_accra', '15');
   await seedSetting(env.DB, 'delivery_fee_other', '35');
-  await seedSetting(
-    env.DB,
-    'manual_payment_details',
-    'MTN MoMo: 024 000 0000 / GCB: 1234567890',
-  );
+  await seedSetting(env.DB, 'manual_payment_details', 'MTN MoMo: 024 000 0000 / GCB: 1234567890');
 });
 
 describe('POST /api/orders — paystack', () => {
@@ -88,7 +79,9 @@ describe('POST /api/orders — paystack', () => {
       },
       env,
     );
-    const body = await res.json<{ data: { order: { delivery_fee: number; total_amount: number } } }>();
+    const body = await res.json<{
+      data: { order: { delivery_fee: number; total_amount: number } };
+    }>();
     expect(body.data.order.delivery_fee).toBe(35);
     expect(body.data.order.total_amount).toBe(80);
   });

@@ -2,12 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { env } from 'cloudflare:test';
 import app from '../../src/index';
 import { hmacSha512Hex } from '../../src/utils/crypto';
-import {
-  resetDatabase,
-  seedCategories,
-  seedProducts,
-  seedSetting,
-} from '../helpers/db-fixtures';
+import { resetDatabase, seedCategories, seedProducts, seedSetting } from '../helpers/db-fixtures';
 
 beforeEach(async () => {
   await resetDatabase(env.DB);

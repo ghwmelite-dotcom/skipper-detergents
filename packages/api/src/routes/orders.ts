@@ -3,11 +3,7 @@ import { createOrderSchema, orderTrackingQuerySchema, uploadProofUrlSchema } fro
 import type { Env } from '../types/env';
 import { ok, fail } from '../utils/response';
 import { validateAndPriceCart } from '../services/pricing';
-import {
-  createOrder,
-  getOrderForCustomer,
-  updateOrderProof,
-} from '../services/orders';
+import { createOrder, getOrderForCustomer, updateOrderProof } from '../services/orders';
 import { getPublicSettings } from '../services/settings';
 
 export const ordersRouter = new Hono<{ Bindings: Env }>();
@@ -27,7 +23,11 @@ async function resolveDeliveryFee(
 ordersRouter.post('/', async (c) => {
   const body = createOrderSchema.parse(await c.req.json());
   const cart = await validateAndPriceCart(c.env.DB, body.items);
-  const delivery_fee = await resolveDeliveryFee(c.env.DB, body.delivery_method, body.delivery_region);
+  const delivery_fee = await resolveDeliveryFee(
+    c.env.DB,
+    body.delivery_method,
+    body.delivery_region,
+  );
   const ip = c.req.header('cf-connecting-ip') ?? undefined;
   const ua = c.req.header('user-agent') ?? undefined;
 
@@ -61,8 +61,7 @@ ordersRouter.post('/', async (c) => {
       next: {
         action: 'upload_proof' as const,
         manual_payment_details:
-          settings.manual_payment_details ??
-          'Bank / MoMo details will be provided after launch',
+          settings.manual_payment_details ?? 'Bank / MoMo details will be provided after launch',
         upload_endpoint: `/api/upload/payment-proof?order_id=${order.id}`,
       },
     }),
