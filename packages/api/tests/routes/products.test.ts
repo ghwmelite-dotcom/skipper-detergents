@@ -13,11 +13,35 @@ beforeEach(async () => {
   await resetDatabase(env.DB);
   await seedCategories(env.DB, [{ id: 'c1', name: 'D', slug: 'd', sort_order: 1 }]);
   await seedProducts(env.DB, [
-    { id: 'p1', name: 'Alpha', slug: 'alpha', description: 'first', category_id: 'c1', brand: 'S', unit_price: 10, is_featured: 1, is_bulk_available: 1, tags: 'alpha,first' },
-    { id: 'p2', name: 'Beta', slug: 'beta', description: 'second', category_id: 'c1', brand: 'A', unit_price: 20, tags: 'beta' },
+    {
+      id: 'p1',
+      name: 'Alpha',
+      slug: 'alpha',
+      description: 'first',
+      category_id: 'c1',
+      brand: 'S',
+      unit_price: 10,
+      is_featured: 1,
+      is_bulk_available: 1,
+      tags: 'alpha,first',
+    },
+    {
+      id: 'p2',
+      name: 'Beta',
+      slug: 'beta',
+      description: 'second',
+      category_id: 'c1',
+      brand: 'A',
+      unit_price: 20,
+      tags: 'beta',
+    },
   ]);
-  await seedImages(env.DB, [{ id: 'i1', product_id: 'p1', url: 'https://example/a.jpg', is_primary: 1 }]);
-  await seedBulkTiers(env.DB, [{ id: 'b1', product_id: 'p1', min_quantity: 10, max_quantity: null, unit_price: 8 }]);
+  await seedImages(env.DB, [
+    { id: 'i1', product_id: 'p1', url: 'https://example/a.jpg', is_primary: 1 },
+  ]);
+  await seedBulkTiers(env.DB, [
+    { id: 'b1', product_id: 'p1', min_quantity: 10, max_quantity: null, unit_price: 8 },
+  ]);
 });
 
 describe('GET /api/products', () => {

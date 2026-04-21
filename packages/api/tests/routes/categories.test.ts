@@ -10,7 +10,15 @@ beforeEach(async () => {
     { id: 'c2', name: 'Tissue', slug: 'tissue', sort_order: 2 },
   ]);
   await seedProducts(env.DB, [
-    { id: 'p1', name: 'A', slug: 'a', description: 'x', category_id: 'c1', brand: 'S', unit_price: 10 },
+    {
+      id: 'p1',
+      name: 'A',
+      slug: 'a',
+      description: 'x',
+      category_id: 'c1',
+      brand: 'S',
+      unit_price: 10,
+    },
   ]);
 });
 

@@ -7,7 +7,15 @@ beforeEach(async () => {
   await resetDatabase(env.DB);
   await seedCategories(env.DB, [{ id: 'c1', name: 'D', slug: 'detergents' }]);
   await seedProducts(env.DB, [
-    { id: 'p1', name: 'A', slug: 'skipper-2l', description: 'x', category_id: 'c1', brand: 'S', unit_price: 45 },
+    {
+      id: 'p1',
+      name: 'A',
+      slug: 'skipper-2l',
+      description: 'x',
+      category_id: 'c1',
+      brand: 'S',
+      unit_price: 45,
+    },
   ]);
 });
 
