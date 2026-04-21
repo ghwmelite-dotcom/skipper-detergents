@@ -28,9 +28,7 @@ describe('createOrderSchema', () => {
   });
 
   it('requires delivery_address when delivery_method is delivery', () => {
-    expect(() =>
-      createOrderSchema.parse({ ...validOrder, delivery_address: undefined }),
-    ).toThrow();
+    expect(() => createOrderSchema.parse({ ...validOrder, delivery_address: undefined })).toThrow();
   });
 
   it('does not require delivery_address for pickup', () => {
@@ -74,15 +72,11 @@ describe('cartItemSchema', () => {
 
 describe('adminLoginSchema', () => {
   it('accepts valid credentials', () => {
-    expect(() =>
-      adminLoginSchema.parse({ email: 'a@b.com', password: 'hunter2xx' }),
-    ).not.toThrow();
+    expect(() => adminLoginSchema.parse({ email: 'a@b.com', password: 'hunter2xx' })).not.toThrow();
   });
 
   it('rejects password shorter than 8 chars', () => {
-    expect(() =>
-      adminLoginSchema.parse({ email: 'a@b.com', password: 'short' }),
-    ).toThrow();
+    expect(() => adminLoginSchema.parse({ email: 'a@b.com', password: 'short' })).toThrow();
   });
 });
 
@@ -101,9 +95,7 @@ describe('productCreateSchema', () => {
   });
 
   it('rejects negative price', () => {
-    expect(() =>
-      productCreateSchema.parse({ ...validProduct, unit_price: -1 }),
-    ).toThrow();
+    expect(() => productCreateSchema.parse({ ...validProduct, unit_price: -1 })).toThrow();
   });
 
   it('requires a slug', () => {

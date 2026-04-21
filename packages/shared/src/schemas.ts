@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import {
-  DELIVERY_METHODS,
-  PAYMENT_METHODS,
-  ORDER_STATUSES,
-  ADMIN_ROLES,
-} from './constants';
+import { DELIVERY_METHODS, PAYMENT_METHODS, ORDER_STATUSES, ADMIN_ROLES } from './constants';
 
 export const cartItemSchema = z.object({
   product_id: z.string().min(1),
@@ -32,8 +27,7 @@ export const createOrderSchema = z
       data.delivery_method === 'pickup' ||
       (data.delivery_address && data.delivery_city && data.delivery_region),
     {
-      message:
-        'delivery_address, delivery_city, delivery_region are required for delivery orders',
+      message: 'delivery_address, delivery_city, delivery_region are required for delivery orders',
       path: ['delivery_address'],
     },
   );
@@ -85,10 +79,10 @@ export const bulkPricingTierSchema = z
     discount_percent: z.number().nonnegative().max(100).optional(),
     label: z.string().max(100).optional(),
   })
-  .refine(
-    (data) => data.max_quantity === null || data.max_quantity >= data.min_quantity,
-    { message: 'max_quantity must be >= min_quantity', path: ['max_quantity'] },
-  );
+  .refine((data) => data.max_quantity === null || data.max_quantity >= data.min_quantity, {
+    message: 'max_quantity must be >= min_quantity',
+    path: ['max_quantity'],
+  });
 export type BulkPricingTierInput = z.infer<typeof bulkPricingTierSchema>;
 
 export const updateOrderStatusSchema = z.object({

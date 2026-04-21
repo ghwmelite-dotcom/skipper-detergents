@@ -33,4 +33,6 @@ export const corsMiddleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
     c.res.headers.set('Access-Control-Allow-Credentials', 'true');
     c.res.headers.append('Vary', 'Origin');
   }
+
+  return;
 };

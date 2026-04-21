@@ -9,11 +9,7 @@ export function ok<T>(
   return body;
 }
 
-export function fail(
-  code: string,
-  message: string,
-  details?: unknown,
-): ApiResponse<never> {
+export function fail(code: string, message: string, details?: unknown): ApiResponse<never> {
   const body: ApiResponse<never> = {
     success: false,
     error: { code, message },
