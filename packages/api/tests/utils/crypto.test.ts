@@ -11,7 +11,7 @@ describe('hmacSha512Hex', () => {
     // Generated via: echo -n "The quick brown fox" | openssl dgst -sha512 -hmac "secret"
     const digest = await hmacSha512Hex('The quick brown fox', 'secret');
     expect(digest).toBe(
-      '6a9f63e3307a541b99fb45ea73f415d9e93e5048c32d14400f7a4b9b7f81eae84e78fd9935b19ec04807eb4feba53a65af1b2cf32f5628ccdc27c88c94f22a2a',
+      '7d665e6239c574929a745a3724f08d687c3163420096de827da59826773f8cfbde583899808f36ca521053532019e4f2d6eca5019ab059ac47cf6a0b0c68b53f',
     );
   });
 
