@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "jsx": "react-jsx",
+    "moduleResolution": "Bundler",
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@skipper/shared": ["../../packages/shared/src/index.ts"]
+    },
+    "noEmit": true
+  },
+  "include": ["src/**/*", "tests/**/*"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

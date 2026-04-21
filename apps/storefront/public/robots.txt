@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order/
+
+Sitemap: https://skipper-api.ghwmelite.workers.dev/api/sitemap.xml
