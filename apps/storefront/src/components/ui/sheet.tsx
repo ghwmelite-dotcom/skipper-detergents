@@ -26,12 +26,7 @@ export function Sheet({ open, onClose, side = 'right', children, title }: SheetP
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-    >
+    <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label={title}>
       <div
         className={cn(
           'absolute inset-0 bg-black/50 transition-opacity duration-200',
