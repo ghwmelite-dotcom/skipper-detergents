@@ -34,7 +34,7 @@ async function placePaystackOrder(): Promise<{ id: string; order_number: string;
         delivery_method: 'delivery',
         delivery_name: 'Ama',
         delivery_email: 'ama@example.com',
-        delivery_phone: '+233',
+        delivery_phone: '+233200000000',
         delivery_address: 'x',
         delivery_city: 'Accra',
         delivery_region: 'Greater Accra',

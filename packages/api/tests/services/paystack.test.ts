@@ -112,7 +112,7 @@ describe('markOrderPaidFromWebhook', () => {
       ) VALUES (
         'o1', 'SK-20260421-0001', 'paystack', ?, ?,
         90, 0, 15, 0, 105,
-        'delivery', 'Ama', 'ama@example.com', '+233'
+        'delivery', 'Ama', 'ama@example.com', '+233200000000'
       )`,
     )
       .bind(payment_status, reference)
