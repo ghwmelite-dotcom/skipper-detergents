@@ -6,6 +6,8 @@ import {
   productCreateSchema,
   productListQuerySchema,
   productSearchQuerySchema,
+  orderTrackingQuerySchema,
+  uploadProofUrlSchema,
 } from '../src/schemas';
 
 describe('createOrderSchema', () => {
@@ -158,5 +160,44 @@ describe('productSearchQuerySchema', () => {
   it('defaults limit to 20, max 50', () => {
     expect(productSearchQuerySchema.parse({ q: 'omo' }).limit).toBe(20);
     expect(() => productSearchQuerySchema.parse({ q: 'omo', limit: '200' })).toThrow();
+  });
+});
+
+describe('orderTrackingQuerySchema', () => {
+  it('accepts a valid tracking request', () => {
+    expect(() =>
+      orderTrackingQuerySchema.parse({ email: 'ama@example.com' }),
+    ).not.toThrow();
+  });
+
+  it('rejects invalid email', () => {
+    expect(() => orderTrackingQuerySchema.parse({ email: 'not-email' })).toThrow();
+  });
+
+  it('requires email', () => {
+    expect(() => orderTrackingQuerySchema.parse({})).toThrow();
+  });
+
+  it('lowercases the email', () => {
+    const parsed = orderTrackingQuerySchema.parse({ email: 'Ama@EXAMPLE.com' });
+    expect(parsed.email).toBe('ama@example.com');
+  });
+});
+
+describe('uploadProofUrlSchema', () => {
+  it('accepts a valid https url', () => {
+    expect(() =>
+      uploadProofUrlSchema.parse({ proof_url: 'https://proofs.example/abc.jpg' }),
+    ).not.toThrow();
+  });
+
+  it('rejects non-url strings', () => {
+    expect(() => uploadProofUrlSchema.parse({ proof_url: 'not a url' })).toThrow();
+  });
+
+  it('rejects http (http-only not allowed)', () => {
+    expect(() =>
+      uploadProofUrlSchema.parse({ proof_url: 'http://proofs.example/abc.jpg' }),
+    ).toThrow();
   });
 });

@@ -143,3 +143,21 @@ export const productSearchQuerySchema = z.object({
   limit: numericFromString.pipe(z.number().int().positive().max(50)).default(20),
 });
 export type ProductSearchQuery = z.infer<typeof productSearchQuerySchema>;
+
+export const orderTrackingQuerySchema = z.object({
+  email: z
+    .string()
+    .email()
+    .transform((s) => s.toLowerCase()),
+});
+export type OrderTrackingQuery = z.infer<typeof orderTrackingQuerySchema>;
+
+export const uploadProofUrlSchema = z.object({
+  proof_url: z
+    .string()
+    .url()
+    .refine((u) => u.startsWith('https://'), {
+      message: 'proof_url must use https',
+    }),
+});
+export type UploadProofUrl = z.infer<typeof uploadProofUrlSchema>;
