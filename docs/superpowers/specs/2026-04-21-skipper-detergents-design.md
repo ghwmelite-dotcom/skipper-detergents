@@ -19,29 +19,35 @@ A production-grade, SEO-first e-commerce platform for **Skipper Detergents**, a 
 ### 2.1 In scope for v1 (MVP + Bulk)
 
 **Public storefront**
+
 - Home, Shop (with category filtering, sorting, search), Product detail, Bulk ordering page, Cart, Checkout, Order confirmation, Order tracking, About, Contact, FAQ, 404, Privacy Policy
 
 **Admin CMS**
+
 - Login, Dashboard (KPIs + revenue chart), Products CRUD (with image upload, variants, bulk tiers), Categories CRUD, Orders list + detail (with manual payment verification), Settings, Activity log
 
 **Payments**
+
 - Paystack inline popup integration
 - Manual bank/mobile-money transfer with proof image upload and admin verification workflow
 - Webhook signature verification (HMAC-SHA-512)
 
 **Bulk ordering**
+
 - Tiered pricing model (min_qty / max_qty / unit_price per tier)
 - Dedicated `/bulk` page filtering bulk-available products
 - Cart-level auto-discount application based on quantity tiers
 - Server-side re-validation of tier pricing at checkout submit
 
 **Delivery**
+
 - Two methods: pickup (free) or delivery (zoned flat fees)
 - Two delivery zones to start: Greater Accra, Other Regions
 - Free-text tracking field for optional third-party dispatch (Bolt, Yango, local courier)
 - Customer-facing order tracking page keyed on order number + email
 
 **SEO (full implementation required)**
+
 - Dynamic meta tags (title, description, OG, Twitter cards) via `react-helmet-async`
 - JSON-LD structured data: `Product`, `BreadcrumbList`, `Organization`, `WebSite` with `SearchAction`
 - Canonical URLs on every public page
@@ -101,6 +107,7 @@ Three Cloudflare-hosted surfaces, one monorepo.
 ```
 
 **Rationale for two separate Pages deployments (not one SPA with route guards):**
+
 - Customers never download admin JS (bundle size, LCP)
 - Different CSP headers per surface
 - Admin can be locked to allowlisted IPs later without affecting storefront
@@ -127,26 +134,26 @@ skipper-detergents/
 
 ### 3.3 Tech stack (locked)
 
-| Layer | Choice | Notes |
-|---|---|---|
-| Frontend framework | React 18 + TypeScript (strict) | |
-| Build tool | Vite 5 | `vite-plugin-prerender` for SEO pages |
-| Styling | Tailwind CSS 3 + shadcn/ui | CSS variables for design tokens |
-| Routing | React Router v6 | File-less routing, lazy-loaded routes |
-| Client state | Zustand | Cart, UI |
-| Server state | TanStack Query v5 | API caching, revalidation |
-| API framework | Hono | Cloudflare Workers runtime |
-| Database | Cloudflare D1 (SQLite) | FTS5 virtual table for search |
-| Object storage | Cloudflare R2 | Product images, payment proofs |
-| Cache / sessions | Cloudflare KV | JWT blacklist, rate-limit counters |
-| Auth | Custom JWT via `jose` | Admin-only in v1 |
-| Password hashing | `@noble/hashes` scrypt | bcrypt unavailable in Workers |
-| Payments | Paystack API + inline popup (`@paystack/inline-js`) | |
-| Validation | Zod (client + server) | Shared schemas in `packages/shared` |
-| Forms | React Hook Form + Zod resolver | |
-| Charts | Recharts | Admin dashboard |
-| Monorepo | Turborepo + pnpm workspaces | |
-| CI/CD | GitHub Actions | Deploy via `wrangler` |
+| Layer              | Choice                                              | Notes                                 |
+| ------------------ | --------------------------------------------------- | ------------------------------------- |
+| Frontend framework | React 18 + TypeScript (strict)                      |                                       |
+| Build tool         | Vite 5                                              | `vite-plugin-prerender` for SEO pages |
+| Styling            | Tailwind CSS 3 + shadcn/ui                          | CSS variables for design tokens       |
+| Routing            | React Router v6                                     | File-less routing, lazy-loaded routes |
+| Client state       | Zustand                                             | Cart, UI                              |
+| Server state       | TanStack Query v5                                   | API caching, revalidation             |
+| API framework      | Hono                                                | Cloudflare Workers runtime            |
+| Database           | Cloudflare D1 (SQLite)                              | FTS5 virtual table for search         |
+| Object storage     | Cloudflare R2                                       | Product images, payment proofs        |
+| Cache / sessions   | Cloudflare KV                                       | JWT blacklist, rate-limit counters    |
+| Auth               | Custom JWT via `jose`                               | Admin-only in v1                      |
+| Password hashing   | `@noble/hashes` scrypt                              | bcrypt unavailable in Workers         |
+| Payments           | Paystack API + inline popup (`@paystack/inline-js`) |                                       |
+| Validation         | Zod (client + server)                               | Shared schemas in `packages/shared`   |
+| Forms              | React Hook Form + Zod resolver                      |                                       |
+| Charts             | Recharts                                            | Admin dashboard                       |
+| Monorepo           | Turborepo + pnpm workspaces                         |                                       |
+| CI/CD              | GitHub Actions                                      | Deploy via `wrangler`                 |
 
 ### 3.4 SEO approach decision
 
@@ -168,20 +175,20 @@ Cart, Checkout, Order Tracking, and Order Confirmation are **not** prerendered (
 
 ### 4.1 MVP tables (all required at v1 launch)
 
-| Table | Purpose |
-|---|---|
-| `categories` | Product taxonomy, optional `parent_id` for nesting |
-| `products` | Core catalog; includes `brand`, `is_bulk_available`, `is_featured`, SEO fields |
-| `product_images` | Multiple images per product; `is_primary` flag; URLs to R2 |
-| `product_variants` | Size/scent variants; each has own SKU, stock, `price_adjustment` |
-| `bulk_pricing_tiers` | Per-product quantity tiers: `min_quantity`, `max_quantity`, `unit_price` |
-| `customers` | Created on first guest checkout, keyed on email; accumulates `total_orders`, `total_spent` |
-| `orders` | Full order with payment state, delivery snapshot, tracking |
-| `order_items` | Line items; price + bulk-tier snapshot at time of order |
-| `admin_users` | Single admin in v1; schema retains `role` column for phase 2 |
-| `activity_log` | Audit trail of every admin action (CRUD, status changes, payment confirmations, logins) |
-| `store_settings` | Key-value config (store info, fees, bank/momo details, Paystack keys) |
-| `delivery_zones` | Region set → fee + estimated days |
+| Table                | Purpose                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| `categories`         | Product taxonomy, optional `parent_id` for nesting                                         |
+| `products`           | Core catalog; includes `brand`, `is_bulk_available`, `is_featured`, SEO fields             |
+| `product_images`     | Multiple images per product; `is_primary` flag; URLs to R2                                 |
+| `product_variants`   | Size/scent variants; each has own SKU, stock, `price_adjustment`                           |
+| `bulk_pricing_tiers` | Per-product quantity tiers: `min_quantity`, `max_quantity`, `unit_price`                   |
+| `customers`          | Created on first guest checkout, keyed on email; accumulates `total_orders`, `total_spent` |
+| `orders`             | Full order with payment state, delivery snapshot, tracking                                 |
+| `order_items`        | Line items; price + bulk-tier snapshot at time of order                                    |
+| `admin_users`        | Single admin in v1; schema retains `role` column for phase 2                               |
+| `activity_log`       | Audit trail of every admin action (CRUD, status changes, payment confirmations, logins)    |
+| `store_settings`     | Key-value config (store info, fees, bank/momo details, Paystack keys)                      |
+| `delivery_zones`     | Region set → fee + estimated days                                                          |
 
 ### 4.2 Tables deferred to phase 2
 
@@ -346,23 +353,23 @@ One admin user seeded from env vars (`ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`) durin
 ### 8.1 Color tokens
 
 ```css
---brand-navy:      #0B2545;   /* primary — headers, CTAs, nav */
---brand-navy-dark: #091C38;   /* hover, active CTA */
---brand-cyan:      #00B4D8;   /* secondary — links, badges, accents */
---brand-cyan-deep: #0094B3;   /* cyan hover */
---brand-red:       #E63946;   /* urgency — sale tags, errors in warning contexts */
---brand-sand:      #F4EDE0;   /* warm surface, image backgrounds */
---brand-ivory:     #FCFBF7;   /* page background */
+--brand-navy: #0b2545; /* primary — headers, CTAs, nav */
+--brand-navy-dark: #091c38; /* hover, active CTA */
+--brand-cyan: #00b4d8; /* secondary — links, badges, accents */
+--brand-cyan-deep: #0094b3; /* cyan hover */
+--brand-red: #e63946; /* urgency — sale tags, errors in warning contexts */
+--brand-sand: #f4ede0; /* warm surface, image backgrounds */
+--brand-ivory: #fcfbf7; /* page background */
 
---neutral-900:     #0F172A;   /* body text on light */
---neutral-700:     #334155;   /* secondary text */
---neutral-500:     #64748B;   /* muted text */
---neutral-300:     #CBD5E1;   /* borders */
---neutral-100:     #F1F5F9;   /* dividers, subtle surfaces */
+--neutral-900: #0f172a; /* body text on light */
+--neutral-700: #334155; /* secondary text */
+--neutral-500: #64748b; /* muted text */
+--neutral-300: #cbd5e1; /* borders */
+--neutral-100: #f1f5f9; /* dividers, subtle surfaces */
 
---success:         #10B981;
---warning:         #F59E0B;
---error:           #DC2626;
+--success: #10b981;
+--warning: #f59e0b;
+--error: #dc2626;
 ```
 
 ### 8.2 Typography
@@ -388,14 +395,14 @@ One admin user seeded from env vars (`ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`) durin
 
 Each milestone is independently demoable and testable. A separate implementation plan is written for each; subsequent milestones can be re-prioritized after any one ships.
 
-| # | Milestone | Output |
-|---|---|---|
-| 1 | **Foundation** | Monorepo scaffolded, `packages/shared` (types + Zod), `packages/api` Hono skeleton, D1 schema + seed, R2 + KV bindings, `wrangler.toml`, GitHub Actions deploy pipeline, initial commit |
-| 2 | **Public API** | All public endpoints (products, categories, search, checkout, Paystack init + webhook, manual-payment proof upload, order tracking, sitemap). Tested with Postman/curl before UI exists. |
-| 3 | **Storefront shell** | Vite + React app, layout (Header/Footer/MobileNav), routing, SEO components (`SEOHead`, `JsonLd`, `Breadcrumbs`), Zustand cart, TanStack Query, error boundaries, skeleton loaders |
-| 4 | **Storefront pages** | Home, Shop + category pages, Product detail (bulk tier table + image gallery + variants), Bulk page, Cart, Checkout (multi-step), Order confirmation, Order tracking, static pages, 404 |
-| 5 | **Admin CMS** | Login + JWT flow, Dashboard (KPIs + revenue chart), Products CRUD (image drag-drop to R2, variants, bulk tiers, SEO fields), Categories, Orders list + detail + manual-payment verification, Settings, Activity log |
-| 6 | **Launch hardening** | Lighthouse pass, prerendering wired, CSP headers, transactional email (stub until provider chosen), DNS, production secrets, test orders end-to-end |
+| #   | Milestone            | Output                                                                                                                                                                                                              |
+| --- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Foundation**       | Monorepo scaffolded, `packages/shared` (types + Zod), `packages/api` Hono skeleton, D1 schema + seed, R2 + KV bindings, `wrangler.toml`, GitHub Actions deploy pipeline, initial commit                             |
+| 2   | **Public API**       | All public endpoints (products, categories, search, checkout, Paystack init + webhook, manual-payment proof upload, order tracking, sitemap). Tested with Postman/curl before UI exists.                            |
+| 3   | **Storefront shell** | Vite + React app, layout (Header/Footer/MobileNav), routing, SEO components (`SEOHead`, `JsonLd`, `Breadcrumbs`), Zustand cart, TanStack Query, error boundaries, skeleton loaders                                  |
+| 4   | **Storefront pages** | Home, Shop + category pages, Product detail (bulk tier table + image gallery + variants), Bulk page, Cart, Checkout (multi-step), Order confirmation, Order tracking, static pages, 404                             |
+| 5   | **Admin CMS**        | Login + JWT flow, Dashboard (KPIs + revenue chart), Products CRUD (image drag-drop to R2, variants, bulk tiers, SEO fields), Categories, Orders list + detail + manual-payment verification, Settings, Activity log |
+| 6   | **Launch hardening** | Lighthouse pass, prerendering wired, CSP headers, transactional email (stub until provider chosen), DNS, production secrets, test orders end-to-end                                                                 |
 
 ---
 

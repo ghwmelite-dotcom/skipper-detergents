@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.wrangler/
+.turbo/
+coverage/
+.superpowers/
+pnpm-lock.yaml

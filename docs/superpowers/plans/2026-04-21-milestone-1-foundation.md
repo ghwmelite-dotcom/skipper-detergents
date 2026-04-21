@@ -17,6 +17,7 @@
 Files created in this milestone, grouped by responsibility:
 
 **Root / monorepo**
+
 - `package.json` — root scripts, devDependencies (turbo, typescript, prettier, eslint)
 - `pnpm-workspace.yaml` — declares `packages/*`
 - `turbo.json` — pipeline: lint, typecheck, test, build
@@ -28,6 +29,7 @@ Files created in this milestone, grouped by responsibility:
 - `CLAUDE.md` — project-level Claude Code instructions
 
 **packages/shared** — pure TS library, zero Cloudflare deps, reused by every surface
+
 - `package.json`
 - `tsconfig.json` (extends root)
 - `vitest.config.ts`
@@ -41,6 +43,7 @@ Files created in this milestone, grouped by responsibility:
 - `tests/utils.test.ts`
 
 **packages/api** — Hono on Cloudflare Workers
+
 - `package.json`
 - `tsconfig.json` (extends root)
 - `wrangler.toml` — bindings for D1, R2 (x2), KV (x3), env vars
@@ -58,6 +61,7 @@ Files created in this milestone, grouped by responsibility:
 - `tests/response.test.ts`
 
 **CI**
+
 - `.github/workflows/ci.yml` — lint + typecheck + test on every push
 - `.github/workflows/deploy.yml` — wrangler deploy on main (wired but dormant until secrets configured)
 
@@ -85,6 +89,7 @@ Cloudflare **resource creation** (D1 database, R2 buckets, KV namespaces) is Tas
 ## Task 1: Initialize monorepo root
 
 **Files:**
+
 - Create: `package.json`
 - Create: `pnpm-workspace.yaml`
 - Create: `turbo.json`
@@ -94,8 +99,8 @@ Cloudflare **resource creation** (D1 database, R2 buckets, KV namespaces) is Tas
 
 ```yaml
 packages:
-  - "packages/*"
-  - "apps/*"
+  - 'packages/*'
+  - 'apps/*'
 ```
 
 - [ ] **Step 2: Create root `package.json`**
@@ -188,9 +193,11 @@ packages:
 - [ ] **Step 5: Install dependencies and verify**
 
 Run:
+
 ```bash
 pnpm install
 ```
+
 Expected: installs dev deps; creates `pnpm-lock.yaml`; no workspace packages yet (normal warning).
 
 - [ ] **Step 6: Commit**
@@ -205,6 +212,7 @@ git commit -m "chore: initialize pnpm workspace + turborepo"
 ## Task 2: Tooling configs + project CLAUDE.md + README
 
 **Files:**
+
 - Create: `.prettierrc`
 - Create: `.eslintrc.cjs`
 - Create: `CLAUDE.md`
@@ -236,10 +244,7 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint'],
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-  ],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   rules: {
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-explicit-any': 'error',
@@ -252,6 +257,7 @@ module.exports = {
 - [ ] **Step 3: Install ESLint TypeScript plugins**
 
 Run:
+
 ```bash
 pnpm add -D -w @typescript-eslint/parser @typescript-eslint/eslint-plugin
 ```
@@ -262,6 +268,7 @@ pnpm add -D -w @typescript-eslint/parser @typescript-eslint/eslint-plugin
 # Skipper Detergents — Project Instructions
 
 ## Stack
+
 - Monorepo: pnpm workspaces + Turborepo
 - `packages/shared` — TS types + Zod schemas (framework-agnostic)
 - `packages/api` — Hono on Cloudflare Workers, D1 + R2 + KV bindings
@@ -269,6 +276,7 @@ pnpm add -D -w @typescript-eslint/parser @typescript-eslint/eslint-plugin
 - `apps/admin` — React SPA (milestone 5, Vite)
 
 ## Commands
+
 - `pnpm dev` — run all dev servers in parallel
 - `pnpm test` — run all tests
 - `pnpm typecheck` — strict TS check across the monorepo
@@ -277,6 +285,7 @@ pnpm add -D -w @typescript-eslint/parser @typescript-eslint/eslint-plugin
 - `wrangler d1 execute skipper-detergents-db --local --file=packages/api/src/db/schema.sql` — rebuild local DB
 
 ## Conventions
+
 - TypeScript strict mode everywhere; zero `any` without justification comment
 - All D1 queries use `.bind()` — never string-concatenate SQL
 - All API request bodies validated with Zod from `packages/shared`
@@ -284,29 +293,31 @@ pnpm add -D -w @typescript-eslint/parser @typescript-eslint/eslint-plugin
 - Commits: conventional commits (feat/fix/chore/docs/test/refactor)
 
 ## Spec
+
 Design spec: `docs/superpowers/specs/2026-04-21-skipper-detergents-design.md`
 
 ## Current Milestone
+
 See `docs/superpowers/plans/` for the active milestone plan.
 ```
 
 - [ ] **Step 5: Create `README.md`**
 
-```markdown
+````markdown
 # Skipper Detergents
 
 Production e-commerce platform for Skipper Detergents — a Ghanaian household-essentials brand selling detergents, toilet rolls, tissue, paper towels, and bathroom accessories. Supports single and bulk ordering with Paystack and manual-transfer checkout.
 
 ## Stack
 
-| Layer | Tech |
-|---|---|
-| Monorepo | pnpm + Turborepo |
-| API | Hono on Cloudflare Workers |
-| Database | Cloudflare D1 (SQLite) |
-| Storage | Cloudflare R2 |
-| Cache / sessions | Cloudflare KV |
-| Shared types | TypeScript + Zod |
+| Layer                       | Tech                                   |
+| --------------------------- | -------------------------------------- |
+| Monorepo                    | pnpm + Turborepo                       |
+| API                         | Hono on Cloudflare Workers             |
+| Database                    | Cloudflare D1 (SQLite)                 |
+| Storage                     | Cloudflare R2                          |
+| Cache / sessions            | Cloudflare KV                          |
+| Shared types                | TypeScript + Zod                       |
 | Frontend (later milestones) | React 18 + Vite + Tailwind + shadcn/ui |
 
 ## Quick Start
@@ -324,6 +335,7 @@ pnpm dev
 # Health check
 curl http://localhost:8787/health
 ```
+````
 
 ## Project Structure
 
@@ -338,16 +350,19 @@ curl http://localhost:8787/health
 ```
 
 ## Documentation
+
 - Design spec: `docs/superpowers/specs/2026-04-21-skipper-detergents-design.md`
 - Current plan: `docs/superpowers/plans/2026-04-21-milestone-1-foundation.md`
-```
+
+````
 
 - [ ] **Step 6: Verify lint config loads**
 
 Run:
 ```bash
 pnpm exec eslint --print-config package.json > /dev/null && echo "ESLint config OK"
-```
+````
+
 Expected: prints "ESLint config OK".
 
 - [ ] **Step 7: Commit**
@@ -362,6 +377,7 @@ git commit -m "chore: add prettier, eslint, project CLAUDE.md, README"
 ## Task 3: Scaffold `packages/shared`
 
 **Files:**
+
 - Create: `packages/shared/package.json`
 - Create: `packages/shared/tsconfig.json`
 - Create: `packages/shared/vitest.config.ts`
@@ -432,10 +448,12 @@ export {};
 - [ ] **Step 5: Install and verify**
 
 Run:
+
 ```bash
 pnpm install
 pnpm --filter @skipper/shared typecheck
 ```
+
 Expected: installs `zod` and `vitest`; typecheck passes with no output.
 
 - [ ] **Step 6: Commit**
@@ -450,6 +468,7 @@ git commit -m "feat(shared): scaffold packages/shared with zod + vitest"
 ## Task 4: `packages/shared` — constants
 
 **Files:**
+
 - Create: `packages/shared/src/constants.ts`
 - Create: `packages/shared/tests/constants.test.ts`
 - Modify: `packages/shared/src/index.ts`
@@ -508,9 +527,11 @@ describe('constants', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared test
 ```
+
 Expected: FAIL with "Cannot find module '../src/constants'".
 
 - [ ] **Step 3: Implement `packages/shared/src/constants.ts`**
@@ -552,9 +573,11 @@ export * from './constants';
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared test
 ```
+
 Expected: PASS — 6 tests.
 
 - [ ] **Step 6: Commit**
@@ -569,6 +592,7 @@ git commit -m "feat(shared): add domain constants (statuses, methods, roles)"
 ## Task 5: `packages/shared` — entity types
 
 **Files:**
+
 - Create: `packages/shared/src/types.ts`
 - Modify: `packages/shared/src/index.ts`
 
@@ -811,9 +835,11 @@ export * from './types';
 - [ ] **Step 3: Verify typecheck passes**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared typecheck
 ```
+
 Expected: passes with no output.
 
 - [ ] **Step 4: Commit**
@@ -828,6 +854,7 @@ git commit -m "feat(shared): add entity types for catalog + orders + admin"
 ## Task 6: `packages/shared` — Zod schemas
 
 **Files:**
+
 - Create: `packages/shared/src/schemas.ts`
 - Create: `packages/shared/tests/schemas.test.ts`
 - Modify: `packages/shared/src/index.ts`
@@ -847,9 +874,7 @@ import {
 
 describe('createOrderSchema', () => {
   const validOrder = {
-    items: [
-      { product_id: 'abc123', quantity: 2 },
-    ],
+    items: [{ product_id: 'abc123', quantity: 2 }],
     delivery_method: 'delivery' as const,
     delivery_name: 'Ama Owusu',
     delivery_email: 'ama@example.com',
@@ -865,15 +890,11 @@ describe('createOrderSchema', () => {
   });
 
   it('requires at least one item', () => {
-    expect(() =>
-      createOrderSchema.parse({ ...validOrder, items: [] }),
-    ).toThrow();
+    expect(() => createOrderSchema.parse({ ...validOrder, items: [] })).toThrow();
   });
 
   it('requires delivery_address when delivery_method is delivery', () => {
-    expect(() =>
-      createOrderSchema.parse({ ...validOrder, delivery_address: undefined }),
-    ).toThrow();
+    expect(() => createOrderSchema.parse({ ...validOrder, delivery_address: undefined })).toThrow();
   });
 
   it('does not require delivery_address for pickup', () => {
@@ -905,9 +926,7 @@ describe('createOrderSchema', () => {
 
 describe('cartItemSchema', () => {
   it('accepts a valid cart item', () => {
-    expect(() =>
-      cartItemSchema.parse({ product_id: 'x', quantity: 1 }),
-    ).not.toThrow();
+    expect(() => cartItemSchema.parse({ product_id: 'x', quantity: 1 })).not.toThrow();
   });
 
   it('accepts optional variant_id', () => {
@@ -919,15 +938,11 @@ describe('cartItemSchema', () => {
 
 describe('adminLoginSchema', () => {
   it('accepts valid credentials', () => {
-    expect(() =>
-      adminLoginSchema.parse({ email: 'a@b.com', password: 'hunter2xx' }),
-    ).not.toThrow();
+    expect(() => adminLoginSchema.parse({ email: 'a@b.com', password: 'hunter2xx' })).not.toThrow();
   });
 
   it('rejects password shorter than 8 chars', () => {
-    expect(() =>
-      adminLoginSchema.parse({ email: 'a@b.com', password: 'short' }),
-    ).toThrow();
+    expect(() => adminLoginSchema.parse({ email: 'a@b.com', password: 'short' })).toThrow();
   });
 });
 
@@ -946,15 +961,11 @@ describe('productCreateSchema', () => {
   });
 
   it('rejects negative price', () => {
-    expect(() =>
-      productCreateSchema.parse({ ...validProduct, unit_price: -1 }),
-    ).toThrow();
+    expect(() => productCreateSchema.parse({ ...validProduct, unit_price: -1 })).toThrow();
   });
 
   it('requires a slug', () => {
-    expect(() =>
-      productCreateSchema.parse({ ...validProduct, slug: '' }),
-    ).toThrow();
+    expect(() => productCreateSchema.parse({ ...validProduct, slug: '' })).toThrow();
   });
 });
 ```
@@ -962,21 +973,18 @@ describe('productCreateSchema', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared test
 ```
+
 Expected: FAIL with "Cannot find module '../src/schemas'".
 
 - [ ] **Step 3: Implement `packages/shared/src/schemas.ts`**
 
 ```typescript
 import { z } from 'zod';
-import {
-  DELIVERY_METHODS,
-  PAYMENT_METHODS,
-  ORDER_STATUSES,
-  ADMIN_ROLES,
-} from './constants';
+import { DELIVERY_METHODS, PAYMENT_METHODS, ORDER_STATUSES, ADMIN_ROLES } from './constants';
 
 export const cartItemSchema = z.object({
   product_id: z.string().min(1),
@@ -1018,7 +1026,11 @@ export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 
 export const productCreateSchema = z.object({
   name: z.string().min(1).max(200),
-  slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(/^[a-z0-9-]+$/),
   description: z.string().min(1),
   short_description: z.string().max(500).optional(),
   category_id: z.string().min(1),
@@ -1052,10 +1064,10 @@ export const bulkPricingTierSchema = z
     discount_percent: z.number().nonnegative().max(100).optional(),
     label: z.string().max(100).optional(),
   })
-  .refine(
-    (data) => data.max_quantity === null || data.max_quantity >= data.min_quantity,
-    { message: 'max_quantity must be >= min_quantity', path: ['max_quantity'] },
-  );
+  .refine((data) => data.max_quantity === null || data.max_quantity >= data.min_quantity, {
+    message: 'max_quantity must be >= min_quantity',
+    path: ['max_quantity'],
+  });
 export type BulkPricingTierInput = z.infer<typeof bulkPricingTierSchema>;
 
 export const updateOrderStatusSchema = z.object({
@@ -1073,7 +1085,11 @@ export type ConfirmManualPaymentInput = z.infer<typeof confirmManualPaymentSchem
 
 export const categoryCreateSchema = z.object({
   name: z.string().min(1).max(200),
-  slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(/^[a-z0-9-]+$/),
   description: z.string().optional(),
   image_url: z.string().url().optional(),
   parent_id: z.string().optional(),
@@ -1098,9 +1114,11 @@ export * from './schemas';
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared test
 ```
+
 Expected: PASS — all schema tests green.
 
 - [ ] **Step 6: Commit**
@@ -1115,6 +1133,7 @@ git commit -m "feat(shared): add zod schemas for orders, products, auth, admin"
 ## Task 7: `packages/shared` — utility helpers
 
 **Files:**
+
 - Create: `packages/shared/src/utils.ts`
 - Create: `packages/shared/tests/utils.test.ts`
 - Modify: `packages/shared/src/index.ts`
@@ -1125,12 +1144,7 @@ Create `packages/shared/tests/utils.test.ts`:
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import {
-  formatCurrency,
-  slugify,
-  generateOrderNumber,
-  resolveBulkPrice,
-} from '../src/utils';
+import { formatCurrency, slugify, generateOrderNumber, resolveBulkPrice } from '../src/utils';
 import type { BulkPricingTier } from '../src/types';
 
 describe('formatCurrency', () => {
@@ -1157,7 +1171,7 @@ describe('slugify', () => {
   });
 
   it('strips punctuation', () => {
-    expect(slugify("Bounty 6-Roll (Kitchen)")).toBe('bounty-6-roll-kitchen');
+    expect(slugify('Bounty 6-Roll (Kitchen)')).toBe('bounty-6-roll-kitchen');
   });
 
   it('collapses repeated hyphens', () => {
@@ -1252,9 +1266,11 @@ describe('resolveBulkPrice', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared test
 ```
+
 Expected: FAIL with "Cannot find module '../src/utils'".
 
 - [ ] **Step 3: Implement `packages/shared/src/utils.ts`**
@@ -1322,9 +1338,11 @@ export * from './utils';
 - [ ] **Step 5: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/shared test
 ```
+
 Expected: PASS — all util tests green, all previous tests still green.
 
 - [ ] **Step 6: Commit**
@@ -1339,6 +1357,7 @@ git commit -m "feat(shared): add formatCurrency, slugify, order number, bulk-pri
 ## Task 8: Scaffold `packages/api`
 
 **Files:**
+
 - Create: `packages/api/package.json`
 - Create: `packages/api/tsconfig.json`
 - Create: `packages/api/wrangler.toml`
@@ -1500,10 +1519,12 @@ export default app;
 - [ ] **Step 7: Install and verify typecheck**
 
 Run:
+
 ```bash
 pnpm install
 pnpm --filter @skipper/api typecheck
 ```
+
 Expected: installs deps; typecheck passes.
 
 - [ ] **Step 8: Commit**
@@ -1518,6 +1539,7 @@ git commit -m "feat(api): scaffold Hono worker with D1/R2/KV bindings"
 ## Task 9: API response envelope
 
 **Files:**
+
 - Create: `packages/api/src/utils/response.ts`
 - Create: `packages/api/tests/response.test.ts`
 
@@ -1569,9 +1591,11 @@ describe('response envelope', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test
 ```
+
 Expected: FAIL with "Cannot find module '../src/utils/response'".
 
 - [ ] **Step 3: Implement `packages/api/src/utils/response.ts`**
@@ -1588,11 +1612,7 @@ export function ok<T>(
   return body;
 }
 
-export function fail(
-  code: string,
-  message: string,
-  details?: unknown,
-): ApiResponse<never> {
+export function fail(code: string, message: string, details?: unknown): ApiResponse<never> {
   const body: ApiResponse<never> = {
     success: false,
     error: { code, message },
@@ -1607,9 +1627,11 @@ export function fail(
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test
 ```
+
 Expected: PASS — 4 tests.
 
 - [ ] **Step 5: Commit**
@@ -1624,6 +1646,7 @@ git commit -m "feat(api): add ok/fail response envelope helpers"
 ## Task 10: CORS middleware
 
 **Files:**
+
 - Create: `packages/api/src/middleware/cors.ts`
 - Create: `packages/api/tests/middleware.test.ts`
 
@@ -1657,9 +1680,7 @@ describe('corsMiddleware', () => {
       { method: 'GET', headers: { Origin: 'https://storefront.example' } },
       env,
     );
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
-      'https://storefront.example',
-    );
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('https://storefront.example');
   });
 
   it('allows requests from ADMIN_ORIGIN', async () => {
@@ -1669,9 +1690,7 @@ describe('corsMiddleware', () => {
       { method: 'GET', headers: { Origin: 'https://admin.example' } },
       env,
     );
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
-      'https://admin.example',
-    );
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('https://admin.example');
   });
 
   it('rejects other origins (no ACAO header echoed)', async () => {
@@ -1706,9 +1725,11 @@ describe('corsMiddleware', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test
 ```
+
 Expected: FAIL with "Cannot find module '../src/middleware/cors'".
 
 - [ ] **Step 3: Implement `packages/api/src/middleware/cors.ts`**
@@ -1755,9 +1776,11 @@ export const corsMiddleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test
 ```
+
 Expected: PASS — 4 CORS tests plus earlier response tests.
 
 - [ ] **Step 5: Commit**
@@ -1772,6 +1795,7 @@ git commit -m "feat(api): add CORS middleware with env-driven allowlist"
 ## Task 11: Error handler
 
 **Files:**
+
 - Create: `packages/api/src/middleware/errorHandler.ts`
 - Modify: `packages/api/tests/middleware.test.ts`
 
@@ -1843,9 +1867,11 @@ describe('errorHandler', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test
 ```
+
 Expected: FAIL with "Cannot find module '../src/middleware/errorHandler'".
 
 - [ ] **Step 3: Implement `packages/api/src/middleware/errorHandler.ts`**
@@ -1870,10 +1896,7 @@ export const errorHandler: ErrorHandler<{ Bindings: Env }> = (err, c) => {
   }
 
   if (err instanceof HTTPException) {
-    return c.json(
-      fail(statusToCode(err.status), err.message || 'Request failed'),
-      err.status,
-    );
+    return c.json(fail(statusToCode(err.status), err.message || 'Request failed'), err.status);
   }
 
   console.error('Unhandled error:', err);
@@ -1905,9 +1928,11 @@ function statusToCode(status: number): string {
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test
 ```
+
 Expected: PASS — all middleware tests green.
 
 - [ ] **Step 5: Commit**
@@ -1922,6 +1947,7 @@ git commit -m "feat(api): add error handler for Zod + HTTPException + unknown"
 ## Task 12: Hono app entry + `/health` route
 
 **Files:**
+
 - Modify: `packages/api/src/index.ts`
 - Create: `packages/api/tests/health.test.ts`
 
@@ -1980,9 +2006,11 @@ describe('GET /unknown-route', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test
 ```
+
 Expected: FAIL — `/health` returns 404 (route not defined yet), and the root route returns "Skipper API" so `GET /` passes but health and not-found envelope tests fail.
 
 - [ ] **Step 3: Update `packages/api/src/index.ts`**
@@ -2019,9 +2047,11 @@ export default app;
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api test
 ```
+
 Expected: PASS — all health, middleware, response tests green.
 
 - [ ] **Step 5: Commit**
@@ -2036,6 +2066,7 @@ git commit -m "feat(api): wire middleware, add /health route and 404 handler"
 ## Task 13: D1 schema
 
 **Files:**
+
 - Create: `packages/api/src/db/schema.sql`
 
 No automated test in this task — schema is verified when we run it against a local D1 in Task 17. We TDD the queries that consume it in milestone 2.
@@ -2354,6 +2385,7 @@ git commit -m "feat(api): add D1 MVP schema with FTS5 + order-number sequence"
 ## Task 14: D1 seed data
 
 **Files:**
+
 - Create: `packages/api/src/db/seed.sql`
 
 - [ ] **Step 1: Create `packages/api/src/db/seed.sql`**
@@ -2499,6 +2531,7 @@ git commit -m "feat(api): add seed data (6 categories, 12 products, bulk tiers, 
 ## Task 15: Migration 0001_initial
 
 **Files:**
+
 - Create: `packages/api/src/db/migrations/0001_initial.sql`
 
 - [ ] **Step 1: Copy schema into first migration**
@@ -2506,6 +2539,7 @@ git commit -m "feat(api): add seed data (6 categories, 12 products, bulk tiers, 
 Create `packages/api/src/db/migrations/0001_initial.sql` as a byte-identical copy of `packages/api/src/db/schema.sql`.
 
 Run:
+
 ```bash
 cp "packages/api/src/db/schema.sql" "packages/api/src/db/migrations/0001_initial.sql"
 ```
@@ -2526,30 +2560,37 @@ git commit -m "feat(api): add migration 0001_initial mirroring schema"
 - [ ] **Step 1: Run typecheck at the root**
 
 Run:
+
 ```bash
 pnpm typecheck
 ```
+
 Expected: both `@skipper/shared` and `@skipper/api` typecheck cleanly.
 
 - [ ] **Step 2: Run tests at the root**
 
 Run:
+
 ```bash
 pnpm test
 ```
+
 Expected: all tests pass in `@skipper/shared` and `@skipper/api`.
 
 - [ ] **Step 3: Run lint at the root**
 
 Run:
+
 ```bash
 pnpm lint
 ```
+
 Expected: zero lint errors.
 
 - [ ] **Step 4: If any of the above fail, fix inline before moving on.**
 
 Typical issues and fixes:
+
 - Missing `workspace:*` resolution in `@skipper/api` — run `pnpm install` from the repo root.
 - TypeScript can't find `@skipper/shared` — confirm `paths` in `packages/api/tsconfig.json` points to `../shared/src/index.ts`.
 - Vitest can't find D1 in tests — confirm `wrangler.toml` is referenced in `packages/api/vitest.config.ts`.
@@ -2559,6 +2600,7 @@ Typical issues and fixes:
 ## Task 17: Create Cloudflare resources + wire real IDs
 
 **Files:**
+
 - Modify: `packages/api/wrangler.toml`
 
 **Note:** This task requires interactive `wrangler login` and produces live Cloudflare resources. Run each command yourself and paste the returned IDs into `wrangler.toml`.
@@ -2566,41 +2608,51 @@ Typical issues and fixes:
 - [ ] **Step 1: Confirm you are logged in**
 
 Run:
+
 ```bash
 wrangler whoami
 ```
+
 Expected: shows your Cloudflare account email. If not, run `wrangler login`.
 
 - [ ] **Step 2: Create the D1 database**
 
 Run:
+
 ```bash
 wrangler d1 create skipper-detergents-db
 ```
+
 Expected output contains:
+
 ```
 ✅ Successfully created DB 'skipper-detergents-db'
 database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
+
 Copy the `database_id` value.
 
 - [ ] **Step 3: Create the R2 buckets**
 
 Run:
+
 ```bash
 wrangler r2 bucket create skipper-products
 wrangler r2 bucket create skipper-payment-proofs
 ```
+
 Expected: `Created bucket 'skipper-products'` and `Created bucket 'skipper-payment-proofs'`.
 
 - [ ] **Step 4: Create the KV namespaces**
 
 Run each and copy the `id` from each response:
+
 ```bash
 wrangler kv namespace create SESSIONS
 wrangler kv namespace create RATE_LIMIT
 wrangler kv namespace create CACHE
 ```
+
 Expected output for each: `id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"`.
 
 - [ ] **Step 5: Update `packages/api/wrangler.toml`**
@@ -2629,39 +2681,49 @@ id = "<paste from step 4 — CACHE>"
 - [ ] **Step 6: Apply schema + seed to local D1**
 
 Run:
+
 ```bash
 pnpm --filter @skipper/api db:setup
 ```
+
 Expected: two lines of "Executed N commands" — one from `schema.sql`, one from `seed.sql`.
 
 - [ ] **Step 7: Verify seed data loaded**
 
 Run:
+
 ```bash
 wrangler d1 execute skipper-detergents-db --local --command="SELECT COUNT(*) AS n FROM products;"
 ```
+
 Expected: `n = 12`.
 
 ```bash
 wrangler d1 execute skipper-detergents-db --local --command="SELECT COUNT(*) AS n FROM categories;"
 ```
+
 Expected: `n = 6`.
 
 ```bash
 wrangler d1 execute skipper-detergents-db --local --command="SELECT COUNT(*) AS n FROM bulk_pricing_tiers;"
 ```
+
 Expected: `n = 18`.
 
 - [ ] **Step 8: Start the dev server and curl `/health`**
 
 Run in one terminal:
+
 ```bash
 pnpm --filter @skipper/api dev
 ```
+
 In another terminal:
+
 ```bash
 curl http://localhost:8787/health
 ```
+
 Expected: `{"success":true,"data":{"status":"ok","timestamp":"...","env":"development"}}`.
 
 Stop the dev server with Ctrl+C.
@@ -2682,9 +2744,11 @@ git commit -m "chore(api): wire live Cloudflare resource IDs (D1, R2, KV)"
 - [ ] **Step 1: Apply schema to the remote database**
 
 Run:
+
 ```bash
 wrangler d1 execute skipper-detergents-db --remote --file=packages/api/src/db/schema.sql
 ```
+
 Expected: "Executed N commands in X ms".
 
 - [ ] **Step 2: Apply seed to the remote database (dev only — skip in production)**
@@ -2694,14 +2758,17 @@ For the initial build the remote database is effectively a staging copy. Seed it
 ```bash
 wrangler d1 execute skipper-detergents-db --remote --file=packages/api/src/db/seed.sql
 ```
+
 Expected: "Executed N commands".
 
 - [ ] **Step 3: Verify remote data**
 
 Run:
+
 ```bash
 wrangler d1 execute skipper-detergents-db --remote --command="SELECT COUNT(*) AS n FROM products;"
 ```
+
 Expected: `n = 12`.
 
 - [ ] **Step 4: No commit — this task only affects Cloudflare state**
@@ -2711,6 +2778,7 @@ Expected: `n = 12`.
 ## Task 19: GitHub Actions — CI workflow
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 
 - [ ] **Step 1: Create `.github/workflows/ci.yml`**
@@ -2761,6 +2829,7 @@ git commit -m "ci: add GitHub Actions pipeline (lint, typecheck, test)"
 ## Task 20: GitHub Actions — deploy workflow
 
 **Files:**
+
 - Create: `.github/workflows/deploy.yml`
 
 This workflow is wired but dormant until secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are added to the repo settings. It only runs on pushes to `main`.
@@ -2814,7 +2883,7 @@ jobs:
 
 Append to `README.md`, under a new `## Deployment` section:
 
-```markdown
+````markdown
 ## Deployment
 
 Deployment is gated by GitHub Actions on push to `main`. The workflow
@@ -2834,16 +2903,18 @@ wrangler secret put JWT_SECRET
 wrangler secret put PAYSTACK_SECRET_KEY
 wrangler secret put PAYSTACK_WEBHOOK_SECRET
 ```
+````
 
 These are populated during milestone 2 (public API) and milestone 5 (admin auth).
-```
+
+````
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/deploy.yml README.md
 git commit -m "ci: add Cloudflare deploy workflow + README deployment notes"
-```
+````
 
 ---
 
@@ -2860,20 +2931,25 @@ pnpm lint
 pnpm typecheck
 pnpm test
 ```
+
 Expected: all four commands return exit code 0.
 
 - [ ] **Step 2: Confirm `/health` responds locally via wrangler dev**
 
 In one terminal:
+
 ```bash
 pnpm --filter @skipper/api dev
 ```
+
 In another:
+
 ```bash
 curl -s http://localhost:8787/health | grep -q '"success":true' && echo HEALTH_OK
 curl -s http://localhost:8787/ | grep -q 'Skipper' && echo ROOT_OK
 curl -s -o /dev/null -w '%{http_code}' http://localhost:8787/nope
 ```
+
 Expected: prints `HEALTH_OK`, then `ROOT_OK`, then `404` on the last line.
 
 Stop the dev server.
@@ -2883,6 +2959,7 @@ Stop the dev server.
 ```bash
 wrangler d1 execute skipper-detergents-db --local --command="SELECT slug, unit_price FROM products ORDER BY unit_price LIMIT 3;"
 ```
+
 Expected: three product rows with slug + unit_price columns (the three cheapest products).
 
 - [ ] **Step 4: Confirm git state is clean**
@@ -2890,6 +2967,7 @@ Expected: three product rows with slug + unit_price columns (the three cheapest 
 ```bash
 git status
 ```
+
 Expected: "nothing to commit, working tree clean".
 
 - [ ] **Step 5: Summary check against milestone 1 outputs**
