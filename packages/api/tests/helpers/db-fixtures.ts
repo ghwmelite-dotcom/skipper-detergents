@@ -59,10 +59,7 @@ export async function resetDatabase(db: D1Database): Promise<void> {
   }
 }
 
-export async function seedCategories(
-  db: D1Database,
-  categories: SeedCategory[],
-): Promise<void> {
+export async function seedCategories(db: D1Database, categories: SeedCategory[]): Promise<void> {
   for (const c of categories) {
     await db
       .prepare(

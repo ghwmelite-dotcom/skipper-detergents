@@ -28,7 +28,10 @@ function makeKV() {
 
 function buildApp(kv: KVNamespace, options: { limit: number; windowSeconds: number }) {
   const app = new Hono<{ Bindings: Env }>();
-  app.use('*', rateLimit({ limit: options.limit, windowSeconds: options.windowSeconds, keyPrefix: 'test' }));
+  app.use(
+    '*',
+    rateLimit({ limit: options.limit, windowSeconds: options.windowSeconds, keyPrefix: 'test' }),
+  );
   app.get('/ping', (c) => c.json({ pong: true }));
   return app;
 }
@@ -47,11 +50,7 @@ describe('rateLimit', () => {
     const app = buildApp(kv, { limit: 3, windowSeconds: 60 });
     const env = envWith(kv);
     for (let i = 0; i < 3; i++) {
-      const res = await app.request(
-        '/ping',
-        { headers: { 'cf-connecting-ip': '1.2.3.4' } },
-        env,
-      );
+      const res = await app.request('/ping', { headers: { 'cf-connecting-ip': '1.2.3.4' } }, env);
       expect(res.status).toBe(200);
     }
   });
@@ -90,11 +89,7 @@ describe('rateLimit', () => {
   it('includes X-RateLimit headers on allowed responses', async () => {
     const app = buildApp(kv, { limit: 5, windowSeconds: 60 });
     const env = envWith(kv);
-    const res = await app.request(
-      '/ping',
-      { headers: { 'cf-connecting-ip': '3.3.3.3' } },
-      env,
-    );
+    const res = await app.request('/ping', { headers: { 'cf-connecting-ip': '3.3.3.3' } }, env);
     expect(res.headers.get('X-RateLimit-Limit')).toBe('5');
     expect(res.headers.get('X-RateLimit-Remaining')).toBe('4');
   });

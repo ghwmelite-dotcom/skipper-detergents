@@ -7,11 +7,7 @@ export async function first<T>(
   return (await stmt.first<T>()) ?? null;
 }
 
-export async function all<T>(
-  db: D1Database,
-  sql: string,
-  params: unknown[] = [],
-): Promise<T[]> {
+export async function all<T>(db: D1Database, sql: string, params: unknown[] = []): Promise<T[]> {
   const stmt = db.prepare(sql).bind(...params);
   const result = await stmt.all<T>();
   return result.results ?? [];
