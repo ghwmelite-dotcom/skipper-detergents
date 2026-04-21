@@ -28,5 +28,6 @@ export function rateLimit(options: RateLimitOptions): MiddlewareHandler<{ Bindin
 
     c.res.headers.set('X-RateLimit-Limit', String(options.limit));
     c.res.headers.set('X-RateLimit-Remaining', String(Math.max(0, options.limit - next_)));
+    return;
   };
 }
