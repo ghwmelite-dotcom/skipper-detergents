@@ -12,7 +12,7 @@ ADMIN_ORIGIN = "http://localhost:5174"
 [[d1_databases]]
 binding = "DB"
 database_name = "skipper-detergents-db"
-database_id = "PLACEHOLDER_FILL_IN_TASK_17"
+database_id = "4d774420-93b4-45cf-905d-e9313006aafc"
 
 [[r2_buckets]]
 binding = "R2_PRODUCTS"
@@ -24,12 +24,12 @@ bucket_name = "skipper-payment-proofs"
 
 [[kv_namespaces]]
 binding = "KV_SESSIONS"
-id = "PLACEHOLDER_FILL_IN_TASK_17"
+id = "a511f9a50cc046f1ba99aa6a7c73ed9d"
 
 [[kv_namespaces]]
 binding = "KV_RATE_LIMIT"
-id = "PLACEHOLDER_FILL_IN_TASK_17"
+id = "d30776a368924a4b83b7f9bd996d65bf"
 
 [[kv_namespaces]]
 binding = "KV_CACHE"
-id = "PLACEHOLDER_FILL_IN_TASK_17"
+id = "c82c3eab55e644ce8f252be041d82b93"
