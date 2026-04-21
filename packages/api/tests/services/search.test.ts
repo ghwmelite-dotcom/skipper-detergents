@@ -7,9 +7,36 @@ beforeEach(async () => {
   await resetDatabase(env.DB);
   await seedCategories(env.DB, [{ id: 'c1', name: 'D', slug: 'd' }]);
   await seedProducts(env.DB, [
-    { id: 'p1', name: 'Skipper Liquid Detergent', slug: 'p1', description: 'Ocean fresh scent', category_id: 'c1', brand: 'Skipper', unit_price: 45, tags: 'liquid,detergent,fresh' },
-    { id: 'p2', name: 'Ariel Powder', slug: 'p2', description: 'Stain remover', category_id: 'c1', brand: 'Ariel', unit_price: 62, tags: 'powder,stain' },
-    { id: 'p3', name: 'Softcare Toilet Roll', slug: 'p3', description: '2-ply soft rolls', category_id: 'c1', brand: 'Softcare', unit_price: 35, tags: 'toilet,soft' },
+    {
+      id: 'p1',
+      name: 'Skipper Liquid Detergent',
+      slug: 'p1',
+      description: 'Ocean fresh scent',
+      category_id: 'c1',
+      brand: 'Skipper',
+      unit_price: 45,
+      tags: 'liquid,detergent,fresh',
+    },
+    {
+      id: 'p2',
+      name: 'Ariel Powder',
+      slug: 'p2',
+      description: 'Stain remover',
+      category_id: 'c1',
+      brand: 'Ariel',
+      unit_price: 62,
+      tags: 'powder,stain',
+    },
+    {
+      id: 'p3',
+      name: 'Softcare Toilet Roll',
+      slug: 'p3',
+      description: '2-ply soft rolls',
+      category_id: 'c1',
+      brand: 'Softcare',
+      unit_price: 35,
+      tags: 'toilet,soft',
+    },
   ]);
 });
 

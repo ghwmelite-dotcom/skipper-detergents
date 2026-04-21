@@ -10,8 +10,25 @@ beforeEach(async () => {
     { id: 'c2', name: 'T', slug: 'toilet-paper', is_active: 0 },
   ]);
   await seedProducts(env.DB, [
-    { id: 'p1', name: 'A', slug: 'skipper-2l', description: 'x', category_id: 'c1', brand: 'S', unit_price: 45 },
-    { id: 'p2', name: 'B', slug: 'hidden', description: 'x', category_id: 'c1', brand: 'S', unit_price: 20, is_active: 0 },
+    {
+      id: 'p1',
+      name: 'A',
+      slug: 'skipper-2l',
+      description: 'x',
+      category_id: 'c1',
+      brand: 'S',
+      unit_price: 45,
+    },
+    {
+      id: 'p2',
+      name: 'B',
+      slug: 'hidden',
+      description: 'x',
+      category_id: 'c1',
+      brand: 'S',
+      unit_price: 20,
+      is_active: 0,
+    },
   ]);
 });
 

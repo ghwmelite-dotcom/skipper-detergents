@@ -11,9 +11,33 @@ beforeEach(async () => {
     { id: 'c3', name: 'Hidden', slug: 'hidden', sort_order: 3, is_active: 0 },
   ]);
   await seedProducts(env.DB, [
-    { id: 'p1', name: 'A', slug: 'a', description: 'x', category_id: 'c1', brand: 'S', unit_price: 10 },
-    { id: 'p2', name: 'B', slug: 'b', description: 'x', category_id: 'c1', brand: 'S', unit_price: 20 },
-    { id: 'p3', name: 'C', slug: 'c', description: 'x', category_id: 'c2', brand: 'S', unit_price: 30 },
+    {
+      id: 'p1',
+      name: 'A',
+      slug: 'a',
+      description: 'x',
+      category_id: 'c1',
+      brand: 'S',
+      unit_price: 10,
+    },
+    {
+      id: 'p2',
+      name: 'B',
+      slug: 'b',
+      description: 'x',
+      category_id: 'c1',
+      brand: 'S',
+      unit_price: 20,
+    },
+    {
+      id: 'p3',
+      name: 'C',
+      slug: 'c',
+      description: 'x',
+      category_id: 'c2',
+      brand: 'S',
+      unit_price: 30,
+    },
   ]);
 });
 
@@ -33,7 +57,10 @@ describe('listCategories', () => {
 
 describe('getCategoryBySlugWithProducts', () => {
   it('returns category + products', async () => {
-    const result = await getCategoryBySlugWithProducts(env.DB, 'detergents', { page: 1, per_page: 20 });
+    const result = await getCategoryBySlugWithProducts(env.DB, 'detergents', {
+      page: 1,
+      per_page: 20,
+    });
     expect(result).not.toBeNull();
     expect(result!.category.slug).toBe('detergents');
     expect(result!.products.map((p) => p.id).sort()).toEqual(['p1', 'p2']);
@@ -41,8 +68,12 @@ describe('getCategoryBySlugWithProducts', () => {
   });
 
   it('returns null for unknown or inactive slug', async () => {
-    expect(await getCategoryBySlugWithProducts(env.DB, 'nope', { page: 1, per_page: 20 })).toBeNull();
-    expect(await getCategoryBySlugWithProducts(env.DB, 'hidden', { page: 1, per_page: 20 })).toBeNull();
+    expect(
+      await getCategoryBySlugWithProducts(env.DB, 'nope', { page: 1, per_page: 20 }),
+    ).toBeNull();
+    expect(
+      await getCategoryBySlugWithProducts(env.DB, 'hidden', { page: 1, per_page: 20 }),
+    ).toBeNull();
   });
 
   it('paginates the products list', async () => {

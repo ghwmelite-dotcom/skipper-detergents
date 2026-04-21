@@ -11,11 +11,7 @@ export function sanitizeFtsQuery(q: string): string {
   return `${cleaned}*`;
 }
 
-export async function searchProducts(
-  db: D1Database,
-  q: string,
-  limit: number,
-): Promise<Product[]> {
+export async function searchProducts(db: D1Database, q: string, limit: number): Promise<Product[]> {
   const ftsQuery = sanitizeFtsQuery(q);
   if (!ftsQuery) return [];
 
