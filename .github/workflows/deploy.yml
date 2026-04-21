@@ -1,12 +1,10 @@
 name: Deploy API
 
+# Triggered manually for now. Once CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID
+# repo secrets are configured and the team is ready for auto-deploys on merge,
+# add a `push: branches: [main]` trigger alongside workflow_dispatch.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'packages/api/**'
-      - 'packages/shared/**'
-      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
 
 jobs:
   deploy:

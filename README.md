@@ -9,7 +9,6 @@ Production-grade e-commerce platform with bulk-quantity pricing, Paystack &amp; 
 <br />
 
 [![CI](https://github.com/ghwmelite-dotcom/skipper-detergents/actions/workflows/ci.yml/badge.svg)](https://github.com/ghwmelite-dotcom/skipper-detergents/actions/workflows/ci.yml)
-[![Deploy](https://github.com/ghwmelite-dotcom/skipper-detergents/actions/workflows/deploy.yml/badge.svg)](https://github.com/ghwmelite-dotcom/skipper-detergents/actions/workflows/deploy.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 [![Hono](https://img.shields.io/badge/Hono-4-E36002)](https://hono.dev/)
@@ -180,14 +179,16 @@ Each milestone ships independently and is tracked as a separate plan in [`docs/s
 
 ## Deployment
 
-Deployment is automated via GitHub Actions on push to `main`. To enable it, add these repository secrets under **Settings → Secrets and variables → Actions**:
+The deploy workflow runs on **manual dispatch only** (Actions tab → "Deploy API" → "Run workflow") until credentials are in place. Once the team is ready for hands-off deploys, add a `push: branches: [main]` trigger to `.github/workflows/deploy.yml`.
+
+Two **repository secrets** are required under **Settings → Secrets and variables → Actions** before the first dispatch:
 
 | Secret                  | How to get it                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------ |
 | `CLOUDFLARE_API_TOKEN`  | Cloudflare dashboard → Profile → API Tokens → "Edit Cloudflare Workers" preset |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → right sidebar on any Workers page                       |
 
-Worker secrets (set per-environment via Wrangler, not GitHub):
+**Worker secrets** (set per-environment via Wrangler, not GitHub):
 
 ```bash
 pnpm --filter @skipper/api exec wrangler secret put JWT_SECRET
