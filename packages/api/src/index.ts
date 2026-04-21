@@ -8,6 +8,7 @@ import { productsRouter } from './routes/products';
 import { categoriesRouter } from './routes/categories';
 import { settingsRouter } from './routes/settings';
 import { sitemapRouter } from './routes/sitemap';
+import { ordersRouter, trackRouter } from './routes/orders';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -24,6 +25,8 @@ app.route('/api/products', productsRouter);
 app.route('/api/categories', categoriesRouter);
 app.route('/api/settings', settingsRouter);
 app.route('/api', sitemapRouter);
+app.route('/api/orders', ordersRouter);
+app.route('/api/track', trackRouter);
 
 app.notFound((c) => c.json(fail('NOT_FOUND', 'Route not found'), 404));
 
