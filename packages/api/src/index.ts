@@ -7,6 +7,7 @@ import { ok, fail } from './utils/response';
 import { productsRouter } from './routes/products';
 import { categoriesRouter } from './routes/categories';
 import { settingsRouter } from './routes/settings';
+import { sitemapRouter } from './routes/sitemap';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -22,6 +23,7 @@ app.use('/api/*', rateLimit({ limit: 100, windowSeconds: 60, keyPrefix: 'rl:publ
 app.route('/api/products', productsRouter);
 app.route('/api/categories', categoriesRouter);
 app.route('/api/settings', settingsRouter);
+app.route('/api', sitemapRouter);
 
 app.notFound((c) => c.json(fail('NOT_FOUND', 'Route not found'), 404));
 
