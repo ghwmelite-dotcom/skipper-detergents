@@ -2,12 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { env } from 'cloudflare:test';
 import { HTTPException } from 'hono/http-exception';
 import { validateAndPriceCart } from '../../src/services/pricing';
-import {
-  resetDatabase,
-  seedCategories,
-  seedProducts,
-  seedBulkTiers,
-} from '../helpers/db-fixtures';
+import { resetDatabase, seedCategories, seedProducts, seedBulkTiers } from '../helpers/db-fixtures';
 
 beforeEach(async () => {
   await resetDatabase(env.DB);
@@ -112,15 +107,15 @@ describe('validateAndPriceCart', () => {
   });
 
   it('throws when product is inactive', async () => {
-    await expect(
-      validateAndPriceCart(env.DB, [{ product_id: 'p4', quantity: 1 }]),
-    ).rejects.toThrow(HTTPException);
+    await expect(validateAndPriceCart(env.DB, [{ product_id: 'p4', quantity: 1 }])).rejects.toThrow(
+      HTTPException,
+    );
   });
 
   it('throws when stock is insufficient', async () => {
-    await expect(
-      validateAndPriceCart(env.DB, [{ product_id: 'p3', quantity: 1 }]),
-    ).rejects.toThrow(HTTPException);
+    await expect(validateAndPriceCart(env.DB, [{ product_id: 'p3', quantity: 1 }])).rejects.toThrow(
+      HTTPException,
+    );
     await expect(
       validateAndPriceCart(env.DB, [{ product_id: 'p2', quantity: 999 }]),
     ).rejects.toThrow(HTTPException);

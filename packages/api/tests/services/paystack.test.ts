@@ -124,7 +124,9 @@ describe('markOrderPaidFromWebhook', () => {
     const result = await markOrderPaidFromWebhook(env.DB, 'ref_abc', 10500);
     expect(result.action).toBe('marked_paid');
 
-    const order = await env.DB.prepare(`SELECT payment_status, status FROM orders WHERE id = 'o1'`).first<{
+    const order = await env.DB.prepare(
+      `SELECT payment_status, status FROM orders WHERE id = 'o1'`,
+    ).first<{
       payment_status: string;
       status: string;
     }>();

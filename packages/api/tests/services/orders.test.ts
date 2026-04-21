@@ -7,11 +7,7 @@ import {
   nextOrderNumber,
 } from '../../src/services/orders';
 import type { PricedCart } from '../../src/services/pricing';
-import {
-  resetDatabase,
-  seedCategories,
-  seedProducts,
-} from '../helpers/db-fixtures';
+import { resetDatabase, seedCategories, seedProducts } from '../helpers/db-fixtures';
 
 async function priced(): Promise<PricedCart> {
   return {
@@ -107,9 +103,7 @@ describe('createOrder', () => {
     )
       .bind(order.id)
       .all<{ product_id: string; quantity: number; unit_price: number }>();
-    expect(items.results).toEqual([
-      { product_id: 'p1', quantity: 2, unit_price: 45 },
-    ]);
+    expect(items.results).toEqual([{ product_id: 'p1', quantity: 2, unit_price: 45 }]);
 
     const stock = await env.DB.prepare(`SELECT stock_quantity FROM products WHERE id = ?`)
       .bind('p1')
@@ -174,7 +168,9 @@ describe('createOrder', () => {
       delivery_fee: 15,
       now: new Date('2026-04-21T10:00:00Z'),
     });
-    const count = await env.DB.prepare(`SELECT COUNT(*) AS n FROM customers`).first<{ n: number }>();
+    const count = await env.DB.prepare(`SELECT COUNT(*) AS n FROM customers`).first<{
+      n: number;
+    }>();
     expect(count?.n).toBe(1);
   });
 });
