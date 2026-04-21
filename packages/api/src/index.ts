@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { rateLimit } from './middleware/rateLimit';
 import { ok, fail } from './utils/response';
 import { productsRouter } from './routes/products';
+import { categoriesRouter } from './routes/categories';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -18,6 +19,7 @@ app.get('/health', (c) =>
 
 app.use('/api/*', rateLimit({ limit: 100, windowSeconds: 60, keyPrefix: 'rl:public' }));
 app.route('/api/products', productsRouter);
+app.route('/api/categories', categoriesRouter);
 
 app.notFound((c) => c.json(fail('NOT_FOUND', 'Route not found'), 404));
 
