@@ -13,6 +13,7 @@ ADMIN_ORIGIN = "http://localhost:5174"
 binding = "DB"
 database_name = "skipper-detergents-db"
 database_id = "4d774420-93b4-45cf-905d-e9313006aafc"
+migrations_dir = "./src/db/migrations"
 
 [[r2_buckets]]
 binding = "R2_PRODUCTS"
