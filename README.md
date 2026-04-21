@@ -4,14 +4,14 @@ Production e-commerce platform for Skipper Detergents — a Ghanaian household-e
 
 ## Stack
 
-| Layer | Tech |
-|---|---|
-| Monorepo | pnpm + Turborepo |
-| API | Hono on Cloudflare Workers |
-| Database | Cloudflare D1 (SQLite) |
-| Storage | Cloudflare R2 |
-| Cache / sessions | Cloudflare KV |
-| Shared types | TypeScript + Zod |
+| Layer                       | Tech                                   |
+| --------------------------- | -------------------------------------- |
+| Monorepo                    | pnpm + Turborepo                       |
+| API                         | Hono on Cloudflare Workers             |
+| Database                    | Cloudflare D1 (SQLite)                 |
+| Storage                     | Cloudflare R2                          |
+| Cache / sessions            | Cloudflare KV                          |
+| Shared types                | TypeScript + Zod                       |
 | Frontend (later milestones) | React 18 + Vite + Tailwind + shadcn/ui |
 
 ## Quick Start
@@ -43,5 +43,6 @@ curl http://localhost:8787/health
 ```
 
 ## Documentation
+
 - Design spec: `docs/superpowers/specs/2026-04-21-skipper-detergents-design.md`
 - Current plan: `docs/superpowers/plans/2026-04-21-milestone-1-foundation.md`
