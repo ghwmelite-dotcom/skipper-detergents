@@ -10,6 +10,7 @@ import { settingsRouter } from './routes/settings';
 import { sitemapRouter } from './routes/sitemap';
 import { ordersRouter, trackRouter } from './routes/orders';
 import { paymentsRouter, webhooksRouter } from './routes/payments';
+import { uploadRouter } from './routes/upload';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -29,6 +30,7 @@ app.route('/api', sitemapRouter);
 app.route('/api/orders', ordersRouter);
 app.route('/api/track', trackRouter);
 app.route('/api/payments', paymentsRouter);
+app.route('/api/upload', uploadRouter);
 app.route('/webhooks', webhooksRouter);
 
 app.notFound((c) => c.json(fail('NOT_FOUND', 'Route not found'), 404));

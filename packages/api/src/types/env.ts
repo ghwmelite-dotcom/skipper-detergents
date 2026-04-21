@@ -11,4 +11,5 @@ export interface Env {
   JWT_SECRET?: string;
   PAYSTACK_SECRET_KEY?: string;
   PAYSTACK_WEBHOOK_SECRET?: string;
+  R2_PROOFS_PUBLIC_BASE?: string;
 }
