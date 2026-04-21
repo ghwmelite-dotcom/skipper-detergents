@@ -40,6 +40,36 @@ check "GET /api/settings/public"   200 "$BASE_URL/api/settings/public"   'Skippe
 check "GET /api/sitemap.xml"       200 "$BASE_URL/api/sitemap.xml"       '<urlset'
 check "GET /api/products validation" 400 "$BASE_URL/api/products?per_page=9999"
 
+# --- Milestone 2b: checkout API ---
+order_payload='{"items":[{"product_id":"prod_skipper_2l","quantity":1}],"delivery_method":"pickup","delivery_name":"Smoke Tester","delivery_email":"smoke@example.com","delivery_phone":"+233200000000","payment_method":"paystack"}'
+
+order_response=$(curl -s -X POST "$BASE_URL/api/orders" -H "Content-Type: application/json" -d "$order_payload")
+order_id=$(echo "$order_response" | sed -n 's/.*"id":"\([a-f0-9]\{16\}\)".*/\1/p' | head -1)
+order_number=$(echo "$order_response" | sed -n 's/.*"order_number":"\(SK-[0-9-]*\)".*/\1/p' | head -1)
+
+if [ -n "$order_id" ] && [ -n "$order_number" ]; then
+  echo "PASS  POST /api/orders (created $order_number)"
+  pass=$((pass + 1))
+else
+  echo "FAIL  POST /api/orders (response: $order_response)"
+  fail=$((fail + 1))
+fi
+
+if [ -n "$order_number" ]; then
+  check "GET /api/track/:order_number"            200 "$BASE_URL/api/track/$order_number?email=smoke@example.com" "$order_number"
+  check "GET /api/track 404 on wrong email"       404 "$BASE_URL/api/track/$order_number?email=other@example.com"
+  check "GET /api/track 400 on missing email"     400 "$BASE_URL/api/track/$order_number"
+fi
+
+webhook_status=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE_URL/webhooks/paystack" -H "Content-Type: application/json" -d '{"event":"charge.success"}')
+if [ "$webhook_status" = "401" ]; then
+  echo "PASS  POST /webhooks/paystack rejects unsigned"
+  pass=$((pass + 1))
+else
+  echo "FAIL  POST /webhooks/paystack expected 401 got $webhook_status"
+  fail=$((fail + 1))
+fi
+
 echo "---"
 echo "PASS: $pass   FAIL: $fail"
 [ "$fail" -eq 0 ]

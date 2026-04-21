@@ -155,13 +155,14 @@ export async function createOrder(db: D1Database, input: CreateOrderInput): Prom
       db
         .prepare(
           `UPDATE products SET stock_quantity = stock_quantity - ?, total_sold = total_sold + ?
-           WHERE id = ? AND stock_quantity >= ?`,
+           WHERE id = ? AND stock_quantity >= ?
+           RETURNING id`,
         )
         .bind(li.quantity, li.quantity, li.product_id, li.quantity),
     );
   }
 
-  const results = await db.batch(statements);
+  const results = await db.batch<{ id: string }>(statements);
 
   for (let i = 0; i < results.length; i++) {
     const r = results[i] ?? null;
@@ -169,10 +170,13 @@ export async function createOrder(db: D1Database, input: CreateOrderInput): Prom
       throw new HTTPException(409, { message: 'Failed to place order' });
     }
   }
+  // Stock updates use RETURNING id — an empty results array means the
+  // `stock_quantity >= ?` guard failed and no row was updated.
+  // (meta.changes is unreliable here: FTS5 triggers on products amplify it.)
   for (let i = 0; i < input.cart.line_items.length; i++) {
     const stockUpdateIdx = 1 + i * 2 + 1;
     const r = results[stockUpdateIdx] ?? null;
-    if ((r?.meta?.changes ?? 0) !== 1) {
+    if (!r?.results || r.results.length !== 1) {
       throw new HTTPException(409, { message: 'Insufficient stock' });
     }
   }
