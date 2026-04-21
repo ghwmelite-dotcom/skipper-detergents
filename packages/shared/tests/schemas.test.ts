@@ -165,9 +165,7 @@ describe('productSearchQuerySchema', () => {
 
 describe('orderTrackingQuerySchema', () => {
   it('accepts a valid tracking request', () => {
-    expect(() =>
-      orderTrackingQuerySchema.parse({ email: 'ama@example.com' }),
-    ).not.toThrow();
+    expect(() => orderTrackingQuerySchema.parse({ email: 'ama@example.com' })).not.toThrow();
   });
 
   it('rejects invalid email', () => {
