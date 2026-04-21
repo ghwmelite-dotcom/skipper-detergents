@@ -16,11 +16,12 @@ export default defineWorkersConfig(async () => {
       poolOptions: {
         workers: {
           wrangler: { configPath: './wrangler.toml' },
-          // Disable per-test isolated storage — miniflare's SQLite-backed
-          // R2 cleanup hits an "Expected .sqlite, got .sqlite-shm" assertion
-          // when R2 tests leak between test files. Tests do their own
-          // cleanup (resetDatabase in beforeEach, R2 list+delete in uploads).
-          isolatedStorage: false,
+          // Run all test files in a single worker instance. Without this,
+          // per-test-file worker restarts trigger a miniflare R2 cleanup
+          // assertion (Expected .sqlite, got .sqlite-shm) and sometimes
+          // crash workerd entirely. Tests do their own data cleanup via
+          // resetDatabase (beforeEach) and R2 list+delete (uploads).
+          singleWorker: true,
           miniflare: {
             compatibilityDate: '2026-04-20',
             compatibilityFlags: ['nodejs_compat'],
