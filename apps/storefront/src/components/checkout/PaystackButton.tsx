@@ -1,0 +1,89 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { api, ApiError } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { useCart } from '@/hooks/useCart';
+
+interface PaystackButtonProps {
+  orderId: string;
+  orderNumber: string;
+  email: string;
+  publicKey: string;
+}
+
+interface PaystackInitResult {
+  access_code: string;
+  authorization_url: string;
+  reference: string;
+}
+
+export function PaystackButton({ orderId, orderNumber, email, publicKey }: PaystackButtonProps) {
+  const navigate = useNavigate();
+  const { clear } = useCart();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handlePay() {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await api.post<PaystackInitResult>('/api/payments/paystack/init', {
+        order_id: orderId,
+      });
+
+      // Dynamically import Paystack inline JS
+      const PaystackPop = (await import('@paystack/inline-js')).default;
+      const popup = new PaystackPop();
+
+      popup.newTransaction({
+        key: publicKey,
+        email,
+        reference: result.reference,
+        accessCode: result.access_code,
+        onSuccess: () => {
+          clear();
+          navigate(`/order/${orderNumber}?reference=${result.reference}`);
+        },
+        onCancel: () => {
+          alert('Payment cancelled. You can try again from your order page.');
+          setLoading(false);
+        },
+      });
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        setError('Could not initialise payment. Please try again.');
+      }
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <Button
+        variant="primary"
+        size="lg"
+        className="w-full"
+        onClick={handlePay}
+        disabled={loading}
+        aria-busy={loading}
+      >
+        {loading ? (
+          <>
+            <LoadingSpinner className="h-5 w-5" />
+            Launching payment...
+          </>
+        ) : (
+          'Pay with Paystack'
+        )}
+      </Button>
+      {error && (
+        <p role="alert" className="text-sm text-destructive text-center">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
