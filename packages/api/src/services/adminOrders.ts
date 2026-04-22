@@ -128,6 +128,14 @@ export async function adminUpdateOrderStatus(
   const existing = await first<Order>(db, `SELECT * FROM orders WHERE id = ?`, [orderId]);
   if (!existing) return null;
 
+  // Stock is deducted on order creation. If this transition moves the order
+  // into cancelled/refunded for the first time, give that stock back. The
+  // `existing.status` check keeps it idempotent — a second PATCH to cancelled
+  // won't double-restock.
+  const wasLive = existing.status !== 'cancelled' && existing.status !== 'refunded';
+  const nowDead = status === 'cancelled' || status === 'refunded';
+  const shouldRestock = wasLive && nowDead;
+
   const sets: string[] = [`status = ?`, `updated_at = datetime('now')`];
   const params: unknown[] = [status];
 
@@ -143,7 +151,35 @@ export async function adminUpdateOrderStatus(
     sets.push(`delivered_at = datetime('now')`);
   }
 
-  await run(db, `UPDATE orders SET ${sets.join(', ')} WHERE id = ?`, [...params, orderId]);
+  if (shouldRestock) {
+    const items = await all<{ product_id: string; quantity: number }>(
+      db,
+      `SELECT product_id, quantity FROM order_items WHERE order_id = ?`,
+      [orderId],
+    );
+    const statements: D1PreparedStatement[] = [
+      db
+        .prepare(`UPDATE orders SET ${sets.join(', ')} WHERE id = ?`)
+        .bind(...params, orderId),
+    ];
+    for (const item of items) {
+      statements.push(
+        db
+          .prepare(
+            `UPDATE products
+               SET stock_quantity = stock_quantity + ?,
+                   total_sold    = MAX(total_sold - ?, 0),
+                   updated_at    = datetime('now')
+             WHERE id = ?`,
+          )
+          .bind(item.quantity, item.quantity, item.product_id),
+      );
+    }
+    await db.batch(statements);
+  } else {
+    await run(db, `UPDATE orders SET ${sets.join(', ')} WHERE id = ?`, [...params, orderId]);
+  }
+
   return first<Order>(db, `SELECT * FROM orders WHERE id = ?`, [orderId]);
 }
 

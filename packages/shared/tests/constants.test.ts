@@ -38,7 +38,7 @@ describe('constants', () => {
     expect(CURRENCY).toBe('GHS');
   });
 
-  it('ADMIN_ROLES contains super_admin and admin', () => {
-    expect(ADMIN_ROLES).toEqual(['super_admin', 'admin']);
+  it('ADMIN_ROLES contains super_admin, admin, and store_manager', () => {
+    expect(ADMIN_ROLES).toEqual(['super_admin', 'admin', 'store_manager']);
   });
 });

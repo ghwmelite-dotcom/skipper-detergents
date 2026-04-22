@@ -405,7 +405,7 @@ export function OrderDetailPage(): JSX.Element {
       <ConfirmDialog
         open={confirmReject}
         title="Reject this payment?"
-        description="Order stays unpaid. You can optionally add a reason visible in the activity log."
+        description="Order stays unpaid. Add a reason — it's saved to the activity log."
         tone="danger"
         confirmLabel="Reject"
         loading={paymentMutation.isPending}
@@ -414,7 +414,18 @@ export function OrderDetailPage(): JSX.Element {
           const reason = rejectReason.trim();
           paymentMutation.mutate(reason ? { action: 'reject', reason } : { action: 'reject' });
         }}
-      />
+      >
+        <div>
+          <Label htmlFor="reject-reason">Reason (optional)</Label>
+          <Textarea
+            id="reject-reason"
+            rows={3}
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="e.g., proof image is unreadable, amount doesn't match order total"
+          />
+        </div>
+      </ConfirmDialog>
     </div>
   );
 }

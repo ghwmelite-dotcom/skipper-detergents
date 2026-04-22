@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from './Button';
 
@@ -12,6 +12,8 @@ export interface ConfirmDialogProps {
   loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Optional content rendered between description and buttons (e.g., a reason textarea). */
+  children?: ReactNode;
 }
 
 export function ConfirmDialog({
@@ -24,6 +26,7 @@ export function ConfirmDialog({
   loading,
   onConfirm,
   onCancel,
+  children,
 }: ConfirmDialogProps): JSX.Element | null {
   useEffect(() => {
     if (!open) return;
@@ -58,6 +61,7 @@ export function ConfirmDialog({
             {description && <p className="mt-1 text-sm text-ink-600">{description}</p>}
           </div>
         </div>
+        {children && <div className="mt-4">{children}</div>}
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="secondary" onClick={onCancel} disabled={loading}>
             {cancelLabel}

@@ -25,6 +25,12 @@ export function PaystackButton({ orderId, orderNumber, email, publicKey }: Payst
   const [error, setError] = useState<string | null>(null);
 
   async function handlePay() {
+    if (!publicKey) {
+      setError(
+        'Online payment is not configured yet. Please use Bank/MoMo transfer, or contact the store to complete payment.',
+      );
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
