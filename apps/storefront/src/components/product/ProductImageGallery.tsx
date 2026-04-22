@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { ProductImage } from '@skipper/shared';
 import { cn } from '@/lib/cn';
 
@@ -7,10 +8,12 @@ interface ProductImageGalleryProps {
   productName: string;
 }
 
-const PLACEHOLDER = 'https://placehold.co/600x600/e2e8f0/64748b?text=No+Image';
+const PLACEHOLDER =
+  'https://placehold.co/1000x1000/F4EDE0/0B2545?text=Skipper&font=Roboto';
 
 export function ProductImageGallery({ images, productName }: ProductImageGalleryProps) {
   const [activeIdx, setActiveIdx] = useState(0);
+  const reduced = useReducedMotion();
 
   const sorted = [...images].sort((a, b) => {
     if (a.is_primary && !b.is_primary) return -1;
@@ -24,19 +27,28 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Main image */}
-      <div className="aspect-square w-full overflow-hidden rounded-xl border border-border bg-muted/20">
-        <img
-          src={mainSrc}
-          alt={mainAlt}
-          className="h-full w-full object-contain"
-          loading="eager"
-        />
+      <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-brand-navy/8 bg-brand-sand/60 shadow-sm">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.img
+            key={mainSrc}
+            src={mainSrc}
+            alt={mainAlt}
+            initial={reduced ? false : { opacity: 0, scale: 1.015 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={reduced ? { opacity: 1 } : { opacity: 0, scale: 0.995 }}
+            transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="eager"
+          />
+        </AnimatePresence>
       </div>
 
-      {/* Thumbnails — only show if >1 image */}
       {sorted.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1" role="list" aria-label="Product images">
+        <div
+          className="grid grid-cols-5 gap-2"
+          role="list"
+          aria-label="Product images"
+        >
           {sorted.map((img, idx) => (
             <button
               key={img.id}
@@ -45,10 +57,10 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
               aria-label={`View image ${idx + 1}`}
               aria-pressed={idx === activeIdx}
               className={cn(
-                'h-16 w-16 flex-none overflow-hidden rounded-md border-2 transition-all duration-150',
+                'relative aspect-square overflow-hidden rounded-md bg-brand-sand/60 transition-all duration-200 ease-editorial',
                 idx === activeIdx
-                  ? 'border-primary ring-1 ring-primary'
-                  : 'border-border hover:border-muted-foreground',
+                  ? 'ring-2 ring-brand-navy ring-offset-2 ring-offset-brand-ivory'
+                  : 'ring-1 ring-brand-navy/10 hover:ring-brand-navy/30',
               )}
             >
               <img
