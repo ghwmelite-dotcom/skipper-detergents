@@ -59,29 +59,32 @@ export default function Checkout() {
   return (
     <>
       <SEOHead title="Checkout" noindex />
-      <Breadcrumbs
-        items={[
-          { label: 'Home', href: '/' },
-          { label: 'Cart', href: '/cart' },
-          { label: 'Checkout' },
-        ]}
-      />
+      {/* Breadcrumbs hidden on mobile — the header has a "Back to cart" chevron already */}
+      <div className="hidden md:block">
+        <Breadcrumbs
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Cart', href: '/cart' },
+            { label: 'Checkout' },
+          ]}
+        />
+      </div>
 
-      <div className="container py-8 md:py-14">
-        <div className="mb-10">
+      <div className="container py-4 md:py-14">
+        <div className="mb-6 md:mb-10">
           <span className="editorial-label text-brand-cyan-deep">
             <span className="accent-line mr-3" aria-hidden="true" />
             Final step
           </span>
-          <h1 className="mt-4 font-display text-display-md text-brand-navy">
+          <h1 className="mt-3 md:mt-4 font-display text-[clamp(2rem,8vw,4rem)] md:text-display-md leading-[1] tracking-[-0.03em] text-brand-navy">
             <span className="font-display-italic">Checkout.</span>
           </h1>
-          <p className="mt-3 text-brand-navy/60 max-w-lg">
+          <p className="mt-2 md:mt-3 text-brand-navy/60 max-w-lg text-[14px] md:text-[15px]">
             Almost there. A few details and your order is on its way.
           </p>
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-16">
+        <div className="grid gap-8 md:gap-10 lg:grid-cols-[1fr_400px] lg:gap-16">
           <div>
             <AnimatePresence mode="wait">
               {!orderResult ? (

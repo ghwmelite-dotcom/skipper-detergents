@@ -112,14 +112,14 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-12" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-8 md:space-y-12" noValidate>
       {/* Contact */}
-      <section className="rounded-lg bg-brand-sand/40 p-6 md:p-8 space-y-6">
+      <section className="rounded-lg bg-brand-sand/40 p-5 md:p-8 space-y-5 md:space-y-6">
         <div className="flex items-baseline gap-3">
-          <span className="font-display text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
+          <span className="font-display text-2xl md:text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
             01
           </span>
-          <h2 className="font-display text-2xl font-medium text-brand-navy">
+          <h2 className="font-display text-xl md:text-2xl font-medium text-brand-navy">
             Contact <span className="font-display-italic">details</span>
           </h2>
         </div>
@@ -136,6 +136,7 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
           <Field
             id="phone"
             type="tel"
+            inputMode="tel"
             label="Phone"
             required
             value={form.phone}
@@ -147,6 +148,7 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
         <Field
           id="email"
           type="email"
+          inputMode="email"
           label="Email address"
           required
           value={form.email}
@@ -157,12 +159,12 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
       </section>
 
       {/* Delivery */}
-      <section className="rounded-lg bg-brand-sand/40 p-6 md:p-8 space-y-6">
+      <section className="rounded-lg bg-brand-sand/40 p-5 md:p-8 space-y-5 md:space-y-6">
         <div className="flex items-baseline gap-3">
-          <span className="font-display text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
+          <span className="font-display text-2xl md:text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
             02
           </span>
-          <h2 className="font-display text-2xl font-medium text-brand-navy">
+          <h2 className="font-display text-xl md:text-2xl font-medium text-brand-navy">
             How do we get it <span className="font-display-italic">to you?</span>
           </h2>
         </div>
@@ -250,12 +252,12 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
       </section>
 
       {/* Payment */}
-      <section className="rounded-lg bg-brand-sand/40 p-6 md:p-8 space-y-6">
+      <section className="rounded-lg bg-brand-sand/40 p-5 md:p-8 space-y-5 md:space-y-6">
         <div className="flex items-baseline gap-3">
-          <span className="font-display text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
+          <span className="font-display text-2xl md:text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
             03
           </span>
-          <h2 className="font-display text-2xl font-medium text-brand-navy">
+          <h2 className="font-display text-xl md:text-2xl font-medium text-brand-navy">
             Payment <span className="font-display-italic">method</span>
           </h2>
         </div>
@@ -327,6 +329,7 @@ interface FieldProps {
   optional?: boolean;
   placeholder?: string;
   autoComplete?: string;
+  inputMode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
 }
 
 function Field({
@@ -339,13 +342,21 @@ function Field({
   optional,
   placeholder,
   autoComplete,
+  inputMode,
 }: FieldProps) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="editorial-label text-brand-navy/60 flex items-center gap-1">
+    <div className="space-y-2">
+      <label
+        htmlFor={id}
+        className="editorial-label text-brand-navy/60 flex items-center gap-1"
+      >
         {label}
         {required && <span className="text-brand-red">*</span>}
-        {optional && <span className="text-brand-navy/40 normal-case tracking-normal">(optional)</span>}
+        {optional && (
+          <span className="text-brand-navy/40 normal-case tracking-normal">
+            (optional)
+          </span>
+        )}
       </label>
       <Input
         id={id}
@@ -353,6 +364,8 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        className="h-12 text-[16px]"
+        {...(inputMode ? { inputMode } : {})}
         {...(autoComplete ? { autoComplete } : {})}
         {...(required ? { required: true } : {})}
       />
