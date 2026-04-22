@@ -66,6 +66,16 @@
       system-ui,
       -apple-system,
       sans-serif;
+    /* Remove default iOS tap highlight so our own interactive feedback reads cleaner */
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent mobile WebKit from auto-zooming inputs under 16px */
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Momentum scroll on horizontal carousels and sheets */
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
   }
 
   :focus-visible {
@@ -213,5 +223,39 @@
   /* Accent span — brand cyan tracking label */
   .accent-line {
     @apply inline-block h-px w-8 bg-brand-cyan align-middle;
+  }
+
+  /* Hide scrollbar for horizontal-scroll carousels on mobile */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Safe-area insets — used on fixed bottom bars / headers to respect notch + home indicator */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* CSS scroll-snap for product galleries and horizontal carousels */
+  .snap-x-mandatory {
+    scroll-snap-type: x mandatory;
+  }
+  .snap-center {
+    scroll-snap-align: center;
+  }
+  .snap-start {
+    scroll-snap-align: start;
   }
 }
