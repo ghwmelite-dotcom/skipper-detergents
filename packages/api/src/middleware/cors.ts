@@ -4,8 +4,8 @@ import type { Env } from '../types/env';
 const ALLOWED_METHODS = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
 const ALLOWED_HEADERS = 'Content-Type, Authorization, X-Requested-With';
 
-// Match any skipperdetergents.pages.dev or skipper-storefront.pages.dev preview / branch alias.
-const PAGES_DEV_PATTERN = /^https:\/\/[a-z0-9-]+\.(skipperdetergents|skipper-storefront)\.pages\.dev$/;
+// Match any skipperdetergents.pages.dev, skipper-storefront.pages.dev, or skipper-admin.pages.dev preview / branch alias.
+const PAGES_DEV_PATTERN = /^https:\/\/[a-z0-9-]+\.(skipperdetergents|skipper-storefront|skipper-admin)\.pages\.dev$/;
 
 function isAllowedOrigin(origin: string, env: Env): boolean {
   // Exact-match list from env (supports comma-separated lists too)

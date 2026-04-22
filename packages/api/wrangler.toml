@@ -7,7 +7,7 @@ workers_dev = true
 [vars]
 APP_ENV = "production"
 STOREFRONT_ORIGIN = "https://skipperdetergents.pages.dev,http://localhost:5173"
-ADMIN_ORIGIN = "http://localhost:5174"
+ADMIN_ORIGIN = "https://skipper-admin.pages.dev,http://localhost:5174"
 
 [[d1_databases]]
 binding = "DB"
