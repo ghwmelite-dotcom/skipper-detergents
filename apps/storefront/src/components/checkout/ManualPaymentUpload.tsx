@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload } from 'lucide-react';
+import { Upload, FileText } from 'lucide-react';
 import { API_BASE } from '@/lib/env';
 import { api, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,6 @@ export function ManualPaymentUpload({
     setError(null);
 
     try {
-      // Upload file
       const formData = new FormData();
       formData.append('file', file);
       formData.append('order_id', orderId);
@@ -48,14 +47,15 @@ export function ManualPaymentUpload({
         throw new Error('Upload failed. Please try a smaller file or different format.');
       }
 
-      const uploadBody = await uploadRes.json() as { success: boolean; data?: { url: string } };
+      const uploadBody = (await uploadRes.json()) as {
+        success: boolean;
+        data?: { url: string };
+      };
       if (!uploadBody.success || !uploadBody.data?.url) {
         throw new Error('Upload failed. Please try again.');
       }
 
       const proofUrl = uploadBody.data.url;
-
-      // Patch order with proof URL
       await api.patch(`/api/orders/${orderId}/proof`, { proof_url: proofUrl });
 
       clear();
@@ -75,33 +75,39 @@ export function ManualPaymentUpload({
 
   return (
     <div className="space-y-6">
-      {/* Payment details */}
-      <div className="rounded-lg border border-border p-4 bg-muted/20 space-y-2">
-        <h3 className="font-semibold text-sm">Bank / MoMo Transfer Details</h3>
-        <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed">
+      <div className="rounded-lg bg-brand-sand/50 p-5 space-y-2">
+        <p className="editorial-label text-brand-cyan-deep">Transfer details</p>
+        <pre className="text-sm text-brand-navy/80 whitespace-pre-wrap font-sans leading-relaxed">
           {manualPaymentDetails}
         </pre>
       </div>
 
-      {/* Upload section */}
-      <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">
+      <div className="space-y-4">
+        <p className="text-sm text-brand-navy/70">
           After making the transfer, upload a screenshot or photo of your payment receipt below.
         </p>
 
         <div
-          className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border p-8 cursor-pointer hover:border-primary transition-colors"
+          className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-brand-navy/20 p-10 cursor-pointer hover:border-brand-cyan transition-colors duration-300 bg-brand-ivory/50"
           onClick={() => fileRef.current?.click()}
           onKeyDown={(e) => e.key === 'Enter' && fileRef.current?.click()}
           tabIndex={0}
           role="button"
           aria-label="Select payment proof file"
         >
-          <Upload className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
           {file ? (
-            <p className="text-sm font-medium">{file.name}</p>
+            <>
+              <FileText className="h-8 w-8 text-brand-cyan-deep" aria-hidden="true" strokeWidth={1.5} />
+              <p className="text-sm font-medium text-brand-navy">{file.name}</p>
+              <p className="text-[12px] text-brand-navy/55">Tap to replace</p>
+            </>
           ) : (
-            <p className="text-sm text-muted-foreground">Click to upload receipt (JPG, PNG, PDF)</p>
+            <>
+              <Upload className="h-8 w-8 text-brand-navy/40" aria-hidden="true" strokeWidth={1.5} />
+              <p className="text-sm text-brand-navy/70">
+                Tap to upload receipt (JPG, PNG, PDF)
+              </p>
+            </>
           )}
           <input
             ref={fileRef}
@@ -114,14 +120,14 @@ export function ManualPaymentUpload({
         </div>
 
         {error && (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="text-sm text-brand-red">
             {error}
           </p>
         )}
 
         <Button
           variant="primary"
-          size="lg"
+          size="xl"
           className="w-full"
           onClick={handleUpload}
           disabled={uploading || !file}
@@ -133,7 +139,7 @@ export function ManualPaymentUpload({
               Submitting proof...
             </>
           ) : (
-            'Submit Payment Proof'
+            'Submit payment proof'
           )}
         </Button>
       </div>

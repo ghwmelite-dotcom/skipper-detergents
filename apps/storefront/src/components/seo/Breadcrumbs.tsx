@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
 import { JsonLd } from './JsonLd';
 
 export interface BreadcrumbItem {
@@ -15,7 +14,9 @@ export interface BreadcrumbsProps {
 export function Breadcrumbs({ items, origin }: BreadcrumbsProps) {
   const base =
     origin ??
-    (typeof window === 'undefined' ? 'https://skipperdetergents.com.gh' : window.location.origin);
+    (typeof window === 'undefined'
+      ? 'https://skipperdetergents.com.gh'
+      : window.location.origin);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -30,17 +31,22 @@ export function Breadcrumbs({ items, origin }: BreadcrumbsProps) {
 
   return (
     <>
-      <nav aria-label="Breadcrumb" className="container py-3">
-        <ol className="flex items-center flex-wrap gap-1 text-sm text-muted-foreground">
+      <nav aria-label="Breadcrumb" className="container pt-5">
+        <ol className="flex items-center flex-wrap gap-2 text-[11px] tracking-wider uppercase text-brand-navy/55 font-medium">
           {items.map((item, idx) => (
-            <li key={`${item.label}-${idx}`} className="flex items-center gap-1">
-              {idx > 0 && <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />}
+            <li key={`${item.label}-${idx}`} className="flex items-center gap-2">
+              {idx > 0 && <span className="text-brand-navy/25" aria-hidden="true">/</span>}
               {item.href && idx < items.length - 1 ? (
-                <Link to={item.href} className="hover:text-foreground">
+                <Link
+                  to={item.href}
+                  className="hover:text-brand-navy transition-colors"
+                >
                   {item.label}
                 </Link>
               ) : (
-                <span className={idx === items.length - 1 ? 'text-foreground font-medium' : ''}>
+                <span
+                  className={idx === items.length - 1 ? 'text-brand-navy' : ''}
+                >
                   {item.label}
                 </span>
               )}

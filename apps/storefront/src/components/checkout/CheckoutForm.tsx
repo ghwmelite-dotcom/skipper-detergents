@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 import type { CreateOrderInput } from '@skipper/shared';
 import { formatCurrency } from '@skipper/shared';
 import { api, ApiError } from '@/lib/api';
@@ -8,6 +9,7 @@ import type { PublicSettings } from '@/hooks/useSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { cn } from '@/lib/cn';
 
 interface OrderResult {
   order: { id: string; order_number: string };
@@ -25,7 +27,6 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFormProps) {
-  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,14 +45,13 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
 
   const feeAccra = parseFloat(settings.delivery_fee_accra ?? '0');
   const feeOther = parseFloat(settings.delivery_fee_other ?? '0');
-  const freeThreshold = parseFloat(settings.free_delivery_threshold ?? '0');
 
   function set(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   function getDeliveryFeeEstimate(): string {
-    if (form.deliveryMethod === 'pickup') return 'Free (pickup)';
+    if (form.deliveryMethod === 'pickup') return 'Free pickup';
     const city = form.city.toLowerCase();
     const fee = city.includes('accra') ? feeAccra : feeOther;
     return fee === 0 ? 'Free' : formatCurrency(fee);
@@ -61,12 +61,14 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
     e.preventDefault();
     setError(null);
 
-    // Basic validation
     if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
       setError('Please fill in all required contact fields.');
       return;
     }
-    if (form.deliveryMethod === 'delivery' && (!form.address.trim() || !form.city.trim() || !form.region.trim())) {
+    if (
+      form.deliveryMethod === 'delivery' &&
+      (!form.address.trim() || !form.city.trim() || !form.region.trim())
+    ) {
       setError('Please fill in all delivery address fields.');
       return;
     }
@@ -96,7 +98,6 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
     setIsSubmitting(true);
     try {
       const result = await api.post<OrderResult>('/api/orders', body);
-      // Store email for order tracking
       localStorage.setItem('skipper-last-email', form.email.trim());
       onOrderCreated(result);
     } catch (err) {
@@ -111,223 +112,194 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-12" noValidate>
       {/* Contact */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold border-b border-border pb-2">Contact Information</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <label htmlFor="name" className="text-sm font-medium">
-              Full Name <span className="text-destructive">*</span>
-            </label>
-            <Input
-              id="name"
-              type="text"
-              autoComplete="name"
-              value={form.name}
-              onChange={(e) => set('name', e.target.value)}
-              placeholder="Kwame Asante"
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label htmlFor="phone" className="text-sm font-medium">
-              Phone <span className="text-destructive">*</span>
-            </label>
-            <Input
-              id="phone"
-              type="tel"
-              autoComplete="tel"
-              value={form.phone}
-              onChange={(e) => set('phone', e.target.value)}
-              placeholder="0244 123 456"
-              required
-            />
-          </div>
+      <section className="rounded-lg bg-brand-sand/40 p-6 md:p-8 space-y-6">
+        <div className="flex items-baseline gap-3">
+          <span className="font-display text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
+            01
+          </span>
+          <h2 className="font-display text-2xl font-medium text-brand-navy">
+            Contact <span className="font-display-italic">details</span>
+          </h2>
         </div>
-        <div className="space-y-1.5">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email Address <span className="text-destructive">*</span>
-          </label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            value={form.email}
-            onChange={(e) => set('email', e.target.value)}
-            placeholder="kwame@example.com"
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field
+            id="name"
+            label="Full name"
             required
+            value={form.name}
+            onChange={(v) => set('name', v)}
+            autoComplete="name"
+            placeholder="Kwame Asante"
+          />
+          <Field
+            id="phone"
+            type="tel"
+            label="Phone"
+            required
+            value={form.phone}
+            onChange={(v) => set('phone', v)}
+            autoComplete="tel"
+            placeholder="0244 123 456"
           />
         </div>
+        <Field
+          id="email"
+          type="email"
+          label="Email address"
+          required
+          value={form.email}
+          onChange={(v) => set('email', v)}
+          autoComplete="email"
+          placeholder="kwame@example.com"
+        />
       </section>
 
-      {/* Delivery method */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold border-b border-border pb-2">Delivery Method</h2>
+      {/* Delivery */}
+      <section className="rounded-lg bg-brand-sand/40 p-6 md:p-8 space-y-6">
+        <div className="flex items-baseline gap-3">
+          <span className="font-display text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
+            02
+          </span>
+          <h2 className="font-display text-2xl font-medium text-brand-navy">
+            How do we get it <span className="font-display-italic">to you?</span>
+          </h2>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {(
             [
               {
                 value: 'delivery',
-                label: 'Home Delivery',
-                desc: `${getDeliveryFeeEstimate()} delivery fee`,
+                label: 'Home delivery',
+                desc: `${getDeliveryFeeEstimate()} · fast dispatch`,
               },
               {
                 value: 'pickup',
-                label: 'Store Pickup',
-                desc: settings.pickup_address ?? 'Collect from our store',
+                label: 'Store pickup',
+                desc: settings.pickup_address ?? 'Collect from our Accra store',
               },
             ] as const
           ).map((opt) => (
-            <label
+            <OptionCard
               key={opt.value}
-              className={`flex cursor-pointer gap-3 rounded-lg border-2 p-4 transition-all ${
-                form.deliveryMethod === opt.value
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-muted-foreground'
-              }`}
-            >
-              <input
-                type="radio"
-                name="deliveryMethod"
-                value={opt.value}
-                checked={form.deliveryMethod === opt.value}
-                onChange={() => set('deliveryMethod', opt.value)}
-                className="mt-1 h-4 w-4 accent-primary"
-              />
-              <div>
-                <p className="font-medium text-sm">{opt.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
-              </div>
-            </label>
+              label={opt.label}
+              desc={opt.desc}
+              active={form.deliveryMethod === opt.value}
+              onSelect={() => set('deliveryMethod', opt.value)}
+            />
           ))}
         </div>
 
         {form.deliveryMethod === 'delivery' && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2 space-y-1.5">
-              <label htmlFor="address" className="text-sm font-medium">
-                Street Address <span className="text-destructive">*</span>
-              </label>
-              <Input
-                id="address"
-                type="text"
-                autoComplete="street-address"
-                value={form.address}
-                onChange={(e) => set('address', e.target.value)}
-                placeholder="House no. / Street"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="city" className="text-sm font-medium">
-                City <span className="text-destructive">*</span>
-              </label>
-              <Input
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="grid gap-5 sm:grid-cols-2 pt-2">
+              <div className="sm:col-span-2">
+                <Field
+                  id="address"
+                  label="Street address"
+                  required
+                  value={form.address}
+                  onChange={(v) => set('address', v)}
+                  autoComplete="street-address"
+                  placeholder="House no. / Street"
+                />
+              </div>
+              <Field
                 id="city"
-                type="text"
-                autoComplete="address-level2"
+                label="City"
+                required
                 value={form.city}
-                onChange={(e) => set('city', e.target.value)}
+                onChange={(v) => set('city', v)}
+                autoComplete="address-level2"
                 placeholder="Accra"
-                required
               />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="region" className="text-sm font-medium">
-                Region <span className="text-destructive">*</span>
-              </label>
-              <Input
+              <Field
                 id="region"
-                type="text"
-                autoComplete="address-level1"
-                value={form.region}
-                onChange={(e) => set('region', e.target.value)}
-                placeholder="Greater Accra"
+                label="Region"
                 required
+                value={form.region}
+                onChange={(v) => set('region', v)}
+                autoComplete="address-level1"
+                placeholder="Greater Accra"
               />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="gps" className="text-sm font-medium">
-                GPS Address <span className="text-muted-foreground font-normal">(optional)</span>
-              </label>
-              <Input
+              <Field
                 id="gps"
-                type="text"
+                label="GPS address"
+                optional
                 value={form.gps}
-                onChange={(e) => set('gps', e.target.value)}
+                onChange={(v) => set('gps', v)}
                 placeholder="GA-123-4567"
               />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="notes" className="text-sm font-medium">
-                Delivery Notes <span className="text-muted-foreground font-normal">(optional)</span>
-              </label>
-              <Input
+              <Field
                 id="notes"
-                type="text"
+                label="Delivery notes"
+                optional
                 value={form.notes}
-                onChange={(e) => set('notes', e.target.value)}
+                onChange={(v) => set('notes', v)}
                 placeholder="Near the blue gate..."
               />
             </div>
-          </div>
+          </motion.div>
         )}
       </section>
 
-      {/* Payment method */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold border-b border-border pb-2">Payment Method</h2>
+      {/* Payment */}
+      <section className="rounded-lg bg-brand-sand/40 p-6 md:p-8 space-y-6">
+        <div className="flex items-baseline gap-3">
+          <span className="font-display text-3xl font-medium text-brand-cyan-deep leading-none tabular-nums">
+            03
+          </span>
+          <h2 className="font-display text-2xl font-medium text-brand-navy">
+            Payment <span className="font-display-italic">method</span>
+          </h2>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {(
             [
               {
                 value: 'paystack',
                 label: 'Pay with Paystack',
-                desc: 'Card, Mobile Money, USSD',
+                desc: 'Card · Mobile Money · USSD',
               },
               {
                 value: 'manual_transfer',
-                label: 'Bank / MoMo Transfer',
+                label: 'Bank / MoMo transfer',
                 desc: 'Transfer and upload proof',
               },
             ] as const
           ).map((opt) => (
-            <label
+            <OptionCard
               key={opt.value}
-              className={`flex cursor-pointer gap-3 rounded-lg border-2 p-4 transition-all ${
-                form.paymentMethod === opt.value
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-muted-foreground'
-              }`}
-            >
-              <input
-                type="radio"
-                name="paymentMethod"
-                value={opt.value}
-                checked={form.paymentMethod === opt.value}
-                onChange={() => set('paymentMethod', opt.value)}
-                className="mt-1 h-4 w-4 accent-primary"
-              />
-              <div>
-                <p className="font-medium text-sm">{opt.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
-              </div>
-            </label>
+              label={opt.label}
+              desc={opt.desc}
+              active={form.paymentMethod === opt.value}
+              onSelect={() => set('paymentMethod', opt.value)}
+            />
           ))}
         </div>
       </section>
 
       {error && (
-        <div role="alert" className="rounded-md bg-destructive/10 border border-destructive/30 px-4 py-3 text-sm text-destructive">
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          role="alert"
+          className="rounded-md bg-brand-red/10 border border-brand-red/25 px-4 py-3 text-sm text-brand-red"
+        >
           {error}
-        </div>
+        </motion.div>
       )}
 
       <Button
         type="submit"
         variant="primary"
-        size="lg"
+        size="xl"
         className="w-full"
         disabled={isSubmitting}
         aria-busy={isSubmitting}
@@ -335,12 +307,92 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
         {isSubmitting ? (
           <>
             <LoadingSpinner className="h-5 w-5" />
-            Placing order...
+            Placing your order...
           </>
         ) : (
-          'Place Order'
+          'Place order'
         )}
       </Button>
     </form>
+  );
+}
+
+interface FieldProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  required?: boolean;
+  optional?: boolean;
+  placeholder?: string;
+  autoComplete?: string;
+}
+
+function Field({
+  id,
+  label,
+  value,
+  onChange,
+  type = 'text',
+  required,
+  optional,
+  placeholder,
+  autoComplete,
+}: FieldProps) {
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="editorial-label text-brand-navy/60 flex items-center gap-1">
+        {label}
+        {required && <span className="text-brand-red">*</span>}
+        {optional && <span className="text-brand-navy/40 normal-case tracking-normal">(optional)</span>}
+      </label>
+      <Input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        {...(autoComplete ? { autoComplete } : {})}
+        {...(required ? { required: true } : {})}
+      />
+    </div>
+  );
+}
+
+interface OptionCardProps {
+  label: string;
+  desc: string;
+  active: boolean;
+  onSelect: () => void;
+}
+
+function OptionCard({ label, desc, active, onSelect }: OptionCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        'relative flex gap-3 items-start text-left rounded-lg p-4 border transition-all duration-250 ease-editorial',
+        active
+          ? 'border-brand-navy bg-brand-ivory shadow-md'
+          : 'border-brand-navy/15 bg-brand-ivory/40 hover:border-brand-navy/35 hover:bg-brand-ivory',
+      )}
+      aria-pressed={active}
+    >
+      <span
+        className={cn(
+          'mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors duration-200',
+          active ? 'border-brand-navy bg-brand-navy text-brand-ivory' : 'border-brand-navy/30',
+        )}
+        aria-hidden="true"
+      >
+        {active && <Check className="h-3 w-3" strokeWidth={3} />}
+      </span>
+      <div className="flex-1">
+        <p className="font-medium text-[14px] text-brand-navy">{label}</p>
+        <p className="text-[12px] text-brand-navy/60 mt-1 whitespace-pre-line">{desc}</p>
+      </div>
+    </button>
   );
 }

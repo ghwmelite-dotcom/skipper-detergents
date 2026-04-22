@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { X, ShoppingBag } from 'lucide-react';
+import { X, ShoppingBag, ArrowRight } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { Sheet } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useUiStore } from '@/stores/uiStore';
@@ -18,7 +19,8 @@ export function CartDrawer() {
   const productQueries = useQueries({
     queries: items.map((item) => ({
       queryKey: ['products', 'byId', item.product_id],
-      queryFn: () => api.get<Product>(`/api/products/id/${item.product_id}`).catch(() => null),
+      queryFn: () =>
+        api.get<Product>(`/api/products/id/${item.product_id}`).catch(() => null),
       enabled: open,
     })),
   });
@@ -38,60 +40,87 @@ export function CartDrawer() {
     <Sheet open={open} onClose={closeCartDrawer} side="right" title="Your cart">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="font-semibold text-lg">
-            Cart{totalQuantity > 0 && <span className="text-muted-foreground font-normal ml-2 text-base">({totalQuantity})</span>}
-          </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={closeCartDrawer}
-            aria-label="Close cart"
-          >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-brand-navy/10">
+          <div>
+            <span className="editorial-label text-brand-cyan-deep">Your selection</span>
+            <h2 className="font-display text-2xl font-medium text-brand-navy leading-tight mt-0.5">
+              Cart{' '}
+              {totalQuantity > 0 && (
+                <span className="font-display-italic text-brand-navy/55 tabular-nums">
+                  · {totalQuantity}
+                </span>
+              )}
+            </h2>
+          </div>
+          <Button variant="ghost" size="icon" onClick={closeCartDrawer} aria-label="Close cart">
             <X className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5">
+        <div className="flex-1 overflow-y-auto px-6">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center py-12">
-              <ShoppingBag className="h-12 w-12 text-muted-foreground/40" aria-hidden="true" />
-              <div>
-                <p className="font-medium">Your cart is empty</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Add some products to get started
+            <div className="flex flex-col items-center justify-center h-full gap-6 text-center py-16">
+              <div className="h-16 w-16 rounded-full bg-brand-sand/70 flex items-center justify-center">
+                <ShoppingBag className="h-7 w-7 text-brand-navy/50" aria-hidden="true" strokeWidth={1.5} />
+              </div>
+              <div className="space-y-2">
+                <p className="font-display text-2xl text-brand-navy">
+                  Your cart is <span className="font-display-italic">quiet.</span>
+                </p>
+                <p className="text-sm text-brand-navy/60">
+                  Browse the shop and add something lovely.
                 </p>
               </div>
               <Link to="/shop" onClick={closeCartDrawer}>
-                <Button variant="primary" size="md">Shop now</Button>
+                <Button variant="primary" size="md" className="gap-2">
+                  Start shopping
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
               </Link>
             </div>
           ) : (
             <div className="py-2">
-              {items.map((item) => {
-                const product = productMap.get(item.product_id);
-                if (!product) return null;
-                return <CartItemRow key={`${item.product_id}-${item.variant_id ?? ''}`} item={item} product={product} />;
-              })}
+              <AnimatePresence initial={false}>
+                {items.map((item) => {
+                  const product = productMap.get(item.product_id);
+                  if (!product) return null;
+                  return (
+                    <CartItemRow
+                      key={`${item.product_id}-${item.variant_id ?? ''}`}
+                      item={item}
+                      product={product}
+                      compact
+                    />
+                  );
+                })}
+              </AnimatePresence>
             </div>
           )}
         </div>
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-border px-5 py-4 space-y-3">
-            <div className="flex justify-between text-sm font-semibold text-base">
-              <span>Subtotal</span>
-              <span>{formatCurrency(subtotal)}</span>
+          <div className="border-t border-brand-navy/10 px-6 py-5 space-y-4 bg-brand-ivory">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm uppercase tracking-wider text-brand-navy/60 font-medium">
+                Subtotal
+              </span>
+              <span className="font-display text-2xl font-medium text-brand-navy tabular-nums">
+                {formatCurrency(subtotal)}
+              </span>
             </div>
+            <p className="text-[11px] text-brand-navy/50 tracking-wide">
+              Delivery + discounts calculated at checkout.
+            </p>
             <Link to="/checkout" onClick={closeCartDrawer} className="block w-full">
-              <Button variant="primary" size="lg" className="w-full">
-                Proceed to Checkout
+              <Button variant="primary" size="lg" className="w-full gap-2">
+                Proceed to checkout
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </Link>
             <Link to="/cart" onClick={closeCartDrawer} className="block w-full">
-              <Button variant="outline" size="md" className="w-full">
+              <Button variant="ghost" size="sm" className="w-full">
                 View full cart
               </Button>
             </Link>

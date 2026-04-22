@@ -1,22 +1,32 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { SplitHeadline } from '@/components/motion/SplitHeadline';
 
 export default function NotFound() {
   return (
     <>
       <SEOHead title="Page not found (404)" noindex />
-      <div className="container py-24 flex flex-col items-center text-center gap-4 max-w-md">
-        <h1 className="text-5xl font-semibold text-primary">404</h1>
-        <p className="text-muted-foreground">
-          We couldn&apos;t find that page. Try heading back to the shop.
+      <div className="container py-32 flex flex-col items-center text-center gap-8 max-w-xl mx-auto">
+        <p className="editorial-label text-brand-cyan-deep">
+          <span className="accent-line mr-3" aria-hidden="true" />
+          Error 404
         </p>
-        <div className="flex gap-2">
+        <SplitHeadline
+          text="This page | _drifted_ off course."
+          className="text-display-lg text-brand-navy"
+          as="h1"
+          stagger={0.08}
+        />
+        <p className="text-[17px] text-brand-navy/65 leading-relaxed font-light">
+          We couldn&rsquo;t find that page. It may have been moved, or the link might be off.
+        </p>
+        <div className="flex flex-wrap gap-3 justify-center">
           <Link to="/">
-            <Button>Go home</Button>
+            <Button variant="primary" size="lg">Go home</Button>
           </Link>
           <Link to="/shop">
-            <Button variant="outline">Browse products</Button>
+            <Button variant="outline" size="lg">Browse the shop</Button>
           </Link>
         </div>
       </div>

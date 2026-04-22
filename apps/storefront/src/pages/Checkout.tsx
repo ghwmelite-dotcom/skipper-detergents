@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2 } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { CheckoutForm } from '@/components/checkout/CheckoutForm';
@@ -45,7 +47,6 @@ export default function Checkout() {
     .map((q) => q.data)
     .filter((p): p is Product => p !== null && p !== undefined);
 
-  // Redirect if cart is empty and no pending order
   if (items.length === 0 && !orderResult) {
     return <Navigate to="/cart" replace />;
   }
@@ -66,67 +67,106 @@ export default function Checkout() {
         ]}
       />
 
-      <div className="container py-8">
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+      <div className="container py-8 md:py-14">
+        <div className="mb-10">
+          <span className="editorial-label text-brand-cyan-deep">
+            <span className="accent-line mr-3" aria-hidden="true" />
+            Final step
+          </span>
+          <h1 className="mt-4 font-display text-display-md text-brand-navy">
+            <span className="font-display-italic">Checkout.</span>
+          </h1>
+          <p className="mt-3 text-brand-navy/60 max-w-lg">
+            Almost there. A few details and your order is on its way.
+          </p>
+        </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-          {/* Form / payment step */}
+        <div className="grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-16">
           <div>
-            {!orderResult ? (
-              <CheckoutForm
-                cartItems={items}
-                settings={settings ?? {}}
-                onOrderCreated={(result) => {
-                  // Extract email from localStorage (CheckoutForm stores it there)
-                  const email = localStorage.getItem('skipper-last-email') ?? '';
-                  handleOrderCreated(result, email);
-                }}
-              />
-            ) : (
-              <div className="space-y-6">
-                <div className="rounded-lg bg-green-50 border border-green-200 p-4">
-                  <p className="font-semibold text-green-800">
-                    Order {orderResult.order.order_number} created successfully!
-                  </p>
-                  <p className="text-sm text-green-700 mt-1">
-                    Complete your payment below to confirm your order.
-                  </p>
-                </div>
+            <AnimatePresence mode="wait">
+              {!orderResult ? (
+                <motion.div
+                  key="form"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+                >
+                  <CheckoutForm
+                    cartItems={items}
+                    settings={settings ?? {}}
+                    onOrderCreated={(result) => {
+                      const email = localStorage.getItem('skipper-last-email') ?? '';
+                      handleOrderCreated(result, email);
+                    }}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="payment"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+                  className="space-y-8"
+                >
+                  <div className="rounded-lg border border-emerald-600/20 bg-emerald-50/50 p-5 flex gap-4 items-start">
+                    <CheckCircle2
+                      className="h-5 w-5 text-emerald-600 flex-none mt-0.5"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <p className="font-display text-lg text-brand-navy font-medium">
+                        Order{' '}
+                        <span className="font-display-italic">
+                          {orderResult.order.order_number}
+                        </span>{' '}
+                        created.
+                      </p>
+                      <p className="text-sm text-brand-navy/65 mt-1">
+                        Complete your payment below to confirm.
+                      </p>
+                    </div>
+                  </div>
 
-                {orderResult.next.action === 'paystack_init' ? (
-                  <div className="space-y-3">
-                    <h2 className="text-lg font-semibold">Complete Payment</h2>
-                    <PaystackButton
-                      orderId={orderResult.order.id}
-                      orderNumber={orderResult.order.order_number}
-                      email={customerEmail}
-                      publicKey={settings?.paystack_public_key ?? ''}
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <h2 className="text-lg font-semibold">Upload Payment Proof</h2>
-                    <ManualPaymentUpload
-                      orderId={orderResult.order.id}
-                      orderNumber={orderResult.order.order_number}
-                      manualPaymentDetails={
-                        orderResult.next.manual_payment_details ??
-                        settings?.manual_payment_details ??
-                        'Contact us for transfer details.'
-                      }
-                    />
-                  </div>
-                )}
-              </div>
-            )}
+                  {orderResult.next.action === 'paystack_init' ? (
+                    <div className="space-y-4">
+                      <h2 className="font-display text-2xl font-medium text-brand-navy">
+                        Complete <span className="font-display-italic">payment</span>.
+                      </h2>
+                      <PaystackButton
+                        orderId={orderResult.order.id}
+                        orderNumber={orderResult.order.order_number}
+                        email={customerEmail}
+                        publicKey={settings?.paystack_public_key ?? ''}
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <h2 className="font-display text-2xl font-medium text-brand-navy">
+                        Upload <span className="font-display-italic">proof</span> of payment.
+                      </h2>
+                      <ManualPaymentUpload
+                        orderId={orderResult.order.id}
+                        orderNumber={orderResult.order.order_number}
+                        manualPaymentDetails={
+                          orderResult.next.manual_payment_details ??
+                          settings?.manual_payment_details ??
+                          'Contact us for transfer details.'
+                        }
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Order summary */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <CartSummary items={items} products={products} />
             {items.length > 0 && (
-              <p className="text-xs text-muted-foreground text-center">
-                By placing your order you agree to our terms of service.
+              <p className="text-[11px] text-brand-navy/50 text-center tracking-wider uppercase">
+                By placing your order you agree to our terms
               </p>
             )}
           </div>

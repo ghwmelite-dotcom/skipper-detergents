@@ -1,89 +1,145 @@
 import { useEffect } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Package, MapPin, ArrowRight } from 'lucide-react';
+import { Check, MapPin, Mail, ArrowRight } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
+
+const NEXT_STEPS = [
+  {
+    icon: Mail,
+    label: 'Check your email',
+    body: "We've sent confirmation to the address you provided.",
+  },
+  {
+    icon: MapPin,
+    label: "We'll prepare your order",
+    body: 'Accra dispatches same day before 12 PM. Other regions 2–4 business days.',
+  },
+];
 
 export default function OrderConfirmation() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const [searchParams] = useSearchParams();
   const reference = searchParams.get('reference');
   const { clear } = useCart();
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     clear();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
-      <SEOHead title={`Order ${orderNumber ?? ''} Confirmed`} noindex />
+      <SEOHead title={`Order ${orderNumber ?? ''} confirmed`} noindex />
 
-      <div className="container py-16 max-w-2xl mx-auto text-center space-y-8">
-        {/* Success icon */}
-        <div className="flex items-center justify-center">
-          <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckCircle className="h-10 w-10 text-green-600" aria-hidden="true" />
-          </div>
-        </div>
+      <div className="container py-20 md:py-28 max-w-2xl mx-auto text-center">
+        <motion.div
+          initial={reduced ? false : { scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 280, damping: 20, delay: 0.1 }}
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-cyan/15 ring-1 ring-brand-cyan/30"
+        >
+          <motion.div
+            initial={reduced ? false : { scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.35, type: 'spring', stiffness: 360, damping: 18 }}
+          >
+            <Check className="h-10 w-10 text-brand-cyan-deep" strokeWidth={1.75} aria-hidden="true" />
+          </motion.div>
+        </motion.div>
 
-        {/* Heading */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Thank You!</h1>
-          <p className="text-muted-foreground text-lg">
-            Your order has been placed successfully.
-          </p>
-        </div>
+        <motion.h1
+          initial={reduced ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-8 font-display text-display-md text-brand-navy"
+        >
+          <span className="font-display-italic">Thank you.</span>
+        </motion.h1>
 
-        {/* Order details card */}
-        <div className="rounded-xl border border-border p-6 text-left space-y-4">
-          <div className="flex items-center gap-3 pb-4 border-b border-border">
-            <Package className="h-5 w-5 text-primary" aria-hidden="true" />
-            <div>
-              <p className="text-sm text-muted-foreground">Order Number</p>
-              <p className="font-bold text-lg tracking-wide">{orderNumber}</p>
-            </div>
-          </div>
+        <motion.p
+          initial={reduced ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.65, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-4 text-brand-navy/65 text-[17px] leading-relaxed max-w-md mx-auto"
+        >
+          Your order is in &mdash; we&rsquo;ll take it from here. A quiet notification email is on
+          its way.
+        </motion.p>
 
-          {reference && (
-            <div className="flex items-center gap-3">
-              <CheckCircle className="h-5 w-5 text-green-600" aria-hidden="true" />
-              <div>
-                <p className="text-sm text-muted-foreground">Payment Reference</p>
-                <p className="font-medium text-sm font-mono">{reference}</p>
-              </div>
-            </div>
-          )}
-
-          <div className="text-sm text-muted-foreground leading-relaxed">
-            <p>
-              We've received your order and will begin processing it shortly. You'll receive
-              updates via the phone number provided at checkout.
+        <motion.div
+          initial={reduced ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.85, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-10 rounded-lg bg-brand-sand/60 p-6 md:p-8 text-left space-y-5"
+        >
+          <div>
+            <p className="editorial-label text-brand-cyan-deep">Order number</p>
+            <p className="font-display text-3xl font-medium text-brand-navy mt-2 tracking-tight">
+              {orderNumber}
             </p>
           </div>
-        </div>
+          {reference && (
+            <div className="pt-4 border-t border-brand-navy/10">
+              <p className="editorial-label text-brand-cyan-deep">Payment reference</p>
+              <p className="font-mono text-sm text-brand-navy mt-2 break-all">{reference}</p>
+            </div>
+          )}
+          <div className="pt-4 border-t border-brand-navy/10">
+            <p className="editorial-label text-brand-cyan-deep">Status</p>
+            <span className="mt-2 inline-flex items-center gap-2 rounded-full bg-brand-ivory px-3 py-1 text-sm font-medium text-brand-navy">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inset-0 rounded-full bg-brand-cyan/50 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-cyan" />
+              </span>
+              {reference ? 'Confirmed · Paid' : 'Awaiting payment confirmation'}
+            </span>
+          </div>
+        </motion.div>
 
-        {/* Next steps */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Link
-            to={`/track/${orderNumber}`}
-            className="flex items-center justify-center gap-2 rounded-lg border border-border p-4 hover:bg-accent transition-colors text-sm font-medium"
-          >
-            <MapPin className="h-4 w-4" aria-hidden="true" />
-            Track this order
-          </Link>
-          <Link
-            to="/shop"
-            className="flex items-center justify-center gap-2 rounded-lg border border-border p-4 hover:bg-accent transition-colors text-sm font-medium"
-          >
-            Continue shopping
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-        </div>
+        <motion.div
+          initial={reduced ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.0, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-10 grid gap-4 sm:grid-cols-2 text-left"
+        >
+          {NEXT_STEPS.map(({ icon: Icon, label, body }) => (
+            <div
+              key={label}
+              className="rounded-lg border border-brand-navy/10 p-5 bg-brand-ivory space-y-2"
+            >
+              <div className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-brand-cyan/10 text-brand-cyan-deep">
+                <Icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.75} />
+              </div>
+              <p className="font-display text-base font-medium text-brand-navy leading-tight">
+                {label}
+              </p>
+              <p className="text-[13px] text-brand-navy/60 leading-relaxed">{body}</p>
+            </div>
+          ))}
+        </motion.div>
 
-        <Link to="/">
-          <Button variant="primary" size="lg">Back to home</Button>
-        </Link>
+        <motion.div
+          initial={reduced ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.15, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-12 flex flex-wrap items-center justify-center gap-3"
+        >
+          <Link to={`/track/${orderNumber}`}>
+            <Button variant="primary" size="lg" className="gap-2">
+              Track my order
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </Link>
+          <Link to="/shop">
+            <Button variant="outline" size="lg">
+              Keep shopping
+            </Button>
+          </Link>
+        </motion.div>
       </div>
     </>
   );

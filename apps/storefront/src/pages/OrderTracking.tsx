@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Package, MapPin, Clock, CheckCircle, Truck, AlertCircle } from 'lucide-react';
+import { Package, MapPin, Clock, CheckCircle, Truck } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { Button } from '@/components/ui/button';
@@ -10,9 +11,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, ApiError } from '@/lib/api';
 import type { OrderWithItems } from '@skipper/shared';
 import { formatCurrency } from '@skipper/shared';
+import { cn } from '@/lib/cn';
 
 const STATUS_STEPS = [
-  { key: 'pending', label: 'Order Placed', icon: Package },
+  { key: 'pending', label: 'Placed', icon: Package },
   { key: 'confirmed', label: 'Confirmed', icon: CheckCircle },
   { key: 'processing', label: 'Processing', icon: Clock },
   { key: 'shipped', label: 'Shipped', icon: Truck },
@@ -27,6 +29,7 @@ function getStatusIndex(status: string): number {
 export default function OrderTracking() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const [searchParams] = useSearchParams();
+  const reduced = useReducedMotion();
 
   const savedEmail = localStorage.getItem('skipper-last-email') ?? '';
   const [email, setEmail] = useState(searchParams.get('email') ?? savedEmail);
@@ -59,31 +62,51 @@ export default function OrderTracking() {
   }
 
   const currentStatusIdx = order ? getStatusIndex(order.status) : -1;
+  const progressPct =
+    currentStatusIdx >= 0 ? (currentStatusIdx / (STATUS_STEPS.length - 1)) * 100 : 0;
 
   return (
     <>
-      <SEOHead title={`Track Order ${orderNumber ?? ''}`} noindex />
-      <Breadcrumbs
-        items={[
-          { label: 'Home', href: '/' },
-          { label: 'Track Order' },
-        ]}
-      />
+      <SEOHead title={`Track order ${orderNumber ?? ''}`} noindex />
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Track order' }]} />
 
-      <div className="container py-8 max-w-2xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Track Your Order</h1>
+      <div className="container py-10 md:py-16 max-w-3xl mx-auto">
+        <div className="mb-10">
+          <span className="editorial-label text-brand-cyan-deep">
+            <span className="accent-line mr-3" aria-hidden="true" />
+            Tracking
+          </span>
+          <h1 className="mt-4 font-display text-display-md text-brand-navy">
+            <span className="font-display-italic">Where is</span> your order.
+          </h1>
           {orderNumber && (
-            <p className="text-muted-foreground mt-1">Order number: {orderNumber}</p>
+            <p className="mt-2 text-sm text-brand-navy/60 tabular-nums">
+              Order {orderNumber}
+            </p>
           )}
         </div>
 
         {/* Email form */}
         {!submittedEmail || (isError && !order) ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="rounded-lg bg-brand-sand/50 p-6 md:p-8 space-y-5 max-w-lg"
+          >
+            <div>
+              <p className="font-display text-xl font-medium text-brand-navy leading-tight">
+                Enter the <span className="font-display-italic">email</span> you used at
+                checkout.
+              </p>
+              <p className="mt-2 text-sm text-brand-navy/60">
+                We&apos;ll show you the current status of your order.
+              </p>
+            </div>
             <div className="space-y-1.5">
-              <label htmlFor="track-email" className="text-sm font-medium">
-                Email address used at checkout
+              <label
+                htmlFor="track-email"
+                className="editorial-label text-brand-navy/60"
+              >
+                Email address
               </label>
               <Input
                 id="track-email"
@@ -95,158 +118,226 @@ export default function OrderTracking() {
                 required
               />
               {formError && (
-                <p className="text-sm text-destructive">{formError}</p>
+                <p className="text-sm text-brand-red">{formError}</p>
               )}
               {isError && submittedEmail && (
-                <p className="text-sm text-destructive">
-                  {error instanceof ApiError ? error.message : 'Order not found. Check your email address.'}
+                <p className="text-sm text-brand-red">
+                  {error instanceof ApiError
+                    ? error.message
+                    : 'Order not found. Check your email address.'}
                 </p>
               )}
             </div>
             <Button type="submit" variant="primary" size="md">
-              Track Order
+              Look up my order
             </Button>
           </form>
         ) : null}
 
-        {/* Loading */}
         {isLoading && (
-          <div className="space-y-4">
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-40 w-full rounded-xl" />
+          <div className="space-y-5">
+            <Skeleton className="h-28 w-full rounded-lg" />
+            <Skeleton className="h-48 w-full rounded-lg" />
           </div>
         )}
 
-        {/* Order details */}
         {order && (
-          <div className="space-y-6">
-            {/* Status progress */}
-            <div className="rounded-xl border border-border p-6">
-              <h2 className="font-semibold mb-6">Order Status</h2>
-              <div className="flex items-start justify-between gap-2">
-                {STATUS_STEPS.map((step, idx) => {
-                  const Icon = step.icon;
-                  const done = idx <= currentStatusIdx;
-                  const active = idx === currentStatusIdx;
-                  return (
-                    <div
-                      key={step.key}
-                      className="flex flex-col items-center gap-1.5 flex-1 text-center"
-                    >
-                      <div
-                        className={`h-8 w-8 rounded-full flex items-center justify-center transition-colors ${
-                          done
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground'
-                        } ${active ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                      >
-                        <Icon className="h-4 w-4" aria-hidden="true" />
-                      </div>
-                      <span
-                        className={`text-xs leading-tight ${
-                          done ? 'text-foreground font-medium' : 'text-muted-foreground'
-                        }`}
-                      >
-                        {step.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Order info */}
-            <div className="rounded-xl border border-border p-6 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2 text-sm">
+          <motion.div
+            initial={reduced ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+            className="space-y-8"
+          >
+            {/* Stepper */}
+            <div className="rounded-lg border border-brand-navy/10 p-6 md:p-8 bg-brand-ivory">
+              <div className="flex items-end justify-between gap-3 mb-6">
                 <div>
-                  <p className="text-muted-foreground">Order Number</p>
-                  <p className="font-semibold mt-0.5">{order.order_number}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Payment</p>
-                  <p
-                    className={`font-semibold mt-0.5 capitalize ${
-                      order.payment_status === 'paid' ? 'text-green-600' : 'text-amber-600'
-                    }`}
-                  >
-                    {order.payment_status}
+                  <p className="editorial-label text-brand-cyan-deep">Status</p>
+                  <p className="font-display text-2xl font-medium text-brand-navy capitalize mt-1">
+                    {order.status.replace(/_/g, ' ')}
                   </p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Delivery method</p>
-                  <p className="font-semibold mt-0.5 capitalize">{order.delivery_method}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Total</p>
-                  <p className="font-semibold mt-0.5">{formatCurrency(order.total_amount)}</p>
-                </div>
+                <p className="text-[11px] text-brand-navy/50 tracking-wider uppercase">
+                  Placed {new Date(order.created_at).toLocaleDateString()}
+                </p>
               </div>
 
-              {order.tracking_number && (
-                <div className="border-t border-border pt-4">
-                  <p className="text-muted-foreground text-sm">Tracking number</p>
-                  <p className="font-mono font-medium mt-0.5">{order.tracking_number}</p>
-                  {order.tracking_url && (
-                    <a
-                      href={order.tracking_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline mt-1 inline-block"
-                    >
-                      Track shipment
-                    </a>
-                  )}
+              {/* Horizontal progress bar */}
+              <div className="relative">
+                <div className="absolute left-4 right-4 top-[15px] h-[2px] bg-brand-navy/10" aria-hidden="true" />
+                <motion.div
+                  className="absolute left-4 top-[15px] h-[2px] bg-brand-cyan origin-left"
+                  initial={{ scaleX: 0 }}
+                  animate={{
+                    scaleX: progressPct / 100,
+                  }}
+                  transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1], delay: 0.3 }}
+                  style={{
+                    width: `calc(100% - 2rem)`,
+                    transformOrigin: 'left center',
+                  }}
+                  aria-hidden="true"
+                />
+                <div className="relative grid grid-cols-5 gap-2">
+                  {STATUS_STEPS.map((step, idx) => {
+                    const Icon = step.icon;
+                    const done = idx <= currentStatusIdx;
+                    const active = idx === currentStatusIdx;
+                    return (
+                      <motion.div
+                        key={step.key}
+                        initial={reduced ? false : { scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{
+                          delay: 0.3 + idx * 0.1,
+                          type: 'spring',
+                          stiffness: 320,
+                          damping: 24,
+                        }}
+                        className="flex flex-col items-center gap-2"
+                      >
+                        <div
+                          className={cn(
+                            'h-8 w-8 rounded-full flex items-center justify-center transition-colors duration-300 ring-4 ring-brand-ivory',
+                            done
+                              ? 'bg-brand-cyan text-white'
+                              : 'bg-brand-navy/10 text-brand-navy/50',
+                            active && 'ring-brand-cyan/20',
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5" aria-hidden="true" strokeWidth={2} />
+                        </div>
+                        <span
+                          className={cn(
+                            'text-[11px] tracking-wide uppercase text-center font-medium',
+                            done ? 'text-brand-navy' : 'text-brand-navy/50',
+                          )}
+                        >
+                          {step.label}
+                        </span>
+                      </motion.div>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
             </div>
 
+            {/* Order meta */}
+            <div className="grid gap-5 sm:grid-cols-2">
+              {[
+                { label: 'Order number', value: order.order_number, mono: false },
+                {
+                  label: 'Payment status',
+                  value: order.payment_status,
+                  mono: false,
+                  accent:
+                    order.payment_status === 'paid'
+                      ? 'text-emerald-600'
+                      : 'text-amber-600',
+                },
+                {
+                  label: 'Delivery',
+                  value: order.delivery_method,
+                  mono: false,
+                },
+                {
+                  label: 'Total',
+                  value: formatCurrency(order.total_amount),
+                  mono: true,
+                },
+              ].map((f) => (
+                <div key={f.label} className="rounded-lg bg-brand-sand/40 p-5">
+                  <p className="editorial-label text-brand-navy/60">{f.label}</p>
+                  <p
+                    className={cn(
+                      'mt-2 font-display text-lg font-medium capitalize',
+                      f.mono ? 'tabular-nums text-brand-navy' : '',
+                      f.accent ?? 'text-brand-navy',
+                    )}
+                  >
+                    {f.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {order.tracking_number && (
+              <div className="rounded-lg border border-brand-navy/10 p-6 bg-brand-ivory space-y-2">
+                <p className="editorial-label text-brand-cyan-deep">Courier tracking</p>
+                <p className="font-mono text-sm text-brand-navy">{order.tracking_number}</p>
+                {order.tracking_url && (
+                  <a
+                    href={order.tracking_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-brand-cyan-deep hover:underline font-medium"
+                  >
+                    Track shipment &rarr;
+                  </a>
+                )}
+              </div>
+            )}
+
             {/* Items */}
-            <div className="rounded-xl border border-border p-6 space-y-4">
-              <h2 className="font-semibold">Items Ordered</h2>
-              <div className="space-y-3">
+            <div className="rounded-lg bg-brand-sand/40 p-6 md:p-8 space-y-5">
+              <h2 className="font-display text-xl font-medium text-brand-navy">
+                Items <span className="font-display-italic">ordered</span>
+              </h2>
+              <div className="divide-y divide-brand-navy/10">
                 {order.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex justify-between gap-4 text-sm py-2 border-b border-border last:border-0"
+                    className="flex justify-between gap-4 py-4 first:pt-0 last:pb-0"
                   >
                     <div className="min-w-0">
-                      <p className="font-medium line-clamp-2">{item.product_name}</p>
+                      <p className="font-medium text-brand-navy line-clamp-2">
+                        {item.product_name}
+                      </p>
                       {item.variant_name && (
-                        <p className="text-muted-foreground text-xs mt-0.5">{item.variant_name}</p>
+                        <p className="text-[12px] text-brand-navy/55 mt-0.5">
+                          {item.variant_name}
+                        </p>
                       )}
-                      <p className="text-muted-foreground text-xs mt-0.5">
-                        Qty: {item.quantity} × {formatCurrency(item.unit_price)}
+                      <p className="text-[12px] text-brand-navy/55 mt-1 tabular-nums">
+                        Qty {item.quantity} &middot; {formatCurrency(item.unit_price)}
                       </p>
                     </div>
-                    <p className="font-semibold shrink-0">{formatCurrency(item.line_total)}</p>
+                    <p className="font-semibold text-brand-navy tabular-nums shrink-0">
+                      {formatCurrency(item.line_total)}
+                    </p>
                   </div>
                 ))}
               </div>
 
-              <div className="pt-2 space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatCurrency(order.subtotal)}</span>
+              <div className="pt-5 border-t border-brand-navy/10 space-y-2 text-sm">
+                <div className="flex justify-between tabular-nums">
+                  <span className="text-brand-navy/65">Subtotal</span>
+                  <span className="text-brand-navy">{formatCurrency(order.subtotal)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Delivery</span>
-                  <span>{formatCurrency(order.delivery_fee)}</span>
+                <div className="flex justify-between tabular-nums">
+                  <span className="text-brand-navy/65">Delivery</span>
+                  <span className="text-brand-navy">
+                    {formatCurrency(order.delivery_fee)}
+                  </span>
                 </div>
-                <div className="flex justify-between font-semibold text-base pt-1 border-t border-border mt-1">
-                  <span>Total</span>
-                  <span>{formatCurrency(order.total_amount)}</span>
+                <div className="pt-2 border-t border-brand-navy/10 flex justify-between items-baseline">
+                  <span className="text-sm text-brand-navy/65 uppercase tracking-wider font-medium">
+                    Total
+                  </span>
+                  <span className="font-display text-2xl font-medium text-brand-navy tabular-nums">
+                    {formatCurrency(order.total_amount)}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Change email */}
             <button
               onClick={() => setSubmittedEmail('')}
-              className="text-sm text-muted-foreground hover:text-foreground underline"
+              className="text-sm text-brand-navy/55 hover:text-brand-navy transition-colors underline"
             >
               Use a different email address
             </button>
-          </div>
+          </motion.div>
         )}
       </div>
     </>

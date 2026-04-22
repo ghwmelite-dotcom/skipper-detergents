@@ -19,28 +19,38 @@ export function CartSummary({ items, products, deliveryFee = null }: CartSummary
   const total = subtotal + (deliveryFee ?? 0);
 
   return (
-    <div className="space-y-3 rounded-lg border border-border p-4 bg-muted/20">
-      <h2 className="font-semibold text-base">Order Summary</h2>
-      <div className="space-y-2 text-sm">
+    <div className="rounded-lg border border-brand-navy/10 bg-brand-ivory p-6 space-y-5">
+      <div>
+        <span className="editorial-label text-brand-cyan-deep">Order summary</span>
+      </div>
+      <div className="space-y-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span className="font-medium">{formatCurrency(subtotal)}</span>
+          <span className="text-brand-navy/65">Subtotal</span>
+          <span className="font-medium text-brand-navy tabular-nums">
+            {formatCurrency(subtotal)}
+          </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Delivery</span>
-          <span className="font-medium">
+          <span className="text-brand-navy/65">Delivery</span>
+          <span className="font-medium tabular-nums">
             {deliveryFee === null ? (
-              <span className="text-muted-foreground italic">Calculated at checkout</span>
+              <span className="text-brand-navy/50 italic">Calculated at checkout</span>
             ) : deliveryFee === 0 ? (
-              <span className="text-green-600">Free</span>
+              <span className="text-emerald-600">Free</span>
             ) : (
-              formatCurrency(deliveryFee)
+              <span className="text-brand-navy">{formatCurrency(deliveryFee)}</span>
             )}
           </span>
         </div>
-        <div className="border-t border-border pt-2 flex justify-between font-semibold text-base">
-          <span>Total</span>
-          <span>{formatCurrency(total)}</span>
+      </div>
+      <div className="pt-4 border-t border-brand-navy/10">
+        <div className="flex justify-between items-baseline">
+          <span className="text-sm text-brand-navy/60 tracking-wide uppercase font-medium">
+            Total
+          </span>
+          <span className="font-display text-[34px] leading-none font-medium text-brand-navy tabular-nums">
+            {formatCurrency(total)}
+          </span>
         </div>
       </div>
     </div>

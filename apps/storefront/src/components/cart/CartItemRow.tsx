@@ -1,67 +1,92 @@
-import { Trash2 } from 'lucide-react';
+import { X } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { Product } from '@skipper/shared';
 import { formatCurrency } from '@skipper/shared';
 import type { CartItem } from '@/stores/cartStore';
 import { useCart } from '@/hooks/useCart';
-import { Button } from '@/components/ui/button';
 import { QuantityInput } from '@/components/product/QuantityInput';
 
-const PLACEHOLDER = 'https://placehold.co/80x80/e2e8f0/64748b?text=P';
+const PLACEHOLDER =
+  'https://placehold.co/200x200/F4EDE0/0B2545?text=S&font=Roboto';
 
 interface CartItemRowProps {
   item: CartItem;
   product: Product;
+  compact?: boolean;
 }
 
-export function CartItemRow({ item, product }: CartItemRowProps) {
+export function CartItemRow({ item, product, compact = false }: CartItemRowProps) {
   const { updateQuantity, removeItem } = useCart();
+  const reduced = useReducedMotion();
   const variantId = item.variant_id ?? null;
 
   const lineTotal = product.unit_price * item.quantity;
 
   return (
-    <div className="flex gap-4 py-4 border-b border-border last:border-0">
-      {/* Image */}
-      <div className="h-16 w-16 flex-none overflow-hidden rounded-md border border-border bg-muted/20">
+    <motion.div
+      layout
+      initial={reduced ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduced ? { opacity: 0 } : { opacity: 0, x: 40, transition: { duration: 0.3 } }}
+      transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+      className="flex gap-4 py-5 border-b border-brand-navy/8 last:border-0"
+    >
+      <div
+        className={`${
+          compact ? 'h-16 w-16' : 'h-24 w-24'
+        } flex-none overflow-hidden rounded-md bg-brand-sand/60 ring-1 ring-brand-navy/10`}
+      >
         <img
           src={PLACEHOLDER}
           alt={product.name}
-          className="h-full w-full object-contain"
+          className="h-full w-full object-cover"
           loading="lazy"
         />
       </div>
 
-      {/* Details */}
-      <div className="flex flex-1 flex-col gap-2 min-w-0">
+      <div className="flex flex-1 flex-col gap-3 min-w-0 justify-between">
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-sm font-medium leading-snug line-clamp-2">{product.name}</p>
+          <div className="min-w-0 space-y-0.5">
+            {product.brand && !compact && (
+              <p className="editorial-label text-brand-cyan-deep">{product.brand}</p>
+            )}
+            <p className="font-display text-[17px] leading-tight text-brand-navy line-clamp-2 font-medium">
+              {product.name}
+            </p>
             {item.variant_id && (
-              <p className="text-xs text-muted-foreground mt-0.5">Variant selected</p>
+              <p className="text-xs text-brand-navy/55 mt-1">Variant selected</p>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
+            type="button"
             onClick={() => removeItem(product.id, variantId)}
             aria-label={`Remove ${product.name} from cart`}
-            className="h-8 w-8 flex-none text-muted-foreground hover:text-destructive"
+            className="flex-none inline-flex h-7 w-7 items-center justify-center rounded-full text-brand-navy/50 hover:bg-brand-navy/5 hover:text-brand-red transition-colors"
           >
-            <Trash2 className="h-4 w-4" aria-hidden="true" />
-          </Button>
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
         </div>
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <QuantityInput
             value={item.quantity}
             onChange={(qty) => updateQuantity(product.id, variantId, qty)}
             min={1}
             max={product.stock_quantity}
-            className="scale-90 origin-left"
+            className="scale-[0.92] origin-left"
           />
-          <span className="text-sm font-semibold shrink-0">{formatCurrency(lineTotal)}</span>
+          <div className="text-right">
+            <p className="text-[15px] font-semibold text-brand-navy tabular-nums">
+              {formatCurrency(lineTotal)}
+            </p>
+            {item.quantity > 1 && (
+              <p className="text-[11px] text-brand-navy/50 tabular-nums">
+                {formatCurrency(product.unit_price)} each
+              </p>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

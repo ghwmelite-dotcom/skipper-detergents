@@ -39,11 +39,7 @@ export default function Category() {
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const catName =
     category?.name ??
-    (slug
-      ? slug
-          .replace(/-/g, ' ')
-          .replace(/\b\w/g, (c) => c.toUpperCase())
-      : 'Category');
+    (slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Category');
 
   function goToPage(p: number) {
     setPage(p);
@@ -55,7 +51,9 @@ export default function Category() {
       <SEOHead
         title={category?.seo_title ?? catName}
         description={
-          category?.seo_description ?? category?.description ?? `Shop ${catName} from Skipper Detergents.`
+          category?.seo_description ??
+          category?.description ??
+          `Shop ${catName} from Skipper Detergents.`
         }
       />
       <Breadcrumbs
@@ -66,47 +64,69 @@ export default function Category() {
         ]}
       />
 
-      <div className="container py-8 space-y-8">
-        <div className="space-y-2">
-          {isLoading && !category ? (
-            <>
-              <Skeleton className="h-9 w-64" />
-              <Skeleton className="h-5 w-96" />
-            </>
-          ) : (
-            <>
-              <h1 className="text-3xl font-bold text-primary">{catName}</h1>
-              {category?.description && (
-                <p className="text-muted-foreground max-w-2xl">{category.description}</p>
-              )}
-              <p className="text-sm text-muted-foreground">
-                {isLoading ? '...' : `${total} product${total !== 1 ? 's' : ''}`}
-              </p>
-            </>
-          )}
-        </div>
-
-        {isError ? (
-          <div className="py-12 text-center">
-            <p className="text-muted-foreground">Failed to load products. Please try again.</p>
+      <header className="container pt-8 pb-10 md:pt-12 md:pb-14">
+        {isLoading && !category ? (
+          <div className="space-y-4">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-14 w-96 rounded-sm" />
+            <Skeleton className="h-5 w-full max-w-xl" />
           </div>
         ) : (
-          <ProductGrid products={products} loading={isLoading} skeletonCount={PER_PAGE} />
+          <div className="max-w-3xl space-y-5">
+            <div className="flex items-center gap-3">
+              <span className="accent-line" aria-hidden="true" />
+              <span className="editorial-label text-brand-cyan-deep">Category</span>
+            </div>
+            <h1 className="font-display text-display-md text-brand-navy">
+              <span className="font-display-italic">{catName}.</span>
+            </h1>
+            {category?.description && (
+              <p className="max-w-[60ch] text-[17px] text-brand-navy/65 leading-relaxed font-light">
+                {category.description}
+              </p>
+            )}
+            <p className="text-sm text-brand-navy/55 tabular-nums">
+              {isLoading ? 'Loading...' : `${total} product${total !== 1 ? 's' : ''}`}
+            </p>
+          </div>
+        )}
+      </header>
+
+      <div className="container pb-20">
+        {isError ? (
+          <div className="py-16 text-center">
+            <p className="font-display-italic text-xl text-brand-navy">
+              Failed to load products. Please try again.
+            </p>
+          </div>
+        ) : (
+          <ProductGrid
+            products={products}
+            loading={isLoading}
+            skeletonCount={PER_PAGE}
+            columns={4}
+          />
         )}
 
         {totalPages > 1 && (
-          <nav className="flex items-center justify-center gap-2 py-4" aria-label="Pagination">
+          <nav
+            className="flex items-center justify-center gap-4 pt-16"
+            aria-label="Pagination"
+          >
             <Button
               variant="outline"
               size="sm"
               onClick={() => goToPage(page - 1)}
               disabled={page <= 1}
               aria-label="Previous page"
+              className="gap-1.5"
             >
               <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              Prev
             </Button>
-            <span className="text-sm text-muted-foreground px-3">
-              Page {page} of {totalPages}
+            <span className="font-display text-sm text-brand-navy tabular-nums">
+              Page <span className="font-display-italic">{page}</span> of{' '}
+              <span className="font-display-italic">{totalPages}</span>
             </span>
             <Button
               variant="outline"
@@ -114,7 +134,9 @@ export default function Category() {
               onClick={() => goToPage(page + 1)}
               disabled={page >= totalPages}
               aria-label="Next page"
+              className="gap-1.5"
             >
+              Next
               <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           </nav>

@@ -61,10 +61,17 @@ export function PaystackButton({ orderId, orderNumber, email, publicKey }: Payst
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <div className="rounded-lg bg-brand-sand/50 p-5 space-y-2">
+        <p className="editorial-label text-brand-cyan-deep">Secure checkout</p>
+        <p className="text-sm text-brand-navy/75 leading-relaxed">
+          You&rsquo;ll complete payment via Paystack — card, Mobile Money, or USSD. We never see
+          or store your card details.
+        </p>
+      </div>
       <Button
         variant="primary"
-        size="lg"
+        size="xl"
         className="w-full"
         onClick={handlePay}
         disabled={loading}
@@ -80,7 +87,7 @@ export function PaystackButton({ orderId, orderNumber, email, publicKey }: Payst
         )}
       </Button>
       {error && (
-        <p role="alert" className="text-sm text-destructive text-center">
+        <p role="alert" className="text-sm text-brand-red text-center">
           {error}
         </p>
       )}
