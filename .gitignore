@@ -1,6 +1,12 @@
 node_modules/
 dist/
 .wrangler/
+*.tsbuildinfo
+apps/*/tailwind.config.d.ts
+apps/*/tailwind.config.js
+apps/*/vite.config.d.ts
+apps/*/vite.config.js
+apps/*/postcss.config.d.ts
 .env
 .env.local
 .env.*.local
