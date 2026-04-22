@@ -5,8 +5,8 @@ import { motion, useReducedMotion } from 'framer-motion';
 import type { Product } from '@skipper/shared';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { Button } from '@/components/ui/button';
-import { SplitHeadline } from '@/components/motion/SplitHeadline';
 import { Reveal } from '@/components/motion/Reveal';
+import CinematicHero from '@/components/hero/CinematicHero';
 import { useFeaturedProducts, useProducts } from '@/hooks/useProducts';
 import { usePublicSettings } from '@/hooks/useSettings';
 import { usePurchaseModeStore } from '@/stores/purchaseModeStore';
@@ -22,7 +22,6 @@ const ACCESSORY_CATEGORY = 'cat_bathroom';
 export default function Home() {
   const { data: settings } = usePublicSettings();
   const { data: featured } = useFeaturedProducts(12);
-  const reduced = useReducedMotion();
   const mode = usePurchaseModeStore((s) => s.mode);
 
   // Fetch a decent slice of the catalog for the spread. One call, filter client side.
@@ -44,8 +43,6 @@ export default function Home() {
     [allProductList],
   );
 
-  const heroProduct = featured?.[0];
-
   const tagline =
     settings?.store_tagline ??
     'Detergents, paper goods, and bathroom essentials, made for Ghanaian households and delivered across the country.';
@@ -57,173 +54,8 @@ export default function Home() {
         description={`${tagline} Shop detergents, tissue, bathroom accessories and more with bulk pricing and fast delivery.`}
       />
 
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-brand-ivory noise-texture">
-        {/* Animated gradient mesh */}
-        <div className="absolute inset-0 gradient-mesh pointer-events-none" aria-hidden="true" />
-        <div
-          className={cn(
-            'absolute -top-40 -right-20 h-[520px] w-[520px] rounded-full bg-brand-cyan/20 blur-3xl pointer-events-none',
-            !reduced && 'animate-drift-slow',
-          )}
-          aria-hidden="true"
-        />
-        <div
-          className={cn(
-            'absolute -bottom-32 -left-32 h-[420px] w-[420px] rounded-full bg-brand-sand-warm/60 blur-3xl pointer-events-none',
-            !reduced && 'animate-drift-slow',
-          )}
-          style={{ animationDelay: '-7s' }}
-          aria-hidden="true"
-        />
-
-        <div className="relative z-10 container pt-12 pb-20 md:pt-16 md:pb-28 lg:min-h-[calc(100vh-120px)] lg:flex lg:items-center">
-          <div className="grid gap-14 lg:grid-cols-12 lg:gap-8 items-center w-full">
-            {/* LEFT — headline column */}
-            <div className="lg:col-span-7 space-y-8">
-              <motion.div
-                initial={reduced ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
-                className="flex items-center gap-3"
-              >
-                <span className="accent-line" aria-hidden="true" />
-                <span className="editorial-label text-brand-cyan-deep">
-                  Est. 2026 &middot; Accra
-                </span>
-              </motion.div>
-
-              <SplitHeadline
-                text="Clean homes, _honest_ prices."
-                className="text-display-xl text-brand-navy"
-                as="h1"
-                stagger={0.1}
-                delay={0.1}
-              />
-
-              <motion.p
-                initial={reduced ? false : { opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1], delay: 0.9 }}
-                className="max-w-[46ch] text-[17px] md:text-[18px] leading-relaxed text-brand-navy/70 font-light"
-              >
-                {tagline}
-              </motion.p>
-
-              <motion.div
-                initial={reduced ? false : { opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1], delay: 1.05 }}
-                className="flex flex-wrap items-center gap-3"
-              >
-                <Link to="/shop">
-                  <Button variant="primary" size="xl" className="gap-3">
-                    Shop everything
-                    <ArrowUpRight className="h-5 w-5" aria-hidden="true" />
-                  </Button>
-                </Link>
-                <Link to="/bulk">
-                  <Button variant="outline" size="xl">
-                    Save with bulk
-                  </Button>
-                </Link>
-              </motion.div>
-
-              <motion.div
-                initial={reduced ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 1.25 }}
-                className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-6 text-[12px] font-medium text-brand-navy/55 tracking-wider"
-              >
-                <span className="uppercase">Free delivery GHS 200+</span>
-                <span className="h-1 w-1 rounded-full bg-brand-navy/30" aria-hidden="true" />
-                <span className="uppercase">Same-day Accra</span>
-                <span className="h-1 w-1 rounded-full bg-brand-navy/30" aria-hidden="true" />
-                <span className="uppercase">Paystack secure</span>
-              </motion.div>
-            </div>
-
-            {/* RIGHT — floating product composition */}
-            <motion.div
-              initial={reduced ? false : { opacity: 0, x: 40, scale: 0.96 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1], delay: 0.35 }}
-              className="relative lg:col-span-5 order-first lg:order-last mx-auto w-full max-w-md lg:max-w-none"
-            >
-              {/* Soft cyan backdrop */}
-              <div
-                className="absolute -left-8 top-8 -z-10 h-56 w-56 rounded-full bg-brand-cyan/25 blur-2xl"
-                aria-hidden="true"
-              />
-              <div
-                className="absolute -right-6 -bottom-8 -z-10 h-40 w-40 rounded-full bg-brand-navy/10 blur-2xl"
-                aria-hidden="true"
-              />
-
-              {/* Main tilted product card */}
-              <motion.div
-                {...(reduced ? {} : { whileHover: { rotate: -1, y: -4 } })}
-                transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-                style={{ rotate: reduced ? 0 : -3 }}
-                className="relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-brand-sand shadow-editorial ring-1 ring-brand-navy/5"
-              >
-                {heroProduct ? (
-                  <ProductIllustration
-                    product={heroProduct}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-brand-sand" />
-                )}
-
-                {/* Price chip top-right */}
-                {heroProduct && (
-                  <div className="absolute top-4 right-4 rounded-full bg-brand-ivory/95 backdrop-blur px-4 py-2 shadow-md">
-                    <p className="text-[9px] font-medium tracking-[0.2em] uppercase text-brand-navy/55">
-                      From
-                    </p>
-                    <p className="text-[15px] font-semibold text-brand-navy tabular-nums leading-none mt-0.5">
-                      {formatCurrency(heroProduct.unit_price)}
-                    </p>
-                  </div>
-                )}
-
-                {/* Product name label bottom */}
-                {heroProduct && (
-                  <div className="absolute left-4 right-4 bottom-4 rounded-md bg-brand-navy/88 backdrop-blur px-4 py-3 text-brand-ivory">
-                    <p className="editorial-label text-brand-cyan/90 mb-0.5">
-                      {heroProduct.brand ?? 'Skipper'}
-                    </p>
-                    <p className="font-display text-[17px] leading-tight line-clamp-2">
-                      {heroProduct.name}
-                    </p>
-                  </div>
-                )}
-              </motion.div>
-
-              {/* Floating secondary accent card */}
-              <motion.div
-                initial={reduced ? false : { opacity: 0, y: 20, rotate: 4 }}
-                animate={{ opacity: 1, y: 0, rotate: 6 }}
-                transition={{ duration: 0.9, delay: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
-                className="absolute -bottom-6 -left-2 sm:-left-10 w-40 sm:w-48 rounded-lg bg-brand-ivory p-4 shadow-editorial ring-1 ring-brand-navy/5"
-              >
-                <div className="flex items-baseline gap-2">
-                  <span className="font-display text-3xl font-medium text-brand-navy leading-none">
-                    15
-                  </span>
-                  <span className="font-display-italic text-lg text-brand-cyan-deep leading-none">
-                    –30%
-                  </span>
-                </div>
-                <p className="mt-2 text-[12px] text-brand-navy/65 leading-snug">
-                  Bulk savings on everyday essentials.
-                </p>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      {/* HERO — cinematic narrative slider */}
+      <CinematicHero />
 
       {/* THE SPREAD — signature editorial catalog spread */}
       <SpreadSection
