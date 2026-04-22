@@ -1,6 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ShoppingBag, Check, AlertCircle, Truck, Zap, ShieldCheck } from 'lucide-react';
+import {
+  ShoppingBag,
+  Check,
+  AlertCircle,
+  Truck,
+  Zap,
+  ShieldCheck,
+} from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -20,6 +27,8 @@ import { useUiStore } from '@/stores/uiStore';
 import { usePurchaseModeStore } from '@/stores/purchaseModeStore';
 import { formatCurrency, resolveBulkPrice } from '@skipper/shared';
 import type { Product } from '@skipper/shared';
+import { ProductIllustration } from '@/lib/productIllustration';
+import { haptic } from '@/lib/haptic';
 import { cn } from '@/lib/cn';
 
 export default function ProductDetail() {
@@ -35,12 +44,33 @@ export default function ProductDetail() {
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(undefined);
   const [addedToCart, setAddedToCart] = useState(false);
 
+  // Sticky bottom bar visibility — shown once the user scrolls past the
+  // top-of-page name/price so it doesn't visually compete with the primary
+  // add-to-cart button.
+  const topCtaRef = useRef<HTMLDivElement>(null);
+  const [stickyVisible, setStickyVisible] = useState(false);
+  useEffect(() => {
+    const target = topCtaRef.current;
+    if (!target) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry) {
+          // When the top CTA is out of view AND we've scrolled below it,
+          // show the sticky bar.
+          const belowTop = entry.boundingClientRect.bottom < 0;
+          setStickyVisible(!entry.isIntersecting && belowTop);
+        }
+      },
+      { rootMargin: '0px 0px 0px 0px', threshold: 0 },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [product?.id]);
+
   const bulkTiers = product?.bulk_tiers ?? [];
   const bulkCapable = Boolean(product?.is_bulk_available);
   const inBulkMode = mode === 'bulk' && bulkCapable;
 
-  // When switching into bulk mode (and the product supports it), bump the
-  // quantity to the minimum bulk qty — but never below the user's choice.
   useEffect(() => {
     if (!product) return;
     if (inBulkMode && quantity < (product.bulk_minimum_qty ?? 1)) {
@@ -72,10 +102,11 @@ export default function ProductDetail() {
       relatedProducts = (relatedRaw as unknown as Product[]) ?? [];
     }
   }
-  relatedProducts = relatedProducts.filter((p) => p.id !== product?.id).slice(0, 4);
+  relatedProducts = relatedProducts.filter((p) => p.id !== product?.id).slice(0, 6);
 
   function handleAddToCart() {
     if (!product) return;
+    haptic([12, 40, 12]);
     addItem({
       product_id: product.id,
       ...(selectedVariantId ? { variant_id: selectedVariantId } : {}),
@@ -83,7 +114,11 @@ export default function ProductDetail() {
     });
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 1800);
-    setTimeout(() => openCartDrawer(), 200);
+    // On desktop we pop the cart drawer; on mobile we leave the user on the
+    // page (they can see the tab bar cart badge update + the sticky bar).
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setTimeout(() => openCartDrawer(), 200);
+    }
   }
 
   const jsonLdData = product
@@ -108,7 +143,7 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <div className="container py-10 md:py-16">
+      <div className="container py-8 md:py-16">
         <Skeleton className="h-5 w-48 mb-10" />
         <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
           <Skeleton className="aspect-square w-full rounded-lg lg:col-span-7" />
@@ -126,7 +161,7 @@ export default function ProductDetail() {
 
   if (isError || !product) {
     return (
-      <div className="container py-24 text-center space-y-5 max-w-md mx-auto">
+      <div className="container py-20 md:py-24 text-center space-y-5 max-w-md mx-auto">
         <AlertCircle className="h-12 w-12 text-brand-navy/40 mx-auto" aria-hidden="true" />
         <h1 className="font-display text-3xl text-brand-navy">
           This <span className="font-display-italic">page</span> went overboard.
@@ -167,8 +202,8 @@ export default function ProductDetail() {
         ]}
       />
 
-      <div className="container py-8 md:py-12">
-        <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
+      <div className="container py-4 md:py-12">
+        <div className="grid gap-6 md:gap-10 lg:grid-cols-12 lg:gap-14">
           {/* Gallery */}
           <motion.div
             initial={reduced ? false : { opacity: 0, y: 16 }}
@@ -189,10 +224,10 @@ export default function ProductDetail() {
             initial={reduced ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1], delay: 0.12 }}
-            className="lg:col-span-5 space-y-7"
+            className="lg:col-span-5 space-y-6 md:space-y-7 pt-2 md:pt-0"
           >
             {/* Brand + name + mode toggle */}
-            <div className="space-y-3">
+            <div className="space-y-3" ref={topCtaRef}>
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="space-y-2">
                   {product.brand && (
@@ -206,7 +241,7 @@ export default function ProductDetail() {
                   <ModeToggle size="sm" layoutIdPrefix="pdp-mode" />
                 )}
               </div>
-              <h1 className="font-display text-display-sm text-brand-navy">
+              <h1 className="font-display text-[clamp(1.75rem,6vw,2.75rem)] leading-[1.05] tracking-[-0.025em] text-brand-navy">
                 {product.name}
               </h1>
             </div>
@@ -219,7 +254,7 @@ export default function ProductDetail() {
                     From
                   </span>
                 )}
-                <span className="text-4xl font-semibold text-brand-navy tabular-nums tracking-tight">
+                <span className="text-[32px] md:text-4xl font-semibold text-brand-navy tabular-nums tracking-tight">
                   {formatCurrency(finalPrice * quantity)}
                 </span>
                 {quantity > 1 && (
@@ -296,9 +331,12 @@ export default function ProductDetail() {
                           key={variant.id}
                           type="button"
                           disabled={disabled}
-                          onClick={() => setSelectedVariantId(active ? undefined : variant.id)}
+                          onClick={() => {
+                            haptic(6);
+                            setSelectedVariantId(active ? undefined : variant.id);
+                          }}
                           className={cn(
-                            'inline-flex items-center gap-2 rounded-full border px-4 h-10 text-[13px] font-medium transition-all duration-200 ease-editorial',
+                            'inline-flex items-center gap-2 rounded-full border px-4 min-h-11 text-[13px] font-medium transition-all duration-200 ease-editorial',
                             active
                               ? 'border-brand-navy bg-brand-navy text-brand-ivory'
                               : 'border-brand-navy/15 text-brand-navy hover:border-brand-navy/40',
@@ -370,16 +408,16 @@ export default function ProductDetail() {
             </div>
 
             {/* Trust inline row */}
-            <div className="flex flex-wrap items-center gap-4 text-[12px] text-brand-navy/60 pt-2 border-t border-brand-navy/10">
-              <div className="flex items-center gap-1.5 pt-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-brand-navy/60 pt-4 border-t border-brand-navy/10">
+              <div className="flex items-center gap-1.5">
                 <Truck className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Free delivery GHS 200+</span>
               </div>
-              <div className="flex items-center gap-1.5 pt-4">
+              <div className="flex items-center gap-1.5">
                 <Zap className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Same-day Accra dispatch</span>
+                <span>Same-day Accra</span>
               </div>
-              <div className="flex items-center gap-1.5 pt-4">
+              <div className="flex items-center gap-1.5">
                 <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Paystack secure</span>
               </div>
@@ -403,7 +441,7 @@ export default function ProductDetail() {
 
         {/* Long description */}
         {product.description && (
-          <Reveal className="mt-24 md:mt-32 max-w-3xl">
+          <Reveal className="mt-16 md:mt-32 max-w-3xl">
             <span className="editorial-label text-brand-cyan-deep mb-4 block">
               <span className="accent-line mr-3" aria-hidden="true" />
               About this product
@@ -411,7 +449,7 @@ export default function ProductDetail() {
             <h2 className="font-display text-display-sm text-brand-navy mb-6">
               The details.
             </h2>
-            <div className="font-light text-brand-navy/75 leading-[1.75] text-[17px] whitespace-pre-line drop-cap">
+            <div className="font-light text-brand-navy/75 leading-[1.75] text-[16px] md:text-[17px] whitespace-pre-line drop-cap">
               {product.description}
             </div>
           </Reveal>
@@ -419,8 +457,8 @@ export default function ProductDetail() {
 
         {/* Related */}
         {relatedProducts.length > 0 && (
-          <section className="mt-24 md:mt-32 pt-16 border-t border-brand-navy/10">
-            <Reveal className="flex items-end justify-between flex-wrap gap-6 mb-12">
+          <section className="mt-16 md:mt-32 pt-12 md:pt-16 border-t border-brand-navy/10">
+            <Reveal className="flex items-end justify-between flex-wrap gap-6 mb-8 md:mb-12">
               <div>
                 <span className="editorial-label text-brand-cyan-deep">
                   <span className="accent-line mr-3" aria-hidden="true" />
@@ -443,10 +481,99 @@ export default function ProductDetail() {
                 </Link>
               )}
             </Reveal>
-            <ProductGrid products={relatedProducts} columns={4} />
+
+            {/* Mobile: horizontal scroll carousel */}
+            <div className="md:hidden -mx-4 px-4 overflow-x-auto snap-x-mandatory scroll-touch scrollbar-none">
+              <div className="flex gap-4 pb-2">
+                {relatedProducts.map((p) => (
+                  <Link
+                    key={p.id}
+                    to={`/product/${p.slug}`}
+                    className="snap-start flex-none w-[60vw] max-w-[240px] group"
+                  >
+                    <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-ivory">
+                      <ProductIllustration product={p} className="h-full w-full" />
+                    </div>
+                    <div className="pt-3 space-y-1">
+                      {p.brand && (
+                        <p className="editorial-label text-brand-cyan-deep">{p.brand}</p>
+                      )}
+                      <p className="font-display text-[15px] leading-tight text-brand-navy font-medium line-clamp-2">
+                        {p.name}
+                      </p>
+                      <p className="text-[13px] font-semibold text-brand-navy tabular-nums">
+                        {formatCurrency(p.unit_price)}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop: grid */}
+            <div className="hidden md:block">
+              <ProductGrid products={relatedProducts.slice(0, 4)} columns={4} />
+            </div>
           </section>
         )}
       </div>
+
+      {/* ========================================================= */}
+      {/* STICKY BOTTOM CTA — mobile only                            */}
+      {/* Sits above the tab bar, below the hero name/price area.   */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {stickyVisible && inStock && (
+          <motion.div
+            initial={reduced ? false : { y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={reduced ? { opacity: 0 } : { y: 80, opacity: 0 }}
+            transition={
+              reduced
+                ? { duration: 0 }
+                : { type: 'spring', stiffness: 420, damping: 38 }
+            }
+            className={cn(
+              'md:hidden fixed inset-x-0 z-30',
+              // 64px tab bar + safe-area offset
+              'bottom-[calc(64px+env(safe-area-inset-bottom))]',
+              'border-t border-brand-navy/10 bg-brand-ivory/95 backdrop-blur-md',
+              'px-4 py-3',
+            )}
+            style={{
+              WebkitBackdropFilter: 'blur(12px) saturate(1.4)',
+              backdropFilter: 'blur(12px) saturate(1.4)',
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex-none">
+                <QuantityInput
+                  value={quantity}
+                  onChange={setQuantity}
+                  min={inBulkMode ? product.bulk_minimum_qty : 1}
+                  max={product.stock_quantity}
+                  className="scale-[0.85] origin-left"
+                />
+              </div>
+              <Button
+                variant="primary"
+                size="lg"
+                className="flex-1 gap-2 h-12"
+                onClick={handleAddToCart}
+                aria-label={`Add ${product.name} to cart`}
+              >
+                <ShoppingBag className="h-4 w-4" aria-hidden="true" />
+                <span className="text-[14px] font-semibold">
+                  {addedToCart ? 'Added' : 'Add'} &middot;{' '}
+                  <span className="tabular-nums">
+                    {formatCurrency(finalPrice * quantity)}
+                  </span>
+                </span>
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
