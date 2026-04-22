@@ -6,7 +6,7 @@ import type { Product } from '@skipper/shared';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Reveal } from '@/components/motion/Reveal';
-import CinematicHero from '@/components/hero/CinematicHero';
+import LivingHero from '@/components/hero/LivingHero';
 import { useFeaturedProducts, useProducts } from '@/hooks/useProducts';
 import { usePublicSettings } from '@/hooks/useSettings';
 import { usePurchaseModeStore } from '@/stores/purchaseModeStore';
@@ -54,8 +54,8 @@ export default function Home() {
         description={`${tagline} Shop detergents, tissue, bathroom accessories and more with bulk pricing and fast delivery.`}
       />
 
-      {/* HERO — cinematic narrative slider */}
-      <CinematicHero />
+      {/* HERO — The Living Editorial (single breathing composition) */}
+      <LivingHero />
 
       {/* THE SPREAD — signature editorial catalog spread */}
       <SpreadSection
