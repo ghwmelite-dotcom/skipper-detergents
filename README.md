@@ -10,6 +10,7 @@ Production-grade e-commerce platform with bulk-quantity pricing, Paystack &amp; 
 
 [![CI](https://github.com/ghwmelite-dotcom/skipper-detergents/actions/workflows/ci.yml/badge.svg)](https://github.com/ghwmelite-dotcom/skipper-detergents/actions/workflows/ci.yml)
 [![Live API](https://img.shields.io/badge/API-live-10B981?logo=cloudflare&logoColor=white)](https://skipper-api.ghwmelite.workers.dev/health)
+[![Live Storefront](https://img.shields.io/badge/Storefront-live-0B2545?logo=cloudflare&logoColor=white)](https://skipper-storefront.pages.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 [![Hono](https://img.shields.io/badge/Hono-4-E36002)](https://hono.dev/)
@@ -196,6 +197,20 @@ pnpm --filter @skipper/api exec wrangler secret put JWT_SECRET
 pnpm --filter @skipper/api exec wrangler secret put PAYSTACK_SECRET_KEY
 pnpm --filter @skipper/api exec wrangler secret put PAYSTACK_WEBHOOK_SECRET
 ```
+
+### Storefront deployment
+
+The storefront is a Vite + React SPA deployed to **Cloudflare Pages**. CI workflow: `.github/workflows/deploy-storefront.yml` (manual dispatch). Initial deploy is done locally:
+
+```bash
+pnpm --filter @skipper/storefront build
+pnpm --filter @skipper/storefront exec wrangler pages project create skipper-storefront --production-branch=main
+pnpm --filter @skipper/storefront exec wrangler pages deploy ./dist --project-name=skipper-storefront
+```
+
+Production URL: <https://skipper-storefront.pages.dev>
+
+Note: `apps/storefront/public/_redirects` (`/*    /index.html   200`) enables client-side routing on Pages.
 
 ## Conventions
 
