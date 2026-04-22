@@ -204,6 +204,29 @@ export async function adminConfirmManualPayment(
   return first<Order>(db, `SELECT * FROM orders WHERE id = ?`, [orderId]);
 }
 
+export async function adminUpdateDeliveryFee(
+  db: D1Database,
+  orderId: string,
+  deliveryFee: number,
+): Promise<Order | null> {
+  const existing = await first<Order>(db, `SELECT * FROM orders WHERE id = ?`, [orderId]);
+  if (!existing) return null;
+  // We only let the admin adjust fees while the order is still unpaid.
+  // Anything else (refund, partial adjustment) is a different operation.
+  if (existing.payment_status === 'paid') return null;
+  const newTotal = existing.subtotal - (existing.bulk_discount ?? 0) + deliveryFee;
+  await run(
+    db,
+    `UPDATE orders
+        SET delivery_fee = ?,
+            total_amount = ?,
+            updated_at   = datetime('now')
+      WHERE id = ?`,
+    [deliveryFee, newTotal, orderId],
+  );
+  return first<Order>(db, `SELECT * FROM orders WHERE id = ?`, [orderId]);
+}
+
 export async function adminAppendOrderNote(
   db: D1Database,
   orderId: string,

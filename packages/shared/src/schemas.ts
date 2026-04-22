@@ -167,6 +167,11 @@ export const orderTrackingQuerySchema = z
   });
 export type OrderTrackingQuery = z.infer<typeof orderTrackingQuerySchema>;
 
+export const updateOrderDeliveryFeeSchema = z.object({
+  delivery_fee: z.number().min(0).max(10000),
+});
+export type UpdateOrderDeliveryFeeInput = z.infer<typeof updateOrderDeliveryFeeSchema>;
+
 export const customerStatusSchema = z.enum(CUSTOMER_STATUSES);
 
 export const customerUpdateSchema = z.object({

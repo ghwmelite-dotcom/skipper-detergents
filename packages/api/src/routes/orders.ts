@@ -9,15 +9,17 @@ import { getPublicSettings } from '../services/settings';
 export const ordersRouter = new Hono<{ Bindings: Env }>();
 
 async function resolveDeliveryFee(
-  db: D1Database,
+  _db: D1Database,
   method: 'pickup' | 'delivery',
-  region: string | undefined,
+  _region: string | undefined,
 ): Promise<number> {
+  // We no longer ask for an address at checkout — the store owner calls the
+  // customer to agree on the drop point and the final fee, then updates the
+  // order via PATCH /api/admin/orders/:id/delivery-fee. So every order starts
+  // with no delivery fee and the admin sets the real number before payment.
+  // Pickup is free either way.
   if (method === 'pickup') return 0;
-  const settings = await getPublicSettings(db);
-  const accra = Number.parseFloat(settings.delivery_fee_accra ?? '15');
-  const other = Number.parseFloat(settings.delivery_fee_other ?? '35');
-  return region === 'Greater Accra' ? accra : other;
+  return 0;
 }
 
 ordersRouter.post('/', async (c) => {

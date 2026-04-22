@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Check, X } from 'lucide-react';
 import {
   ORDER_STATUSES,
   type Order,
@@ -46,6 +46,8 @@ export function OrderDetailPage(): JSX.Element {
   const [note, setNote] = useState('');
   const [confirmReject, setConfirmReject] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [editingFee, setEditingFee] = useState(false);
+  const [feeInput, setFeeInput] = useState('');
 
   const statusMutation = useMutation({
     mutationFn: () =>
@@ -73,6 +75,18 @@ export function OrderDetailPage(): JSX.Element {
       qc.invalidateQueries({ queryKey: ['admin-orders'] });
       setConfirmReject(false);
       setRejectReason('');
+    },
+    onError: (e: Error) => toast.push(e.message, 'error'),
+  });
+
+  const deliveryFeeMutation = useMutation({
+    mutationFn: (fee: number) =>
+      api.patch(`/api/admin/orders/${id}/delivery-fee`, { delivery_fee: fee }),
+    onSuccess: () => {
+      toast.push('Delivery fee updated', 'success');
+      qc.invalidateQueries({ queryKey: ['admin-order', id] });
+      qc.invalidateQueries({ queryKey: ['admin-orders'] });
+      setEditingFee(false);
     },
     onError: (e: Error) => toast.push(e.message, 'error'),
   });
@@ -189,7 +203,65 @@ export function OrderDetailPage(): JSX.Element {
                     tone="success"
                   />
                 )}
-                <Row label="Delivery" value={formatCurrency(order.delivery_fee)} />
+                {order.delivery_method === 'delivery' && order.payment_status === 'unpaid' ? (
+                  editingFee ? (
+                    <div className="flex items-center justify-between gap-2 py-1">
+                      <span className="text-ink-600">Delivery</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-ink-500">GHS</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={feeInput}
+                          onChange={(e) => setFeeInput(e.target.value)}
+                          autoFocus
+                          className="h-7 w-24 text-right tabular-nums"
+                        />
+                        <button
+                          className="text-success-600 hover:text-success-500 disabled:opacity-40"
+                          disabled={deliveryFeeMutation.isPending}
+                          onClick={() => {
+                            const n = Number.parseFloat(feeInput);
+                            if (!Number.isFinite(n) || n < 0) {
+                              toast.push('Enter a valid fee', 'warning');
+                              return;
+                            }
+                            deliveryFeeMutation.mutate(n);
+                          }}
+                          title="Save"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          className="text-ink-500 hover:text-ink-800"
+                          onClick={() => setEditingFee(false)}
+                          title="Cancel"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2 py-1">
+                      <span className="text-ink-600">Delivery</span>
+                      <div className="flex items-center gap-2">
+                        <span className="tabular-nums">{formatCurrency(order.delivery_fee)}</span>
+                        <button
+                          className="text-xs text-cyan-600 hover:text-cyan-500"
+                          onClick={() => {
+                            setFeeInput(String(order.delivery_fee));
+                            setEditingFee(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  <Row label="Delivery" value={formatCurrency(order.delivery_fee)} />
+                )}
                 {order.tax_amount > 0 && (
                   <Row label="Tax" value={formatCurrency(order.tax_amount)} />
                 )}

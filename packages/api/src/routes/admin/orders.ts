@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   updateOrderStatusSchema,
   confirmManualPaymentSchema,
+  updateOrderDeliveryFeeSchema,
   ORDER_STATUSES,
   PAYMENT_METHODS,
   PAYMENT_STATUSES,
@@ -15,6 +16,7 @@ import {
   adminGetOrder,
   adminUpdateOrderStatus,
   adminConfirmManualPayment,
+  adminUpdateDeliveryFee,
   adminAppendOrderNote,
 } from '../../services/adminOrders';
 import { logActivity } from '../../services/activity';
@@ -123,6 +125,28 @@ adminOrdersRouter.patch('/:id/payment', async (c) => {
     ip_address: c.req.header('cf-connecting-ip') ?? null,
   });
   return c.json(ok({ id, rejected: true, reason: body.reason ?? null }));
+});
+
+adminOrdersRouter.patch('/:id/delivery-fee', async (c) => {
+  const id = c.req.param('id');
+  const body = updateOrderDeliveryFeeSchema.parse(await c.req.json());
+  const admin = c.get('adminUser');
+  const updated = await adminUpdateDeliveryFee(c.env.DB, id, body.delivery_fee);
+  if (!updated) {
+    return c.json(
+      fail('NOT_ALLOWED', 'Order not found or already paid — delivery fee cannot be changed'),
+      404,
+    );
+  }
+  await logActivity(c.env.DB, {
+    admin_id: admin.id,
+    action: 'order.delivery_fee_updated',
+    entity_type: 'order',
+    entity_id: id,
+    details: { delivery_fee: body.delivery_fee, new_total: updated.total_amount },
+    ip_address: c.req.header('cf-connecting-ip') ?? null,
+  });
+  return c.json(ok(updated));
 });
 
 adminOrdersRouter.post('/:id/notes', async (c) => {
