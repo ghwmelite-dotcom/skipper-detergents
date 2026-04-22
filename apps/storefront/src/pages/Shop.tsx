@@ -1,16 +1,18 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X, SlidersHorizontal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { ModeToggle } from '@/components/shared/ModeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
 import { useState } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
+import { usePurchaseModeStore } from '@/stores/purchaseModeStore';
 import { cn } from '@/lib/cn';
 
 const SORT_OPTIONS = [
@@ -28,14 +30,37 @@ const PER_PAGE = 20;
 export default function Shop() {
   const [params, setParams] = useSearchParams();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const mode = usePurchaseModeStore((s) => s.mode);
 
   const page = parseInt(params.get('page') ?? '1', 10);
   const sort = (params.get('sort') ?? 'newest') as SortValue;
   const category = params.get('category') ?? undefined;
   const brand = params.get('brand') ?? undefined;
-  const bulkOnly = params.get('bulk_only') === 'true';
+  const urlBulkOnly = params.get('bulk_only') === 'true';
+  const bulkOnly = urlBulkOnly || mode === 'bulk';
   const minPrice = params.get('min_price') ? Number(params.get('min_price')) : undefined;
   const maxPrice = params.get('max_price') ? Number(params.get('max_price')) : undefined;
+
+  // Keep the URL in sync when bulk mode is toggled on (so refreshes stay consistent)
+  useEffect(() => {
+    if (mode === 'bulk' && !urlBulkOnly) {
+      setParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('bulk_only', 'true');
+        next.delete('page');
+        return next;
+      }, { replace: true });
+    }
+    if (mode === 'single' && urlBulkOnly) {
+      setParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('bulk_only');
+        next.delete('page');
+        return next;
+      }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   const { data: productsData, isLoading } = useProducts({
     page,
@@ -124,6 +149,17 @@ export default function Shop() {
 
   const filterPanel = (
     <div className="space-y-8">
+      {/* Purchase mode */}
+      <div className="space-y-3">
+        <h3 className="editorial-label text-brand-navy/60">Buying for</h3>
+        <ModeToggle size="lg" layoutIdPrefix="shop-filter-mode" className="w-full" />
+        <p className="text-[12px] text-brand-navy/55 leading-relaxed">
+          {mode === 'bulk'
+            ? 'Showing wholesale-priced items. Minimum quantities apply.'
+            : 'Single-unit retail prices. Switch to bulk for wholesale tiers.'}
+        </p>
+      </div>
+
       {/* Category */}
       <div className="space-y-3">
         <h3 className="editorial-label text-brand-navy/60">Category</h3>
@@ -236,10 +272,17 @@ export default function Shop() {
   return (
     <>
       <SEOHead
-        title="Shop all products"
+        title={mode === 'bulk' ? 'Wholesale catalog' : 'Shop all products'}
         description="Browse Skipper Detergents' full range — detergents, tissue, bathroom accessories, and more."
       />
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Shop' }]} />
+
+      {mode === 'bulk' && (
+        <div
+          className="h-[3px] w-full bg-gradient-to-r from-brand-navy via-brand-cyan-deep to-brand-navy"
+          aria-hidden="true"
+        />
+      )}
 
       {/* Page header */}
       <header className="container pt-6 pb-10 md:pt-10 md:pb-14">
@@ -247,10 +290,18 @@ export default function Shop() {
           <div>
             <span className="editorial-label text-brand-cyan-deep">
               <span className="accent-line mr-3" aria-hidden="true" />
-              The shop
+              {mode === 'bulk' ? 'Wholesale' : 'The shop'}
             </span>
             <h1 className="mt-4 font-display text-display-md text-brand-navy">
-              <span className="font-display-italic">Everything</span> we make &amp; carry.
+              {mode === 'bulk' ? (
+                <>
+                  <span className="font-display-italic">Wholesale</span> catalog.
+                </>
+              ) : (
+                <>
+                  <span className="font-display-italic">Everything</span> we make &amp; carry.
+                </>
+              )}
             </h1>
             <p className="mt-3 text-sm text-brand-navy/60 tabular-nums">
               {isLoading ? 'Loading...' : `${total} product${total === 1 ? '' : 's'}`}

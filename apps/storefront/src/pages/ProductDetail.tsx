@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ShoppingBag, Check, AlertCircle, Truck, Zap, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -9,6 +9,7 @@ import { ProductImageGallery } from '@/components/product/ProductImageGallery';
 import { BulkPricingTable } from '@/components/product/BulkPricingTable';
 import { QuantityInput } from '@/components/product/QuantityInput';
 import { ProductGrid } from '@/components/product/ProductGrid';
+import { ModeToggle } from '@/components/shared/ModeToggle';
 import { Reveal } from '@/components/motion/Reveal';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +17,7 @@ import { useProduct } from '@/hooks/useProducts';
 import { useCategoryProducts } from '@/hooks/useCategories';
 import { useCart } from '@/hooks/useCart';
 import { useUiStore } from '@/stores/uiStore';
+import { usePurchaseModeStore } from '@/stores/purchaseModeStore';
 import { formatCurrency, resolveBulkPrice } from '@skipper/shared';
 import type { Product } from '@skipper/shared';
 import { cn } from '@/lib/cn';
@@ -27,16 +29,34 @@ export default function ProductDetail() {
   const openCartDrawer = useUiStore((s) => s.openCartDrawer);
   const reduced = useReducedMotion();
 
+  const mode = usePurchaseModeStore((s) => s.mode);
+
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(undefined);
   const [addedToCart, setAddedToCart] = useState(false);
 
   const bulkTiers = product?.bulk_tiers ?? [];
+  const bulkCapable = Boolean(product?.is_bulk_available);
+  const inBulkMode = mode === 'bulk' && bulkCapable;
+
+  // When switching into bulk mode (and the product supports it), bump the
+  // quantity to the minimum bulk qty — but never below the user's choice.
+  useEffect(() => {
+    if (!product) return;
+    if (inBulkMode && quantity < (product.bulk_minimum_qty ?? 1)) {
+      setQuantity(product.bulk_minimum_qty ?? 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inBulkMode, product?.id]);
+
   const resolved = product ? resolveBulkPrice(quantity, product.unit_price, bulkTiers) : null;
   const displayPrice = resolved ? resolved.unit_price : 0;
   const variantAdjustment =
     product?.variants?.find((v) => v.id === selectedVariantId)?.price_adjustment ?? 0;
   const finalPrice = displayPrice + variantAdjustment;
+  const singlePriceReference = product
+    ? product.unit_price + variantAdjustment
+    : 0;
 
   const inStock = (product?.stock_quantity ?? 0) > 0;
 
@@ -156,7 +176,12 @@ export default function ProductDetail() {
             transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
             className="lg:col-span-7"
           >
-            <ProductImageGallery images={product.images ?? []} productName={product.name} />
+            <ProductImageGallery
+              images={product.images ?? []}
+              productName={product.name}
+              productBrand={product.brand}
+              categoryId={product.category_id}
+            />
           </motion.div>
 
           {/* Info */}
@@ -166,14 +191,21 @@ export default function ProductDetail() {
             transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1], delay: 0.12 }}
             className="lg:col-span-5 space-y-7"
           >
-            {/* Brand + name */}
+            {/* Brand + name + mode toggle */}
             <div className="space-y-3">
-              {product.brand && (
-                <p className="editorial-label text-brand-cyan-deep">
-                  <span className="accent-line mr-2" aria-hidden="true" />
-                  {product.brand}
-                </p>
-              )}
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="space-y-2">
+                  {product.brand && (
+                    <p className="editorial-label text-brand-cyan-deep">
+                      <span className="accent-line mr-2" aria-hidden="true" />
+                      {product.brand}
+                    </p>
+                  )}
+                </div>
+                {bulkCapable && (
+                  <ModeToggle size="sm" layoutIdPrefix="pdp-mode" />
+                )}
+              </div>
               <h1 className="font-display text-display-sm text-brand-navy">
                 {product.name}
               </h1>
@@ -182,6 +214,11 @@ export default function ProductDetail() {
             {/* Price */}
             <div className="space-y-2 pt-2 border-t border-brand-navy/10">
               <div className="flex items-baseline gap-3 flex-wrap pt-4">
+                {inBulkMode && (
+                  <span className="text-[11px] font-semibold tracking-[0.18em] uppercase text-brand-red">
+                    From
+                  </span>
+                )}
                 <span className="text-4xl font-semibold text-brand-navy tabular-nums tracking-tight">
                   {formatCurrency(finalPrice * quantity)}
                 </span>
@@ -191,7 +228,17 @@ export default function ProductDetail() {
                   </span>
                 )}
               </div>
-              {hasCompare && (
+              {inBulkMode && finalPrice < singlePriceReference && (
+                <div className="flex items-center gap-2 flex-wrap text-sm">
+                  <span className="text-brand-navy/45 line-through tabular-nums">
+                    {formatCurrency(singlePriceReference)} / single
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-brand-red/10 text-brand-red px-2 py-0.5 text-[11px] font-medium tracking-wider uppercase tabular-nums">
+                    Bulk save {Math.round(((singlePriceReference - finalPrice) / singlePriceReference) * 100)}%
+                  </span>
+                </div>
+              )}
+              {hasCompare && !inBulkMode && (
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[15px] text-brand-navy/45 line-through tabular-nums">
                     {formatCurrency(product.compare_at_price!)}
@@ -276,7 +323,7 @@ export default function ProductDetail() {
               <QuantityInput
                 value={quantity}
                 onChange={setQuantity}
-                min={product.is_bulk_available ? product.bulk_minimum_qty : 1}
+                min={inBulkMode ? product.bulk_minimum_qty : 1}
                 max={product.stock_quantity}
               />
               <motion.div
