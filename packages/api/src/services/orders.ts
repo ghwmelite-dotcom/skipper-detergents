@@ -47,7 +47,7 @@ export interface CreateOrderInput {
   payment_method: PaymentMethod;
   delivery_method: DeliveryMethod;
   delivery_name: string;
-  delivery_email: string;
+  delivery_email?: string;
   delivery_phone: string;
   delivery_address?: string;
   delivery_city?: string;
@@ -83,8 +83,12 @@ async function upsertCustomerId(
 }
 
 export async function createOrder(db: D1Database, input: CreateOrderInput): Promise<Order> {
-  const email = input.delivery_email.toLowerCase();
-  const customer_id = await upsertCustomerId(db, email, input.delivery_name, input.delivery_phone);
+  const email = input.delivery_email?.toLowerCase() ?? '';
+  // Only link to a customer record when we actually have an email — it's the
+  // natural key. Anonymous orders stay with customer_id = null.
+  const customer_id = email
+    ? await upsertCustomerId(db, email, input.delivery_name, input.delivery_phone)
+    : null;
 
   const order_number = await nextOrderNumber(db, input.now);
   const order_id = idHex();

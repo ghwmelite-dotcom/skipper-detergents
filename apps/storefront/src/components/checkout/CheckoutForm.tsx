@@ -35,10 +35,6 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
     email: '',
     phone: '',
     deliveryMethod: 'delivery' as 'delivery' | 'pickup',
-    address: '',
-    city: '',
-    region: '',
-    gps: '',
     notes: '',
     paymentMethod: 'paystack' as 'paystack' | 'manual_transfer',
   });
@@ -52,26 +48,26 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
 
   function getDeliveryFeeEstimate(): string {
     if (form.deliveryMethod === 'pickup') return 'Free pickup';
-    const city = form.city.toLowerCase();
-    const fee = city.includes('accra') ? feeAccra : feeOther;
-    return fee === 0 ? 'Free' : formatCurrency(fee);
+    // Without a region field we can't know the zone up front — just show the
+    // Accra (in-city) fee as the default and note that other regions cost more.
+    return feeAccra === 0 ? 'Free' : `From ${formatCurrency(feeAccra)}`;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
-      setError('Please fill in all required contact fields.');
+    if (!form.name.trim() || !form.phone.trim()) {
+      setError('Please fill in your name and phone number.');
       return;
     }
-    if (
-      form.deliveryMethod === 'delivery' &&
-      (!form.address.trim() || !form.city.trim() || !form.region.trim())
-    ) {
-      setError('Please fill in all delivery address fields.');
+    if (form.paymentMethod === 'paystack' && !form.email.trim()) {
+      setError('Email is required when paying with Paystack.');
       return;
     }
+
+    const email = form.email.trim();
+    const notes = form.notes.trim();
 
     const body: CreateOrderInput = {
       items: cartItems.map((item) => ({
@@ -81,24 +77,18 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
       })),
       delivery_method: form.deliveryMethod,
       delivery_name: form.name.trim(),
-      delivery_email: form.email.trim(),
+      ...(email ? { delivery_email: email } : {}),
       delivery_phone: form.phone.trim(),
-      ...(form.deliveryMethod === 'delivery'
-        ? {
-            delivery_address: form.address.trim(),
-            delivery_city: form.city.trim(),
-            delivery_region: form.region.trim(),
-            ...(form.gps.trim() ? { delivery_gps: form.gps.trim() } : {}),
-            ...(form.notes.trim() ? { delivery_notes: form.notes.trim() } : {}),
-          }
-        : {}),
+      ...(notes ? { delivery_notes: notes } : {}),
       payment_method: form.paymentMethod,
     };
 
     setIsSubmitting(true);
     try {
       const result = await api.post<OrderResult>('/api/orders', body);
-      localStorage.setItem('skipper-last-email', form.email.trim());
+      if (email) {
+        localStorage.setItem('skipper-last-email', email);
+      }
       onOrderCreated(result);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -150,7 +140,8 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
           type="email"
           inputMode="email"
           label="Email address"
-          required
+          optional={form.paymentMethod !== 'paystack'}
+          required={form.paymentMethod === 'paystack'}
           value={form.email}
           onChange={(v) => set('email', v)}
           autoComplete="email"
@@ -200,51 +191,18 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
             transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="grid gap-5 sm:grid-cols-2 pt-2">
-              <div className="sm:col-span-2">
-                <Field
-                  id="address"
-                  label="Street address"
-                  required
-                  value={form.address}
-                  onChange={(v) => set('address', v)}
-                  autoComplete="street-address"
-                  placeholder="House no. / Street"
-                />
-              </div>
-              <Field
-                id="city"
-                label="City"
-                required
-                value={form.city}
-                onChange={(v) => set('city', v)}
-                autoComplete="address-level2"
-                placeholder="Accra"
-              />
-              <Field
-                id="region"
-                label="Region"
-                required
-                value={form.region}
-                onChange={(v) => set('region', v)}
-                autoComplete="address-level1"
-                placeholder="Greater Accra"
-              />
-              <Field
-                id="gps"
-                label="GPS address"
-                optional
-                value={form.gps}
-                onChange={(v) => set('gps', v)}
-                placeholder="GA-123-4567"
-              />
+            <div className="pt-2 space-y-4">
+              <p className="text-[13px] text-brand-navy/65 leading-relaxed">
+                We&rsquo;ll call you on the phone number above to confirm your delivery
+                location and agree on the final fee before dispatching.
+              </p>
               <Field
                 id="notes"
                 label="Delivery notes"
                 optional
                 value={form.notes}
                 onChange={(v) => set('notes', v)}
-                placeholder="Near the blue gate..."
+                placeholder="Landmark, nearby shop, house colour, floor / apartment…"
               />
             </div>
           </motion.div>

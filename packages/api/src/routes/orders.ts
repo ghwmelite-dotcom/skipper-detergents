@@ -36,7 +36,7 @@ ordersRouter.post('/', async (c) => {
     payment_method: body.payment_method,
     delivery_method: body.delivery_method,
     delivery_name: body.delivery_name,
-    delivery_email: body.delivery_email,
+    ...(body.delivery_email !== undefined && { delivery_email: body.delivery_email }),
     delivery_phone: body.delivery_phone,
     delivery_fee,
     now: new Date(),

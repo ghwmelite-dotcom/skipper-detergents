@@ -19,7 +19,14 @@ export const createOrderSchema = z
     items: z.array(cartItemSchema).min(1),
     delivery_method: z.enum(DELIVERY_METHODS),
     delivery_name: z.string().min(1).max(200),
-    delivery_email: z.string().email(),
+    // Optional overall — the store calls the customer if they need extra info.
+    // Paystack requires an email, so we enforce it in the refine below when
+    // that payment method is chosen.
+    delivery_email: z
+      .string()
+      .email()
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
     delivery_phone: z.string().min(7).max(20),
     delivery_address: z.string().min(1).max(500).optional(),
     delivery_city: z.string().min(1).max(100).optional(),
@@ -28,15 +35,10 @@ export const createOrderSchema = z
     delivery_notes: z.string().max(1000).optional(),
     payment_method: z.enum(PAYMENT_METHODS),
   })
-  .refine(
-    (data) =>
-      data.delivery_method === 'pickup' ||
-      (data.delivery_address && data.delivery_city && data.delivery_region),
-    {
-      message: 'delivery_address, delivery_city, delivery_region are required for delivery orders',
-      path: ['delivery_address'],
-    },
-  );
+  .refine((data) => data.payment_method !== 'paystack' || Boolean(data.delivery_email), {
+    message: 'Email is required when paying with Paystack',
+    path: ['delivery_email'],
+  });
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
 export const adminLoginSchema = z.object({
