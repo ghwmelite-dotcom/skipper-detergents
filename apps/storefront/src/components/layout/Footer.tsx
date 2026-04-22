@@ -90,8 +90,8 @@ export function Footer() {
               <h3 className="editorial-label text-brand-cyan mb-4">Service</h3>
               <ul className="space-y-2.5 text-sm">
                 <li>
-                  <Link to="/track" className="text-brand-ivory/75 hover:text-brand-ivory transition-colors">
-                    Track order
+                  <Link to="/faq" className="text-brand-ivory/75 hover:text-brand-ivory transition-colors">
+                    Help / FAQ
                   </Link>
                 </li>
                 <li>
