@@ -8,6 +8,7 @@ interface ProductGridProps {
   loading?: boolean;
   skeletonCount?: number;
   className?: string;
+  columns?: 2 | 3 | 4;
 }
 
 export function ProductGrid({
@@ -15,11 +16,15 @@ export function ProductGrid({
   loading = false,
   skeletonCount = 8,
   className,
+  columns = 4,
 }: ProductGridProps) {
-  const gridClass = cn(
-    'grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
-    className,
-  );
+  const colClasses = {
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+  }[columns];
+
+  const gridClass = cn('grid gap-x-5 gap-y-10', colClasses, className);
 
   if (loading) {
     return (
@@ -33,16 +38,17 @@ export function ProductGrid({
 
   if (products.length === 0) {
     return (
-      <div className="py-20 text-center">
-        <p className="text-muted-foreground text-lg">No products found.</p>
+      <div className="py-24 text-center space-y-3">
+        <p className="font-display-italic text-2xl text-brand-navy">Nothing here yet.</p>
+        <p className="text-sm text-brand-navy/60">Try a different filter, or clear all filters.</p>
       </div>
     );
   }
 
   return (
     <div className={gridClass}>
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {products.map((product, i) => (
+        <ProductCard key={product.id} product={product} index={i} />
       ))}
     </div>
   );

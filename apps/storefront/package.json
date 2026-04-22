@@ -16,9 +16,11 @@
   "dependencies": {
     "@skipper/shared": "workspace:*",
     "@fontsource/inter": "^5.1.0",
+    "@fontsource-variable/fraunces": "^5.1.0",
     "@paystack/inline-js": "^2.22.3",
     "@fontsource/jetbrains-mono": "^5.1.0",
     "@tanstack/react-query": "^5.56.0",
+    "framer-motion": "^11.11.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.454.0",
     "react": "^18.3.1",

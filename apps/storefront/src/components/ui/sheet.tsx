@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 
 export interface SheetProps {
@@ -10,6 +11,8 @@ export interface SheetProps {
 }
 
 export function Sheet({ open, onClose, side = 'right', children, title }: SheetProps) {
+  const reduced = useReducedMotion();
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -23,27 +26,39 @@ export function Sheet({ open, onClose, side = 'right', children, title }: SheetP
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  const xHidden = side === 'right' ? '100%' : '-100%';
 
   return (
-    <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label={title}>
-      <div
-        className={cn(
-          'absolute inset-0 bg-black/50 transition-opacity duration-200',
-          open ? 'opacity-100' : 'opacity-0',
-        )}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        className={cn(
-          'relative ml-auto flex h-full w-full max-w-sm flex-col bg-background shadow-lg',
-          'transition-transform duration-300 ease-enter',
-          side === 'left' && 'mr-auto ml-0',
-        )}
-      >
-        {children}
-      </div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label={title}>
+          <motion.div
+            className="absolute inset-0 bg-brand-navy/40 backdrop-blur-[2px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduced ? 0 : 0.25 }}
+            onClick={onClose}
+            aria-hidden="true"
+          />
+          <motion.div
+            initial={{ x: reduced ? 0 : xHidden }}
+            animate={{ x: 0 }}
+            exit={{ x: reduced ? 0 : xHidden }}
+            transition={
+              reduced
+                ? { duration: 0 }
+                : { type: 'spring', stiffness: 320, damping: 34, mass: 0.9 }
+            }
+            className={cn(
+              'relative flex h-full w-full max-w-md flex-col bg-brand-ivory shadow-editorial',
+              side === 'right' ? 'ml-auto' : 'mr-auto',
+            )}
+          >
+            {children}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
