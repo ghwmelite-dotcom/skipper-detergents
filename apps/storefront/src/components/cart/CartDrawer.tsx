@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { X, ShoppingBag, ArrowRight } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
@@ -15,7 +14,7 @@ import { CartItemRow } from './CartItemRow';
 export function CartDrawer() {
   const open = useUiStore((s) => s.cartDrawerOpen);
   const closeCartDrawer = useUiStore((s) => s.closeCartDrawer);
-  const { items, totalQuantity, removeItem } = useCart();
+  const { items, totalQuantity } = useCart();
 
   const productQueries = useQueries({
     queries: items.map((item) => ({
@@ -30,24 +29,12 @@ export function CartDrawer() {
     .map((q) => q.data)
     .filter((p): p is Product => p !== null && p !== undefined);
 
-  // Prune items whose product no longer exists, once the lookup has settled.
-  useEffect(() => {
-    if (!open) return;
-    items.forEach((item, i) => {
-      const q = productQueries[i];
-      if (q && q.isFetched && !q.isFetching && q.data === null) {
-        removeItem(item.product_id, item.variant_id ?? null);
-      }
-    });
-  }, [open, items, productQueries, removeItem]);
-
   const productMap = new Map(products.map((p) => [p.id, p]));
 
   const subtotal = items.reduce((sum, item) => {
     const p = productMap.get(item.product_id);
     return sum + (p?.unit_price ?? 0) * item.quantity;
   }, 0);
-  const canCheckout = products.length > 0 && subtotal > 0;
 
   return (
     <Sheet open={open} onClose={closeCartDrawer} side="right" title="Your cart">
@@ -126,19 +113,12 @@ export function CartDrawer() {
             <p className="text-[11px] text-brand-navy/50 tracking-wide">
               Delivery + discounts calculated at checkout.
             </p>
-            {canCheckout ? (
-              <Link to="/checkout" onClick={closeCartDrawer} className="block w-full">
-                <Button variant="primary" size="lg" className="w-full gap-2">
-                  Proceed to checkout
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              </Link>
-            ) : (
-              <Button variant="primary" size="lg" className="w-full gap-2" disabled>
+            <Link to="/checkout" onClick={closeCartDrawer} className="block w-full">
+              <Button variant="primary" size="lg" className="w-full gap-2">
                 Proceed to checkout
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
-            )}
+            </Link>
             <Link to="/cart" onClick={closeCartDrawer} className="block w-full">
               <Button variant="ghost" size="sm" className="w-full">
                 View full cart
