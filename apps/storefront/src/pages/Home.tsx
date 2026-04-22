@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -19,12 +19,17 @@ const LEFT_CATEGORIES = ['cat_detergents', 'cat_surface'];
 const RIGHT_CATEGORIES = ['cat_toilet', 'cat_tissue', 'cat_paper_towels'];
 const ACCESSORY_CATEGORY = 'cat_bathroom';
 
+interface MobileSection {
+  key: string;
+  label: string;
+  products: Product[];
+}
+
 export default function Home() {
   const { data: settings } = usePublicSettings();
   const { data: featured } = useFeaturedProducts(12);
   const mode = usePurchaseModeStore((s) => s.mode);
 
-  // Fetch a decent slice of the catalog for the spread. One call, filter client side.
   const { data: allProducts } = useProducts({ per_page: 48, sort: 'popular' });
   const allProductList = allProducts?.data ?? [];
 
@@ -43,6 +48,46 @@ export default function Home() {
     [allProductList],
   );
 
+  // Mobile-only: group by category for a section-stacked layout with
+  // a sticky horizontal chip bar for quick jump navigation.
+  const mobileSections = useMemo<MobileSection[]>(() => {
+    const groups: MobileSection[] = [
+      {
+        key: 'cat_detergents',
+        label: 'Detergents',
+        products: allProductList.filter((p) => p.category_id === 'cat_detergents').slice(0, 6),
+      },
+      {
+        key: 'cat_toilet',
+        label: 'Toilets',
+        products: allProductList.filter((p) => p.category_id === 'cat_toilet').slice(0, 6),
+      },
+      {
+        key: 'cat_tissue',
+        label: 'Tissues',
+        products: allProductList.filter((p) => p.category_id === 'cat_tissue').slice(0, 6),
+      },
+      {
+        key: 'cat_paper_towels',
+        label: 'Towels',
+        products: allProductList
+          .filter((p) => p.category_id === 'cat_paper_towels')
+          .slice(0, 6),
+      },
+      {
+        key: 'cat_bathroom',
+        label: 'Bathroom',
+        products: allProductList.filter((p) => p.category_id === 'cat_bathroom').slice(0, 6),
+      },
+      {
+        key: 'cat_surface',
+        label: 'Cleaners',
+        products: allProductList.filter((p) => p.category_id === 'cat_surface').slice(0, 6),
+      },
+    ];
+    return groups.filter((g) => g.products.length > 0);
+  }, [allProductList]);
+
   const tagline =
     settings?.store_tagline ??
     'Detergents, paper goods, and bathroom essentials, made for Ghanaian households and delivered across the country.';
@@ -54,23 +99,30 @@ export default function Home() {
         description={`${tagline} Shop detergents, tissue, bathroom accessories and more with bulk pricing and fast delivery.`}
       />
 
-      {/* HERO — The Living Editorial (single breathing composition) */}
+      {/* HERO */}
       <LivingHero />
 
-      {/* THE SPREAD — signature editorial catalog spread */}
-      <SpreadSection
-        leftProducts={leftProducts}
-        rightProducts={rightProducts}
-        mode={mode}
-      />
+      {/* ========================================================= */}
+      {/* DESKTOP — The Spread (original editorial layout)           */}
+      {/* ========================================================= */}
+      <div className="hidden md:block">
+        <SpreadSection
+          leftProducts={leftProducts}
+          rightProducts={rightProducts}
+          mode={mode}
+        />
+      </div>
+
+      {/* ========================================================= */}
+      {/* MOBILE — category-stacked layout with chip nav             */}
+      {/* ========================================================= */}
+      <MobileCategoriesSection sections={mobileSections} />
 
       {/* Best for your week — marquee */}
       <MarqueeSection products={featured ?? allProductList.slice(0, 8)} />
 
-      {/* Accessories strip */}
-      {accessoryProducts.length > 0 && (
-        <AccessoriesStrip products={accessoryProducts} />
-      )}
+      {/* Accessories strip — works on both; already a horizontal scroller */}
+      {accessoryProducts.length > 0 && <AccessoriesStrip products={accessoryProducts} />}
 
       {/* BULK CTA */}
       <section className="relative overflow-hidden bg-brand-navy text-brand-ivory noise-texture">
@@ -78,23 +130,23 @@ export default function Home() {
           className="absolute inset-0 gradient-mesh-dark pointer-events-none"
           aria-hidden="true"
         />
-        <div className="relative container py-24 md:py-32 text-center">
+        <div className="relative container py-16 md:py-32 text-center">
           <Reveal>
             <span className="editorial-label text-brand-cyan">
               <span className="inline-block h-px w-8 bg-brand-cyan mr-3 align-middle" aria-hidden="true" />
               Bulk pricing
             </span>
-            <h2 className="mt-6 font-display text-display-lg max-w-3xl mx-auto text-balance">
+            <h2 className="mt-5 md:mt-6 font-display text-display-md md:text-display-lg max-w-3xl mx-auto text-balance leading-[1]">
               Buy in bulk,{' '}
               <span className="font-display-italic text-brand-cyan">save 15&ndash;30%.</span>
             </h2>
-            <p className="mt-6 text-brand-ivory/70 max-w-xl mx-auto text-[17px] leading-relaxed font-light">
+            <p className="mt-5 md:mt-6 text-brand-ivory/70 max-w-xl mx-auto text-[15px] md:text-[17px] leading-relaxed font-light">
               Offices, schools, hotels, retailers &mdash; our tiered bulk pricing is open to
               everyone. The more you buy, the more you save.
             </p>
-            <div className="mt-10">
-              <Link to="/bulk">
-                <Button variant="secondary" size="xl" className="gap-3">
+            <div className="mt-8 md:mt-10">
+              <Link to="/bulk" className="inline-block">
+                <Button variant="secondary" size="xl" className="gap-3 w-full sm:w-auto">
                   Explore bulk
                   <ArrowUpRight className="h-5 w-5" aria-hidden="true" />
                 </Button>
@@ -108,7 +160,169 @@ export default function Home() {
 }
 
 /* ------------------------------------------------------------------ */
-/* THE SPREAD                                                          */
+/* MOBILE CATEGORIES — stacked sections + sticky chip bar              */
+/* ------------------------------------------------------------------ */
+
+function MobileCategoriesSection({ sections }: { sections: MobileSection[] }) {
+  const [activeKey, setActiveKey] = useState<string>(sections[0]?.key ?? '');
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const chipsRef = useRef<HTMLDivElement>(null);
+
+  // Observe which section is in view to drive the active chip.
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the entry whose top is closest to the chip bar's bottom
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+        const first = visible[0];
+        if (first) {
+          const key = (first.target as HTMLElement).dataset.key;
+          if (key) setActiveKey(key);
+        }
+      },
+      { rootMargin: '-140px 0px -55% 0px', threshold: 0 },
+    );
+    Object.values(sectionRefs.current).forEach((el) => {
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [sections]);
+
+  // Auto-scroll the chip bar so the active chip is visible
+  useEffect(() => {
+    const chip = chipsRef.current?.querySelector<HTMLElement>(
+      `[data-chip="${activeKey}"]`,
+    );
+    if (chip && chipsRef.current) {
+      chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [activeKey]);
+
+  if (sections.length === 0) return null;
+
+  const scrollToSection = (key: string) => {
+    const el = sectionRefs.current[key];
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 120;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="md:hidden relative bg-brand-sand/30 noise-texture">
+      <div className="container pt-10 pb-4">
+        <span className="editorial-label text-brand-cyan-deep">
+          <span className="accent-line mr-3" aria-hidden="true" />
+          The Skipper catalog
+        </span>
+        <h2 className="mt-3 font-display text-[clamp(2rem,9vw,3rem)] leading-[1] tracking-[-0.03em] text-brand-navy">
+          The <span className="font-display-italic text-brand-cyan-deep">Spread.</span>
+        </h2>
+        <p className="mt-3 text-brand-navy/65 text-[15px] leading-relaxed font-light">
+          Browse every aisle from the palm of your hand.
+        </p>
+      </div>
+
+      {/* Sticky chip bar */}
+      <div
+        ref={chipsRef}
+        className="sticky top-[60px] z-20 bg-brand-ivory/90 backdrop-blur-md border-y border-brand-navy/10 overflow-x-auto scroll-touch scrollbar-none"
+      >
+        <div className="flex gap-2 px-4 py-2.5 w-max">
+          {sections.map((s) => {
+            const active = s.key === activeKey;
+            return (
+              <button
+                key={s.key}
+                type="button"
+                data-chip={s.key}
+                onClick={() => scrollToSection(s.key)}
+                className={cn(
+                  'inline-flex h-9 items-center rounded-full border px-4 text-[12px] font-semibold tracking-wide transition-colors',
+                  active
+                    ? 'border-brand-navy bg-brand-navy text-brand-ivory'
+                    : 'border-brand-navy/15 bg-brand-ivory text-brand-navy/75',
+                )}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Sections */}
+      <div className="container py-6 space-y-10">
+        {sections.map((s) => (
+          <section
+            key={s.key}
+            data-key={s.key}
+            ref={(el) => {
+              sectionRefs.current[s.key] = el;
+            }}
+            className="scroll-mt-[140px]"
+            aria-labelledby={`mobile-sec-${s.key}`}
+          >
+            <div className="flex items-baseline justify-between mb-4">
+              <h3
+                id={`mobile-sec-${s.key}`}
+                className="font-display text-[22px] leading-tight text-brand-navy font-medium"
+              >
+                {s.label}
+              </h3>
+              <Link
+                to={`/shop/${s.key.replace('cat_', '')}`}
+                className="text-[12px] font-medium text-brand-cyan-deep"
+              >
+                See all →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {s.products.map((p) => (
+                <Link
+                  key={p.id}
+                  to={`/product/${p.slug}`}
+                  className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan-deep/60 rounded-md"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-md bg-brand-sand/50 ring-1 ring-brand-navy/8">
+                    <ProductIllustration product={p} className="h-full w-full" />
+                    {p.is_bulk_available && (
+                      <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy/90 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-brand-ivory uppercase">
+                        Bulk
+                      </span>
+                    )}
+                  </div>
+                  <div className="pt-2 px-0.5 space-y-0.5">
+                    <h4 className="font-sans text-[14px] font-semibold leading-[1.25] text-brand-navy line-clamp-2">
+                      {p.name}
+                    </h4>
+                    <p className="text-[14px] font-bold text-brand-navy tabular-nums">
+                      {formatCurrency(p.unit_price)}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* View everything link */}
+        <div className="pt-4 pb-2 flex justify-center">
+          <Link to="/shop" className="w-full">
+            <Button variant="outline" size="lg" className="gap-2 w-full">
+              View the full shop
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* THE SPREAD — desktop only                                           */
 /* ------------------------------------------------------------------ */
 
 interface SpreadSectionProps {
@@ -146,9 +360,7 @@ function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps
         </div>
       </div>
 
-      {/* Split canvas */}
       <div className="relative mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-[1fr_80px_1fr] min-h-[720px]">
-        {/* LEFT — WET GOODS */}
         <SpreadColumn
           side="left"
           label="Wet goods"
@@ -157,7 +369,6 @@ function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps
           mode={mode}
         />
 
-        {/* GUTTER */}
         <div className="hidden md:flex relative items-stretch justify-center">
           <div
             className="absolute inset-y-0 left-1/2 w-px bg-brand-navy/60"
@@ -167,22 +378,17 @@ function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps
             className="relative z-10 flex flex-col items-center justify-between py-16 text-brand-navy"
             style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
           >
-            <span className="editorial-label tracking-[0.4em] text-[10px]">
-              Est. 2026
-            </span>
+            <span className="editorial-label tracking-[0.4em] text-[10px]">Est. 2026</span>
             <span
               className="font-display-italic text-[44px] md:text-[56px] leading-none tracking-tight"
               style={{ transform: 'rotate(180deg)' }}
             >
               The&nbsp;Spread
             </span>
-            <span className="editorial-label tracking-[0.4em] text-[10px]">
-              Vol. 01
-            </span>
+            <span className="editorial-label tracking-[0.4em] text-[10px]">Vol. 01</span>
           </div>
         </div>
 
-        {/* RIGHT — PAPER GOODS */}
         <SpreadColumn
           side="right"
           label="Paper goods"
@@ -191,7 +397,6 @@ function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps
           mode={mode}
         />
 
-        {/* Background fills (pseudo — keep behind everything) */}
         <div
           className="hidden md:block absolute inset-y-0 left-0 right-[calc(50%+40px)] -z-10 bg-gradient-to-br from-brand-sand-warm/70 via-brand-sand/70 to-brand-sand/40"
           aria-hidden="true"
@@ -200,14 +405,8 @@ function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps
           className="hidden md:block absolute inset-y-0 left-[calc(50%+40px)] right-0 -z-10 bg-brand-ivory"
           aria-hidden="true"
         />
-        {/* Mobile background — full-width sand with alternating band on stacked column */}
-        <div
-          className="md:hidden absolute inset-0 -z-10 bg-gradient-to-b from-brand-sand-warm/60 via-brand-sand/40 to-brand-ivory"
-          aria-hidden="true"
-        />
       </div>
 
-      {/* View everything link */}
       <div className="container pt-10 md:pt-14 pb-16 flex justify-center">
         <Link to="/shop">
           <Button variant="outline" size="lg" className="gap-2">
@@ -217,7 +416,6 @@ function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps
         </Link>
       </div>
 
-      {/* Tweak: disable animations on reduced motion (noop, but doc-anchor) */}
       {reduced && <span className="sr-only">Reduced-motion active</span>}
     </section>
   );
@@ -243,7 +441,6 @@ function SpreadColumn({ side, label, meta, products, mode }: SpreadColumnProps) 
         'py-10 md:py-16 gap-8 md:gap-10',
       )}
     >
-      {/* Column label */}
       <div
         className={cn(
           'w-full max-w-[480px] space-y-1.5',
@@ -254,7 +451,6 @@ function SpreadColumn({ side, label, meta, products, mode }: SpreadColumnProps) 
         <p className="font-display-italic text-brand-navy/60 text-lg">{meta}</p>
       </div>
 
-      {/* Product stack */}
       <div className={cn('w-full max-w-[480px] space-y-8 md:space-y-10')}>
         {products.length === 0
           ? Array.from({ length: 3 }).map((_, i) => (
@@ -324,7 +520,6 @@ function SpreadCard({ product, side, index, mode, reduced }: SpreadCardProps) {
       style={{ transform: reduced ? undefined : `rotate(${tilt}deg)` }}
       className={cn(
         'group relative w-full',
-        // overlap the gutter inward for editorial rhythm
         isLeft ? 'md:-mr-10' : 'md:-ml-10',
       )}
     >
@@ -396,13 +591,12 @@ function SpreadCard({ product, side, index, mode, reduced }: SpreadCardProps) {
 function MarqueeSection({ products }: { products: Product[] }) {
   const reduced = useReducedMotion();
   if (!products.length) return null;
-  // Duplicate the list so the CSS marquee has something to wrap to.
   const track = [...products, ...products];
 
   return (
-    <section className="py-20 md:py-24 bg-brand-navy text-brand-ivory noise-texture overflow-hidden">
+    <section className="py-12 md:py-24 bg-brand-navy text-brand-ivory noise-texture overflow-hidden">
       <div className="container">
-        <Reveal className="max-w-2xl mb-10">
+        <Reveal className="max-w-2xl mb-8 md:mb-10">
           <span className="editorial-label text-brand-cyan">
             <span className="inline-block h-px w-8 bg-brand-cyan mr-3 align-middle" aria-hidden="true" />
             Best for your week
@@ -411,7 +605,7 @@ function MarqueeSection({ products }: { products: Product[] }) {
             What everyone's{' '}
             <span className="font-display-italic text-brand-cyan">restocking.</span>
           </h2>
-          <p className="mt-4 text-brand-ivory/65 text-[16px] leading-relaxed font-light max-w-[52ch]">
+          <p className="mt-4 text-brand-ivory/65 text-[15px] md:text-[16px] leading-relaxed font-light max-w-[52ch]">
             A drifting strip of this week's favorites. Tap anything to see details.
           </p>
         </Reveal>
@@ -419,12 +613,16 @@ function MarqueeSection({ products }: { products: Product[] }) {
 
       <div
         className="relative group"
-        style={{ maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)' }}
+        style={{
+          maskImage:
+            'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+        }}
       >
         <div
           className={cn(
-            'flex gap-6 px-6 w-max',
-            !reduced && 'animate-marquee group-hover:[animation-play-state:paused]',
+            'flex gap-4 md:gap-6 px-4 md:px-6 w-max',
+            !reduced &&
+              'animate-marquee md:[animation-duration:30s] [animation-duration:50s] group-hover:[animation-play-state:paused]',
           )}
           aria-hidden={reduced ? undefined : 'true'}
         >
@@ -432,14 +630,14 @@ function MarqueeSection({ products }: { products: Product[] }) {
             <Link
               key={`${p.id}-${i}`}
               to={`/product/${p.slug}`}
-              className="flex-none w-[240px] md:w-[260px]"
+              className="flex-none w-[180px] md:w-[260px]"
             >
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand ring-1 ring-brand-ivory/10">
                 <ProductIllustration product={p} className="h-full w-full" />
               </div>
               <div className="pt-3 space-y-1">
                 <p className="editorial-label text-brand-cyan/80">{p.brand ?? 'Skipper'}</p>
-                <p className="font-display text-[17px] leading-tight text-brand-ivory font-medium line-clamp-2">
+                <p className="font-display text-[15px] md:text-[17px] leading-tight text-brand-ivory font-medium line-clamp-2">
                   {p.name}
                 </p>
                 <p className="text-[13px] font-semibold text-brand-ivory/90 tabular-nums">
@@ -462,42 +660,44 @@ function AccessoriesStrip({ products }: { products: Product[] }) {
   const reduced = useReducedMotion();
 
   return (
-    <section className="bg-brand-sand/50 noise-texture py-20 md:py-24">
+    <section className="bg-brand-sand/50 noise-texture py-12 md:py-24">
       <div className="container">
-        <Reveal className="max-w-2xl mb-10">
+        <Reveal className="max-w-2xl mb-6 md:mb-10">
           <span className="editorial-label text-brand-cyan-deep">
             <span className="accent-line mr-3" aria-hidden="true" />
             Accessories for the bath
           </span>
-          <h2 className="mt-4 font-display text-display-sm text-brand-navy">
-            Little <span className="font-display-italic text-brand-navy/80">upgrades</span>, real impact.
+          <h2 className="mt-3 md:mt-4 font-display text-display-sm text-brand-navy">
+            Little <span className="font-display-italic text-brand-navy/80">upgrades</span>, real
+            impact.
           </h2>
         </Reveal>
       </div>
       <div
-        className="container overflow-x-auto -mx-5 md:-mx-8 px-5 md:px-8"
+        className="container overflow-x-auto scroll-touch scrollbar-none -mx-5 md:-mx-8 px-5 md:px-8"
         style={{ scrollbarWidth: 'thin' }}
       >
-        <div className="flex gap-5 pb-3 w-max">
+        <div className="flex gap-4 md:gap-5 pb-3 w-max">
           {products.map((p, i) => (
             <motion.div
               key={p.id}
               initial={reduced ? false : { opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5, delay: Math.min(i * 0.05, 0.2), ease: [0.2, 0.8, 0.2, 1] }}
-              className="w-[220px] md:w-[240px] flex-none"
+              transition={{
+                duration: 0.5,
+                delay: Math.min(i * 0.05, 0.2),
+                ease: [0.2, 0.8, 0.2, 1],
+              }}
+              className="w-[180px] md:w-[240px] flex-none snap-start"
             >
-              <Link
-                to={`/product/${p.slug}`}
-                className="block group"
-              >
+              <Link to={`/product/${p.slug}`} className="block group">
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-ivory shadow-sm group-hover:shadow-editorial transition-shadow duration-300">
                   <ProductIllustration product={p} className="h-full w-full" />
                 </div>
                 <div className="pt-3 space-y-1">
                   <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>
-                  <p className="font-display text-[16px] leading-tight text-brand-navy font-medium line-clamp-2">
+                  <p className="font-display text-[15px] md:text-[16px] leading-tight text-brand-navy font-medium line-clamp-2">
                     {p.name}
                   </p>
                   <p className="text-[13px] font-semibold text-brand-navy tabular-nums">

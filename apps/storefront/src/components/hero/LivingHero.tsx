@@ -142,11 +142,11 @@ export default function LivingHero() {
                   </span>
                 </motion.div>
 
-                {/* Headline — two lines */}
+                {/* Headline — two lines; smaller base on mobile to keep density tight */}
                 <h1
                   className={cn(
                     'font-display font-normal text-brand-navy',
-                    'text-[clamp(2.5rem,7vw,6rem)] leading-[0.95] tracking-[-0.02em]',
+                    'text-[clamp(2rem,9vw,4.5rem)] md:text-[clamp(2.5rem,7vw,6rem)] leading-[0.95] tracking-[-0.02em]',
                   )}
                   style={{ fontVariationSettings: "'opsz' 144, 'SOFT' 50" }}
                 >
@@ -174,7 +174,7 @@ export default function LivingHero() {
                   with the same care we put into making them.
                 </motion.p>
 
-                {/* CTAs */}
+                {/* CTAs — stack full-width on mobile, inline on desktop */}
                 <motion.div
                   initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -183,14 +183,14 @@ export default function LivingHero() {
                     ease: [0.2, 0.8, 0.2, 1],
                     delay: 1.8,
                   }}
-                  className="mt-10 flex flex-wrap items-center gap-3"
+                  className="mt-8 md:mt-10 flex flex-col md:flex-row md:flex-wrap md:items-center gap-3 w-full md:w-auto"
                 >
                   <MagneticButton to="/shop" variant="primary">
                     Shop everything
                     <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                   </MagneticButton>
-                  <MagneticButton to="/shop" variant="secondary">
-                    Browse the catalog
+                  <MagneticButton to="/bulk" variant="secondary">
+                    Explore bulk pricing
                   </MagneticButton>
                 </motion.div>
               </div>
@@ -216,9 +216,11 @@ export default function LivingHero() {
           </div>
         </motion.div>
 
-        {/* LAYER 7 — trust marquee pinned to the bottom, overlapping into the next section */}
+        {/* LAYER 7 — trust marquee pinned to the bottom, overlapping into the next section.
+            Hidden on mobile: the sitewide AnnouncementBar at the top already carries
+            the same messages; rendering both creates visual noise on 375px screens. */}
         <motion.div
-          className="relative z-20 mt-auto"
+          className="relative z-20 mt-auto hidden md:block"
           style={{ opacity: contentOpacity }}
         >
           <TrustMarquee />

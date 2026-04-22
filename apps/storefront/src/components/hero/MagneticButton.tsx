@@ -96,7 +96,7 @@ export const MagneticButton = forwardRef<HTMLAnchorElement, MagneticButtonProps>
     return (
       <motion.div
         {...(reduced ? {} : { style: { x: sx, y: sy } })}
-        className="inline-block"
+        className="inline-block w-full md:w-auto"
       >
         <Link
           to={to}
@@ -106,7 +106,7 @@ export const MagneticButton = forwardRef<HTMLAnchorElement, MagneticButtonProps>
             else if (forwardedRef)
               (forwardedRef as React.MutableRefObject<HTMLAnchorElement | null>).current = node;
           }}
-          className={cn(baseClass, variantClass, className)}
+          className={cn(baseClass, variantClass, 'w-full md:w-auto', className)}
         >
           {children}
         </Link>
