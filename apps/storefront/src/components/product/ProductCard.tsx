@@ -1,45 +1,88 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Package } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { Product } from '@skipper/shared';
 import { formatCurrency } from '@skipper/shared';
 import { useCart } from '@/hooks/useCart';
+import { usePurchaseModeStore } from '@/stores/purchaseModeStore';
+import { ProductIllustration, shouldUseRealImage } from '@/lib/productIllustration';
 import { cn } from '@/lib/cn';
 
-const PLACEHOLDER = 'https://placehold.co/600x600/F4EDE0/0B2545?text=Skipper&font=Roboto';
-
 interface ProductCardProps {
-  product: Product;
+  product: Product & { bulk_tiers?: { unit_price: number; min_quantity: number }[] };
   className?: string;
   index?: number;
+  /** Override the global single/bulk mode for this card. */
+  modeOverride?: 'single' | 'bulk';
 }
 
-export function ProductCard({ product, className, index = 0 }: ProductCardProps) {
+function lowestBulkUnitPrice(
+  product: ProductCardProps['product'],
+): { unit_price: number; min_quantity: number } | null {
+  const tiers = product.bulk_tiers ?? [];
+  if (!tiers.length) return null;
+  const sorted = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
+  return sorted[0] ?? null;
+}
+
+export function ProductCard({
+  product,
+  className,
+  index = 0,
+  modeOverride,
+}: ProductCardProps) {
   const { addItem } = useCart();
   const reduced = useReducedMotion();
   const [justAdded, setJustAdded] = useState(false);
+  const globalMode = usePurchaseModeStore((s) => s.mode);
+  const mode = modeOverride ?? globalMode;
+
+  const inBulkMode = mode === 'bulk';
+  const bulkCapable = product.is_bulk_available;
+  const firstTier = lowestBulkUnitPrice(product);
+  const bulkUnitPrice = firstTier?.unit_price ?? product.unit_price;
+  const minQty = product.bulk_minimum_qty && product.bulk_minimum_qty > 0
+    ? product.bulk_minimum_qty
+    : 1;
+
+  const showBulkStyling = inBulkMode && bulkCapable;
+  const singleOnly = inBulkMode && !bulkCapable;
+
+  const displayPrice = showBulkStyling ? bulkUnitPrice : product.unit_price;
+  const bulkSavingsPct =
+    showBulkStyling && product.unit_price > 0
+      ? Math.round(((product.unit_price - bulkUnitPrice) / product.unit_price) * 100)
+      : 0;
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    addItem({ product_id: product.id, quantity: 1 });
+    const quantity = showBulkStyling ? minQty : 1;
+    addItem({ product_id: product.id, quantity });
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1400);
   }
 
-  const primaryImage = PLACEHOLDER;
+  const primaryImageUrl = (product as unknown as { images?: { url: string }[] }).images?.[0]?.url;
+  const useRealImage = shouldUseRealImage(primaryImageUrl);
+
   const hasDiscount =
     product.compare_at_price !== null && product.compare_at_price > product.unit_price;
   const inStock = product.stock_quantity > 0;
   const savings = hasDiscount ? product.compare_at_price! - product.unit_price : 0;
 
+  const addDisabled = !inStock || (singleOnly && false); // never block add on single-only — just adds 1
   return (
     <motion.div
       initial={reduced ? false : { opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.55, ease: [0.2, 0.8, 0.2, 1], delay: Math.min(index * 0.04, 0.3) }}
+      transition={{
+        duration: 0.55,
+        ease: [0.2, 0.8, 0.2, 1],
+        delay: Math.min(index * 0.04, 0.3),
+      }}
       className={cn('group', className)}
     >
       <Link
@@ -53,16 +96,23 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
           transition={{ type: 'spring', stiffness: 300, damping: 28 }}
           className="relative aspect-square overflow-hidden rounded-lg border border-brand-navy/8 bg-brand-sand/60 transition-shadow duration-300 ease-editorial group-hover:shadow-editorial"
         >
-          <img
-            src={primaryImage}
-            alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-[600ms] ease-editorial group-hover:scale-[1.04]"
-            loading="lazy"
-          />
+          {useRealImage && primaryImageUrl ? (
+            <img
+              src={primaryImageUrl}
+              alt={product.name}
+              className="h-full w-full object-cover transition-transform duration-[600ms] ease-editorial group-hover:scale-[1.04]"
+              loading="lazy"
+            />
+          ) : (
+            <ProductIllustration
+              product={product}
+              className="h-full w-full object-cover transition-transform duration-[600ms] ease-editorial group-hover:scale-[1.04]"
+            />
+          )}
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-            {product.is_bulk_available && (
+            {bulkCapable && !inBulkMode && (
               <motion.span
                 initial={reduced ? false : { scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -72,7 +122,27 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
                 Bulk
               </motion.span>
             )}
-            {hasDiscount && (
+            {showBulkStyling && bulkSavingsPct > 0 && (
+              <motion.span
+                initial={reduced ? false : { scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, type: 'spring', stiffness: 400, damping: 24 }}
+                className="inline-flex items-center rounded-full bg-brand-red px-2 py-0.5 text-[10px] font-semibold tracking-wider text-white uppercase"
+              >
+                Save {bulkSavingsPct}%
+              </motion.span>
+            )}
+            {singleOnly && (
+              <motion.span
+                initial={reduced ? false : { scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, type: 'spring', stiffness: 400, damping: 24 }}
+                className="inline-flex items-center rounded-full bg-brand-ivory/95 border border-brand-navy/15 px-2 py-0.5 text-[10px] font-medium tracking-wider text-brand-navy uppercase"
+              >
+                Single only
+              </motion.span>
+            )}
+            {hasDiscount && !showBulkStyling && !singleOnly && (
               <motion.span
                 initial={reduced ? false : { scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -88,15 +158,20 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
           <motion.button
             type="button"
             onClick={handleAddToCart}
-            disabled={!inStock}
-            aria-label={`Add ${product.name} to cart`}
+            disabled={addDisabled}
+            aria-label={
+              showBulkStyling
+                ? `Add ${minQty} of ${product.name} to cart`
+                : `Add ${product.name} to cart`
+            }
             initial={{ opacity: 0, y: 10 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             {...(reduced ? { animate: { opacity: 1, y: 0 } } : {})}
             className={cn(
-              'absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full',
-              'bg-brand-ivory text-brand-navy shadow-lg',
+              'absolute bottom-3 right-3 inline-flex items-center justify-center rounded-full shadow-lg',
+              showBulkStyling ? 'h-11 px-3.5 gap-1.5' : 'h-10 w-10',
+              'bg-brand-ivory text-brand-navy',
               'transition-opacity duration-300 ease-editorial',
               !reduced && 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
               justAdded ? 'bg-brand-cyan text-white' : '',
@@ -105,6 +180,13 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
           >
             {justAdded ? (
               <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
+            ) : showBulkStyling ? (
+              <>
+                <Package className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                <span className="text-[12px] font-semibold tracking-wide">
+                  Add {minQty}
+                </span>
+              </>
             ) : (
               <Plus className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             )}
@@ -125,19 +207,33 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
           <h3 className="font-display text-[17px] leading-[1.2] text-brand-navy line-clamp-2 group-hover:text-brand-cyan-deep transition-colors duration-200 font-medium">
             {product.name}
           </h3>
-          <div className="flex items-baseline gap-2 pt-1">
+          <div className="flex items-baseline gap-2 pt-1 flex-wrap">
+            {showBulkStyling && (
+              <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-brand-red">
+                From
+              </span>
+            )}
             <span className="text-[15px] font-semibold text-brand-navy tabular-nums">
-              {formatCurrency(product.unit_price)}
+              {formatCurrency(displayPrice)}
             </span>
-            {hasDiscount && (
-              <>
-                <span className="text-[13px] text-brand-navy/45 line-through tabular-nums">
-                  {formatCurrency(product.compare_at_price!)}
-                </span>
-                <span className="text-[11px] font-medium text-brand-red tracking-wide uppercase">
-                  Save {formatCurrency(savings)}
-                </span>
-              </>
+            {showBulkStyling ? (
+              <span className="text-[11px] text-brand-navy/55 tabular-nums">
+                / unit · min {minQty}
+              </span>
+            ) : (
+              hasDiscount && (
+                <>
+                  <span className="text-[13px] text-brand-navy/45 line-through tabular-nums">
+                    {formatCurrency(product.compare_at_price!)}
+                  </span>
+                  <span className="text-[11px] font-medium text-brand-red tracking-wide uppercase">
+                    Save {formatCurrency(savings)}
+                  </span>
+                </>
+              )
+            )}
+            {singleOnly && (
+              <span className="text-[11px] text-brand-navy/55">single unit only</span>
             )}
           </div>
         </div>

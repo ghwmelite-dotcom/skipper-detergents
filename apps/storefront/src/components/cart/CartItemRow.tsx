@@ -5,13 +5,11 @@ import { formatCurrency } from '@skipper/shared';
 import type { CartItem } from '@/stores/cartStore';
 import { useCart } from '@/hooks/useCart';
 import { QuantityInput } from '@/components/product/QuantityInput';
-
-const PLACEHOLDER =
-  'https://placehold.co/200x200/F4EDE0/0B2545?text=S&font=Roboto';
+import { ProductIllustration, shouldUseRealImage } from '@/lib/productIllustration';
 
 interface CartItemRowProps {
   item: CartItem;
-  product: Product;
+  product: Product & { images?: { url: string }[] };
   compact?: boolean;
 }
 
@@ -21,6 +19,8 @@ export function CartItemRow({ item, product, compact = false }: CartItemRowProps
   const variantId = item.variant_id ?? null;
 
   const lineTotal = product.unit_price * item.quantity;
+  const primaryUrl = product.images?.[0]?.url;
+  const useRealImage = shouldUseRealImage(primaryUrl);
 
   return (
     <motion.div
@@ -36,12 +36,20 @@ export function CartItemRow({ item, product, compact = false }: CartItemRowProps
           compact ? 'h-16 w-16' : 'h-24 w-24'
         } flex-none overflow-hidden rounded-md bg-brand-sand/60 ring-1 ring-brand-navy/10`}
       >
-        <img
-          src={PLACEHOLDER}
-          alt={product.name}
-          className="h-full w-full object-cover"
-          loading="lazy"
-        />
+        {useRealImage && primaryUrl ? (
+          <img
+            src={primaryUrl}
+            alt={product.name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <ProductIllustration
+            product={product}
+            className="h-full w-full"
+            hideLabel={compact}
+          />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 min-w-0 justify-between">
