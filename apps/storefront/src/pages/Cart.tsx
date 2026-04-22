@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -22,7 +22,7 @@ import type { Product } from '@skipper/shared';
 import { cn } from '@/lib/cn';
 
 export default function Cart() {
-  const { items } = useCart();
+  const { items, removeItem } = useCart();
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const reduced = useReducedMotion();
 
@@ -45,11 +45,24 @@ export default function Cart() {
     .map((q) => q.data)
     .filter((p): p is Product => p !== null && p !== undefined);
 
+  // Auto-prune cart entries whose product has been deleted/archived.
+  // Only after the query has actually settled — don't drop items while they
+  // might still be loading or the API is momentarily down.
+  useEffect(() => {
+    items.forEach((item, i) => {
+      const q = productQueries[i];
+      if (q && q.isFetched && !q.isFetching && q.data === null) {
+        removeItem(item.product_id, item.variant_id ?? null);
+      }
+    });
+  }, [items, productQueries, removeItem]);
+
   const productMap = new Map(products.map((p) => [p.id, p]));
   const subtotal = items.reduce((sum, item) => {
     const p = productMap.get(item.product_id);
     return sum + (p?.unit_price ?? 0) * item.quantity;
   }, 0);
+  const canCheckout = !isLoading && products.length > 0 && subtotal > 0;
 
   if (items.length === 0) {
     return (
@@ -149,12 +162,19 @@ export default function Cart() {
           {/* Desktop summary sidebar */}
           <div className="hidden lg:block space-y-5 lg:sticky lg:top-24 lg:self-start">
             <CartSummary items={items} products={products} />
-            <Link to="/checkout" className="block">
-              <Button variant="primary" size="lg" className="w-full gap-2">
+            {canCheckout ? (
+              <Link to="/checkout" className="block">
+                <Button variant="primary" size="lg" className="w-full gap-2">
+                  Proceed to checkout
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </Link>
+            ) : (
+              <Button variant="primary" size="lg" className="w-full gap-2" disabled>
                 Proceed to checkout
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
-            </Link>
+            )}
             <p className="text-[11px] text-brand-navy/50 text-center tracking-wider uppercase">
               Secure Paystack checkout &middot; Returns within 7 days
             </p>
@@ -228,14 +248,23 @@ export default function Cart() {
         </AnimatePresence>
 
         <div className="px-4 pt-2 pb-3">
-          <Link to="/checkout" className="block">
-            <Button variant="primary" size="lg" className="w-full gap-2 h-12">
+          {canCheckout ? (
+            <Link to="/checkout" className="block">
+              <Button variant="primary" size="lg" className="w-full gap-2 h-12">
+                <ShoppingBag className="h-4 w-4" aria-hidden="true" />
+                Checkout &middot;{' '}
+                <span className="tabular-nums">{formatCurrency(subtotal)}</span>
+                <ArrowRight className="h-4 w-4 ml-auto" aria-hidden="true" />
+              </Button>
+            </Link>
+          ) : (
+            <Button variant="primary" size="lg" className="w-full gap-2 h-12" disabled>
               <ShoppingBag className="h-4 w-4" aria-hidden="true" />
               Checkout &middot;{' '}
               <span className="tabular-nums">{formatCurrency(subtotal)}</span>
               <ArrowRight className="h-4 w-4 ml-auto" aria-hidden="true" />
             </Button>
-          </Link>
+          )}
         </div>
       </div>
     </>

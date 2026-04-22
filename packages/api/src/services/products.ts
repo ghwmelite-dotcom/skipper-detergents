@@ -90,10 +90,25 @@ export async function getProductBySlug(
   db: D1Database,
   slug: string,
 ): Promise<ProductWithRelations | null> {
+  return getProductByColumn(db, 'slug', slug);
+}
+
+export async function getProductById(
+  db: D1Database,
+  id: string,
+): Promise<ProductWithRelations | null> {
+  return getProductByColumn(db, 'id', id);
+}
+
+async function getProductByColumn(
+  db: D1Database,
+  column: 'slug' | 'id',
+  value: string,
+): Promise<ProductWithRelations | null> {
   const product = await first<Product>(
     db,
-    `SELECT * FROM products WHERE slug = ? AND is_active = 1`,
-    [slug],
+    `SELECT * FROM products WHERE ${column} = ? AND is_active = 1`,
+    [value],
   );
   if (!product) return null;
 
