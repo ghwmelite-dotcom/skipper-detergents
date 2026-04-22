@@ -3,6 +3,7 @@ import { AnnouncementBar } from './AnnouncementBar';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { MobileNav } from './MobileNav';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 
 export function RootLayout() {
   return (
@@ -10,6 +11,7 @@ export function RootLayout() {
       <AnnouncementBar />
       <Header />
       <MobileNav />
+      <CartDrawer />
       <main className="flex-1">
         <Outlet />
       </main>
