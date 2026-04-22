@@ -5,7 +5,7 @@ const SECTIONS = [
   {
     n: '01',
     heading: 'Information we collect',
-    body: `When you place an order with Skipper Detergents, we collect the personal information you provide: your name, email address, phone number, and delivery address. We also collect technical information such as IP address and browser type to operate the platform securely. We do not collect payment card numbers — all payment processing is handled directly by Paystack, our certified payment processor.`,
+    body: `When you place an order with Skipper CleanCare, we collect the personal information you provide: your name, email address, phone number, and delivery address. We also collect technical information such as IP address and browser type to operate the platform securely. We do not collect payment card numbers — all payment processing is handled directly by Paystack, our certified payment processor.`,
   },
   {
     n: '02',
@@ -40,7 +40,7 @@ export default function PrivacyPolicy() {
     <>
       <SEOHead
         title="Privacy Policy"
-        description="How Skipper Detergents collects, uses, and protects your personal information."
+        description="How Skipper CleanCare collects, uses, and protects your personal information."
       />
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Privacy Policy' }]} />
 

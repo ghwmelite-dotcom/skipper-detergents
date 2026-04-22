@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-labelledby="scc-title" role="img">
+  <title id="scc-title">Skipper CleanCare</title>
+
+  <defs>
+    <!-- Arched paths for curved text. Top arc goes left→right along upper half.
+         Bottom arc goes right→left along lower half so text reads upright. -->
+    <path id="scc-topArc" d="M 175 500 A 325 325 0 0 1 825 500" />
+    <path id="scc-bottomArc" d="M 825 500 A 325 325 0 0 1 175 500" />
+
+    <!-- Reusable laurel branch — rendered once, mirrored for the right side. -->
+    <g id="scc-laurel">
+      <!-- Central stem -->
+      <path d="M 180 660 Q 300 600 430 560" fill="none" stroke="#0B2545" stroke-width="5" stroke-linecap="round"/>
+      <!-- Leaves alternating sides -->
+      <g fill="#0B2545">
+        <ellipse cx="225" cy="638" rx="18" ry="7" transform="rotate(-32 225 638)"/>
+        <ellipse cx="260" cy="620" rx="20" ry="8" transform="rotate(-30 260 620)"/>
+        <ellipse cx="295" cy="605" rx="21" ry="8" transform="rotate(-26 295 605)"/>
+        <ellipse cx="330" cy="588" rx="20" ry="8" transform="rotate(-22 330 588)"/>
+        <ellipse cx="370" cy="575" rx="18" ry="7" transform="rotate(-16 370 575)"/>
+        <ellipse cx="405" cy="565" rx="15" ry="6" transform="rotate(-10 405 565)"/>
+
+        <ellipse cx="215" cy="672" rx="18" ry="7" transform="rotate(-22 215 672)"/>
+        <ellipse cx="250" cy="660" rx="20" ry="8" transform="rotate(-18 250 660)"/>
+        <ellipse cx="288" cy="648" rx="20" ry="8" transform="rotate(-14 288 648)"/>
+        <ellipse cx="325" cy="632" rx="18" ry="7" transform="rotate(-10 325 632)"/>
+      </g>
+    </g>
+  </defs>
+
+  <!-- Seal background -->
+  <circle cx="500" cy="500" r="495" fill="#FCFBF7"/>
+
+  <!-- Thick outer ring (navy) -->
+  <circle cx="500" cy="500" r="475" fill="none" stroke="#0B2545" stroke-width="36"/>
+
+  <!-- Thin inner border line -->
+  <circle cx="500" cy="500" r="437" fill="none" stroke="#0B2545" stroke-width="2"/>
+
+  <!-- Top curved wordmark -->
+  <text font-family="Fraunces, 'Times New Roman', serif" font-weight="700" font-size="90" fill="#0B2545" letter-spacing="12" font-style="normal">
+    <textPath href="#scc-topArc" startOffset="50%" text-anchor="middle">SKIPPER</textPath>
+  </text>
+
+  <!-- Bottom curved wordmark -->
+  <text font-family="Fraunces, 'Times New Roman', serif" font-weight="700" font-size="76" fill="#0B2545" letter-spacing="8">
+    <textPath href="#scc-bottomArc" startOffset="50%" text-anchor="middle">CLEANCARE</textPath>
+  </text>
+
+  <!-- Dotted inner ring -->
+  <circle cx="500" cy="500" r="372" fill="none" stroke="#0B2545" stroke-width="8" stroke-dasharray="2 16" stroke-linecap="round"/>
+
+  <!-- Flanking stars (3 per side) -->
+  <g fill="#0B2545">
+    <!-- Left column -->
+    <polygon points="125,430 132,452 155,452 136,466 143,488 125,474 107,488 114,466 95,452 118,452"/>
+    <polygon points="100,500 107,522 130,522 111,536 118,558 100,544 82,558 89,536 70,522 93,522"/>
+    <polygon points="125,570 132,592 155,592 136,606 143,628 125,614 107,628 114,606 95,592 118,592"/>
+    <!-- Right column -->
+    <polygon points="875,430 882,452 905,452 886,466 893,488 875,474 857,488 864,466 845,452 868,452"/>
+    <polygon points="900,500 907,522 930,522 911,536 918,558 900,544 882,558 889,536 870,522 893,522"/>
+    <polygon points="875,570 882,592 905,592 886,606 893,628 875,614 857,628 864,606 845,592 868,592"/>
+  </g>
+
+  <!-- ===== CENTRAL EMBLEM ===== -->
+  <!-- Captain's peaked cap, front view -->
+  <g>
+    <!-- Crown (navy) — flat-topped with subtle curve -->
+    <path d="M 395 400
+             Q 500 375 605 400
+             L 612 468
+             L 388 468 Z"
+          fill="#0B2545"/>
+    <!-- Hat band (cyan accent) -->
+    <path d="M 383 468 L 617 468 L 620 495 L 380 495 Z" fill="#00B4D8"/>
+    <!-- Anchor emblem on hat band -->
+    <g fill="#0B2545" transform="translate(500 482)">
+      <circle cx="0" cy="-8" r="3.5" fill="none" stroke="#0B2545" stroke-width="2"/>
+      <line x1="0" y1="-4" x2="0" y2="11" stroke="#0B2545" stroke-width="2"/>
+      <path d="M -9 9 Q 0 18 9 9" fill="none" stroke="#0B2545" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-6" y1="0" x2="6" y2="0" stroke="#0B2545" stroke-width="2"/>
+    </g>
+    <!-- Visor (broader, curved bottom) -->
+    <path d="M 345 495
+             L 655 495
+             Q 500 560 345 495 Z"
+          fill="#0B2545"/>
+    <!-- Visor highlight stripe -->
+    <path d="M 360 505 Q 500 535 640 505"
+          fill="none" stroke="#FCFBF7" stroke-width="2" opacity="0.25"/>
+  </g>
+
+  <!-- Water drop between cap and waves -->
+  <g transform="translate(500 595)">
+    <path d="M 0 -28
+             C 18 -8 22 10 14 22
+             C 6 32 -6 32 -14 22
+             C -22 10 -18 -8 0 -28 Z"
+          fill="#00B4D8"/>
+    <!-- Highlight -->
+    <ellipse cx="-5" cy="8" rx="4" ry="7" fill="#FCFBF7" opacity="0.55"/>
+  </g>
+
+  <!-- Wave motif (two stacked waves, bottom) -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M 300 670
+             Q 360 640 420 670
+             T 540 670
+             T 660 670
+             T 700 670"
+          stroke="#00B4D8" stroke-width="10"/>
+    <path d="M 280 710
+             Q 345 678 410 710
+             T 540 710
+             T 670 710
+             T 720 710"
+          stroke="#0B2545" stroke-width="12"/>
+  </g>
+
+  <!-- Laurel branches — left and mirrored right -->
+  <use href="#scc-laurel"/>
+  <use href="#scc-laurel" transform="translate(1000 0) scale(-1 1)"/>
+</svg>

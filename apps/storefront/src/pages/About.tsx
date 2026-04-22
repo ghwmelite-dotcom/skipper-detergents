@@ -28,8 +28,8 @@ export default function About() {
   return (
     <>
       <SEOHead
-        title="About Skipper Detergents"
-        description="Skipper Detergents is a Ghanaian household essentials brand — honest prices, same-day Accra delivery, bulk pricing open to all."
+        title="About Skipper CleanCare"
+        description="Skipper CleanCare is a Ghanaian household essentials brand — honest prices, same-day Accra delivery, bulk pricing open to all."
       />
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
 
@@ -55,7 +55,7 @@ export default function About() {
         <div className="grid gap-12 md:grid-cols-12">
           <Reveal className="md:col-span-7 space-y-5 text-[17px] leading-[1.75] text-brand-navy/80 font-light">
             <p className="drop-cap">
-              Skipper Detergents started with a simple idea: that premium household essentials
+              Skipper CleanCare started with a simple idea: that premium household essentials
               shouldn&rsquo;t be a luxury. We began as a small distribution operation in Accra,
               working directly with manufacturers to keep costs low and quality consistently high.
             </p>

@@ -9,12 +9,12 @@ beforeEach(async () => {
 
 describe('getPublicSettings', () => {
   it('returns only whitelisted keys', async () => {
-    await seedSetting(env.DB, 'store_name', 'Skipper Detergents');
+    await seedSetting(env.DB, 'store_name', 'Skipper CleanCare');
     await seedSetting(env.DB, 'paystack_secret_key', 'SK_SECRET_SHOULD_NOT_LEAK');
     await seedSetting(env.DB, 'store_email', 'orders@example');
 
     const settings = await getPublicSettings(env.DB);
-    expect(settings.store_name).toBe('Skipper Detergents');
+    expect(settings.store_name).toBe('Skipper CleanCare');
     expect(settings.store_email).toBe('orders@example');
     expect('paystack_secret_key' in settings).toBe(false);
   });

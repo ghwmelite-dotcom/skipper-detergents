@@ -16,7 +16,7 @@ export default function Contact() {
   return (
     <>
       <SEOHead
-        title="Contact Skipper Detergents"
+        title="Contact Skipper CleanCare"
         description="Reach us by email, phone, or visit our Accra pickup location. Bulk enquiries welcome."
       />
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Contact' }]} />

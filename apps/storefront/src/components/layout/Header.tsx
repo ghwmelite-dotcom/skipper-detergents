@@ -143,16 +143,25 @@ export function Header() {
         <Link
           to="/"
           className={cn(
-            'group inline-flex items-center gap-0 text-brand-navy',
+            'group inline-flex items-center gap-2 text-brand-navy',
             isCheckoutPage && 'md:inline-flex hidden',
           )}
           aria-label={`${STORE_NAME} — home`}
         >
-          <span className="font-display text-[20px] md:text-[26px] leading-none font-medium tracking-[-0.015em]">
-            Skipper
-          </span>
-          <span className="font-display-italic text-[20px] md:text-[26px] leading-none font-normal tracking-[-0.02em] ml-[3px] text-brand-cyan-deep">
-            detergents
+          <img
+            src="/logo-mark.svg"
+            alt=""
+            aria-hidden="true"
+            className="h-8 w-8 md:h-9 md:w-9 shrink-0 transition-transform duration-300 ease-editorial group-hover:rotate-[6deg]"
+            draggable={false}
+          />
+          <span className="inline-flex items-baseline">
+            <span className="font-display text-[19px] md:text-[25px] leading-none font-medium tracking-[-0.015em]">
+              Skipper
+            </span>
+            <span className="font-display-italic text-[19px] md:text-[25px] leading-none font-normal tracking-[-0.02em] ml-[3px] text-brand-cyan-deep">
+              CleanCare
+            </span>
           </span>
         </Link>
 

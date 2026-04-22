@@ -337,7 +337,7 @@ export default function Shop() {
     <>
       <SEOHead
         title={mode === 'bulk' ? 'Wholesale catalog' : 'Shop all products'}
-        description="Browse Skipper Detergents' full range — detergents, tissue, bathroom accessories, and more."
+        description="Browse Skipper CleanCare' full range — detergents, tissue, bathroom accessories, and more."
       />
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Shop' }]} />
 

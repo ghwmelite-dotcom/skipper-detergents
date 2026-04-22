@@ -16,17 +16,29 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-12">
           {/* Brand column */}
           <div className="md:col-span-5 space-y-6">
-            <Link to="/" className="inline-flex items-baseline gap-0 text-brand-ivory">
-              <span className="font-display text-[34px] leading-none font-medium tracking-[-0.02em]">
-                Skipper
-              </span>
-              <span className="font-display-italic text-[34px] leading-none font-normal tracking-[-0.02em] ml-1 text-brand-cyan">
-                detergents
+            <Link to="/" className="inline-flex items-center gap-3 text-brand-ivory">
+              <img
+                src="/logo-mark.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-11 w-11 shrink-0 invert"
+                draggable={false}
+              />
+              <span className="inline-flex items-baseline">
+                <span className="font-display text-[32px] leading-none font-medium tracking-[-0.02em]">
+                  Skipper
+                </span>
+                <span className="font-display-italic text-[32px] leading-none font-normal tracking-[-0.02em] ml-1 text-brand-cyan">
+                  CleanCare
+                </span>
               </span>
             </Link>
             <p className="text-brand-ivory/70 text-[15px] leading-relaxed max-w-sm font-light">
               Premium cleaning and paper essentials for Ghanaian homes. Est. 2026, shipped from
               Accra across the country.
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-brand-ivory/45">
+              A Skipper Limited company
             </p>
             <div className="space-y-1.5 text-sm">
               <a
@@ -115,7 +127,7 @@ export function Footer() {
       <div className="border-t border-brand-ivory/10">
         <div className="container py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-brand-ivory/55 tracking-wider">
           <p className="uppercase">
-            &copy; {new Date().getFullYear()} {STORE_NAME} Ltd. · Accra, Ghana
+            &copy; {new Date().getFullYear()} {STORE_NAME} · A Skipper Limited company · Accra, Ghana
           </p>
           <p className="uppercase">Built with care in Accra</p>
         </div>

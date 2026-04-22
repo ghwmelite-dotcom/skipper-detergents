@@ -53,7 +53,7 @@ export default function Category() {
         description={
           category?.seo_description ??
           category?.description ??
-          `Shop ${catName} from Skipper Detergents.`
+          `Shop ${catName} from Skipper CleanCare.`
         }
       />
       <Breadcrumbs

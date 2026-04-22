@@ -28,12 +28,12 @@ describe('SEOHead', () => {
   it('sets title with store name suffix', async () => {
     await renderWithHelmet(<SEOHead title="Shop" description="All products" />);
     expect(document.title).toContain('Shop');
-    expect(document.title).toContain('Skipper Detergents');
+    expect(document.title).toContain('Skipper CleanCare');
   });
 
   it('does not duplicate the store name when already in the title', async () => {
-    await renderWithHelmet(<SEOHead title="Skipper Detergents — Home" />);
-    expect(document.title).toBe('Skipper Detergents — Home');
+    await renderWithHelmet(<SEOHead title="Skipper CleanCare — Home" />);
+    expect(document.title).toBe('Skipper CleanCare — Home');
   });
 
   it('sets og:title and og:description meta tags', async () => {

@@ -38,12 +38,16 @@ export function Sidebar(): JSX.Element {
       className="fixed left-0 top-0 bottom-0 w-[240px] flex flex-col bg-navy-700 text-white border-r border-navy-800"
       aria-label="Admin navigation"
     >
-      <div className="px-4 py-4 border-b border-navy-800/60 flex items-center gap-2">
-        <div className="h-7 w-7 rounded bg-cyan-500 flex items-center justify-center text-navy-900 text-xs font-bold">
-          S
-        </div>
+      <div className="px-4 py-4 border-b border-navy-800/60 flex items-center gap-2.5">
+        <img
+          src="/logo-mark.svg"
+          alt=""
+          aria-hidden="true"
+          className="h-8 w-8 shrink-0 bg-white rounded-full"
+          draggable={false}
+        />
         <div>
-          <div className="text-sm font-semibold leading-none">Skipper</div>
+          <div className="text-sm font-semibold leading-none">Skipper CleanCare</div>
           <div className="text-2xs text-ink-300 uppercase tracking-widest mt-0.5">
             Admin
           </div>

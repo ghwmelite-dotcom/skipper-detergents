@@ -43,7 +43,7 @@ export default function FAQ() {
     <>
       <SEOHead
         title="Frequently asked questions"
-        description="Answers to common questions about ordering, delivery, bulk pricing, payments, and returns at Skipper Detergents."
+        description="Answers to common questions about ordering, delivery, bulk pricing, payments, and returns at Skipper CleanCare."
       />
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'FAQ' }]} />
 
