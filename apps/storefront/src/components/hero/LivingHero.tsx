@@ -201,7 +201,7 @@ export default function LivingHero() {
                   className={cn(
                     'relative mx-auto',
                     compact
-                      ? 'w-full max-w-[320px] min-h-[380px]'
+                      ? 'w-full max-w-[280px] min-h-[280px]'
                       : 'w-full aspect-[4/5] max-w-[520px] min-h-[460px]',
                   )}
                 >

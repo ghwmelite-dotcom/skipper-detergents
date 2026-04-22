@@ -197,7 +197,7 @@ export function ProductIllustration({
       className={className}
       role="img"
       aria-label={product.name}
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
     >
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">

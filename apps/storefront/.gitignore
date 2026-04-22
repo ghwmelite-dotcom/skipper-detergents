@@ -1,2 +1,7 @@
 dist/
 .wrangler/
+*.tsbuildinfo
+tailwind.config.js
+tailwind.config.d.ts
+vite.config.js
+vite.config.d.ts

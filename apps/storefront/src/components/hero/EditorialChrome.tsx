@@ -15,7 +15,7 @@ export function EditorialChrome() {
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-[5]"
+      className="pointer-events-none absolute inset-0 z-[5] hidden md:block"
       aria-hidden="true"
     >
       {/* Inset trim box (1px navy line, 16px from edges) */}

@@ -62,11 +62,13 @@ export function ProductDiorama({ mouseX, mouseY, compact }: ProductDioramaProps)
 
   if (compact) {
     // Mobile — single product, no parallax, centered.
+    // Square aspect matches the SVG viewBox (400×400) so the full illustration
+    // renders — including the brand label text at the left edge.
     return (
-      <div className="relative mx-auto aspect-[4/5] w-full max-w-[280px]">
+      <div className="relative mx-auto aspect-square w-full max-w-[260px] px-2">
         <motion.div
-          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 20, rotate: -4 }}
-          animate={{ opacity: 1, y: 0, rotate: -3 }}
+          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 20, rotate: -2 }}
+          animate={{ opacity: 1, y: 0, rotate: -2 }}
           transition={{
             type: 'spring',
             stiffness: 220,
@@ -88,7 +90,7 @@ export function ProductDiorama({ mouseX, mouseY, compact }: ProductDioramaProps)
             damping: 24,
             delay: 2.4,
           }}
-          className="absolute -top-2 -right-2 rounded-full bg-brand-red px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase text-brand-ivory shadow-lg"
+          className="absolute top-0 right-0 rounded-full bg-brand-red px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase text-brand-ivory shadow-lg"
         >
           From GHS 45
         </motion.div>

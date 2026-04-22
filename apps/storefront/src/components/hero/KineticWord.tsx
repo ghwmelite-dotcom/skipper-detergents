@@ -5,6 +5,8 @@ import { cn } from '@/lib/cn';
 /**
  * KineticWord — cycles through a list of words on a fixed cadence.
  * Each transition blooms letter-by-letter so the word assembles into place.
+ * The container width animates smoothly between word changes so the trailing
+ * copy (e.g. "prices.") glides into position instead of sitting in dead space.
  *
  * Respects prefers-reduced-motion: in that case we just crossfade.
  */
@@ -16,11 +18,7 @@ interface KineticWordProps {
   className?: string;
 }
 
-export function KineticWord({
-  words,
-  intervalMs = 2800,
-  className,
-}: KineticWordProps) {
+export function KineticWord({ words, intervalMs = 2800, className }: KineticWordProps) {
   const reduced = useReducedMotion() ?? false;
   const [index, setIndex] = useState(0);
 
@@ -34,15 +32,19 @@ export function KineticWord({
   const current = words[index] ?? '';
 
   return (
-    <span
-      className={cn(
-        'relative inline-flex items-baseline align-baseline',
-        className,
-      )}
+    <motion.span
+      layout
+      transition={{
+        layout: reduced
+          ? { duration: 0 }
+          : { type: 'spring', stiffness: 220, damping: 28, mass: 0.6 },
+      }}
+      className={cn('relative inline-flex items-baseline align-baseline', className)}
     >
-      {/* Reserve width using the longest word so the rest of the line doesn't jump. */}
-      <span className="invisible" aria-hidden="true">
-        {words.reduce((a, b) => (a.length >= b.length ? a : b))}
+      {/* Invisible placeholder sized to the CURRENT word — its width drives
+          the layout animation, pushing the trailing text along. */}
+      <span className="invisible whitespace-nowrap" aria-hidden="true">
+        {current}
       </span>
       <span
         className="absolute inset-0 flex items-baseline"
@@ -100,10 +102,6 @@ export function KineticWord({
                   delay: reduced ? 0 : i * 0.03,
                 }}
                 className="inline-block will-change-transform"
-                style={{
-                  // Force red pulse: start slightly dim, bloom to full
-                  filter: 'brightness(1)',
-                }}
               >
                 {char}
               </motion.span>
@@ -111,6 +109,6 @@ export function KineticWord({
           </motion.span>
         </AnimatePresence>
       </span>
-    </span>
+    </motion.span>
   );
 }
