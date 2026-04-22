@@ -82,12 +82,16 @@ ordersRouter.patch('/:id/proof', async (c) => {
 export const trackRouter = new Hono<{ Bindings: Env }>();
 
 trackRouter.get('/:order_number', async (c) => {
-  const { email } = orderTrackingQuerySchema.parse(
+  const parsed = orderTrackingQuerySchema.parse(
     Object.fromEntries(new URL(c.req.url).searchParams),
   );
-  const order = await getOrderForCustomer(c.env.DB, c.req.param('order_number'), email);
+  const by = {
+    ...(parsed.email !== undefined && { email: parsed.email }),
+    ...(parsed.phone !== undefined && { phone: parsed.phone }),
+  };
+  const order = await getOrderForCustomer(c.env.DB, c.req.param('order_number'), by);
   if (!order) {
-    return c.json(fail('NOT_FOUND', 'Order not found or email mismatch'), 404);
+    return c.json(fail('NOT_FOUND', 'Order not found or details did not match'), 404);
   }
   return c.json(ok(order));
 });

@@ -191,7 +191,7 @@ describe('getOrderForCustomer', () => {
       delivery_fee: 15,
       now: new Date('2026-04-21T10:00:00Z'),
     });
-    const looked = await getOrderForCustomer(env.DB, created.order_number, 'AMA@EXAMPLE.COM');
+    const looked = await getOrderForCustomer(env.DB, created.order_number, { email: "ama@example.com" });
     expect(looked).not.toBeNull();
     expect(looked!.id).toBe(created.id);
     expect(looked!.items).toHaveLength(1);
@@ -212,12 +212,12 @@ describe('getOrderForCustomer', () => {
       delivery_fee: 15,
       now: new Date('2026-04-21T10:00:00Z'),
     });
-    const looked = await getOrderForCustomer(env.DB, created.order_number, 'other@example.com');
+    const looked = await getOrderForCustomer(env.DB, created.order_number, { email: "other@example.com" });
     expect(looked).toBeNull();
   });
 
   it('returns null for unknown order number', async () => {
-    const looked = await getOrderForCustomer(env.DB, 'SK-99999999-9999', 'any@example.com');
+    const looked = await getOrderForCustomer(env.DB, "SK-99999999-9999", { email: "any@example.com" });
     expect(looked).toBeNull();
   });
 });

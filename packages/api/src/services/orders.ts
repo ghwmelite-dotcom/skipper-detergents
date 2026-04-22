@@ -192,16 +192,41 @@ export async function createOrder(db: D1Database, input: CreateOrderInput): Prom
   return order;
 }
 
+/**
+ * Reduce a phone string to just its digits so `"+233 244 123 456"` and
+ * `"0244123456"` compare cleanly. Matches on the last 9 digits so Ghana
+ * numbers with/without the `+233` country prefix both resolve.
+ */
+function phoneDigits(value: string): string {
+  return value.replace(/\D+/g, '').slice(-9);
+}
+
 export async function getOrderForCustomer(
   db: D1Database,
   orderNumber: string,
-  email: string,
+  by: { email?: string; phone?: string },
 ): Promise<OrderWithItems | null> {
-  const order = await first<Order>(
-    db,
-    `SELECT * FROM orders WHERE order_number = ? AND LOWER(delivery_email) = LOWER(?)`,
-    [orderNumber, email],
-  );
+  let order: Order | null = null;
+  if (by.email) {
+    order = await first<Order>(
+      db,
+      `SELECT * FROM orders WHERE order_number = ? AND LOWER(delivery_email) = LOWER(?)`,
+      [orderNumber, by.email],
+    );
+  } else if (by.phone) {
+    const digits = phoneDigits(by.phone);
+    if (digits.length < 7) return null;
+    // Load the order by number first, then match phone digits server-side —
+    // simpler and safer than trying to do the digit-normalization in SQLite.
+    const candidate = await first<Order>(
+      db,
+      `SELECT * FROM orders WHERE order_number = ?`,
+      [orderNumber],
+    );
+    if (candidate && phoneDigits(candidate.delivery_phone) === digits) {
+      order = candidate;
+    }
+  }
   if (!order) return null;
   const items = await all<OrderItem>(
     db,

@@ -26,15 +26,33 @@ function getStatusIndex(status: string): number {
   return idx >= 0 ? idx : 0;
 }
 
+function looksLikeEmail(s: string): boolean {
+  return /@/.test(s);
+}
+
+function looksLikePhone(s: string): boolean {
+  // At least 7 digits after stripping everything that isn't a number.
+  return s.replace(/\D+/g, '').length >= 7;
+}
+
 export default function OrderTracking() {
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const [searchParams] = useSearchParams();
   const reduced = useReducedMotion();
 
   const savedEmail = localStorage.getItem('skipper-last-email') ?? '';
-  const [email, setEmail] = useState(searchParams.get('email') ?? savedEmail);
-  const [submittedEmail, setSubmittedEmail] = useState(searchParams.get('email') ?? savedEmail);
+  const initialLookup =
+    searchParams.get('email') ?? searchParams.get('phone') ?? savedEmail;
+  const [lookup, setLookup] = useState(initialLookup);
+  const [submittedLookup, setSubmittedLookup] = useState(initialLookup);
   const [formError, setFormError] = useState('');
+
+  const trackingQuery = (() => {
+    const value = submittedLookup.trim();
+    if (!value) return '';
+    if (looksLikeEmail(value)) return `email=${encodeURIComponent(value)}`;
+    return `phone=${encodeURIComponent(value)}`;
+  })();
 
   const {
     data: order,
@@ -42,23 +60,26 @@ export default function OrderTracking() {
     isError,
     error,
   } = useQuery({
-    queryKey: ['orders', 'track', orderNumber, submittedEmail],
-    enabled: Boolean(orderNumber) && Boolean(submittedEmail),
+    queryKey: ['orders', 'track', orderNumber, submittedLookup],
+    enabled: Boolean(orderNumber) && Boolean(trackingQuery),
     queryFn: () =>
-      api.get<OrderWithItems>(
-        `/api/track/${orderNumber}?email=${encodeURIComponent(submittedEmail)}`,
-      ),
+      api.get<OrderWithItems>(`/api/track/${orderNumber}?${trackingQuery}`),
     retry: false,
   });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim() || !email.includes('@')) {
-      setFormError('Please enter a valid email address.');
+    const value = lookup.trim();
+    if (!value) {
+      setFormError('Enter the email or phone you used at checkout.');
+      return;
+    }
+    if (!looksLikeEmail(value) && !looksLikePhone(value)) {
+      setFormError('That doesn’t look like an email or phone number.');
       return;
     }
     setFormError('');
-    setSubmittedEmail(email.trim());
+    setSubmittedLookup(value);
   }
 
   const currentStatusIdx = order ? getStatusIndex(order.status) : -1;
@@ -86,16 +107,16 @@ export default function OrderTracking() {
           )}
         </div>
 
-        {/* Email form */}
-        {!submittedEmail || (isError && !order) ? (
+        {/* Lookup form */}
+        {!submittedLookup || (isError && !order) ? (
           <form
             onSubmit={handleSubmit}
             className="rounded-lg bg-brand-sand/50 p-6 md:p-8 space-y-5 max-w-lg"
           >
             <div>
               <p className="font-display text-xl font-medium text-brand-navy leading-tight">
-                Enter the <span className="font-display-italic">email</span> you used at
-                checkout.
+                Enter the <span className="font-display-italic">email or phone</span> you
+                used at checkout.
               </p>
               <p className="mt-2 text-sm text-brand-navy/60">
                 We&apos;ll show you the current status of your order.
@@ -103,28 +124,29 @@ export default function OrderTracking() {
             </div>
             <div className="space-y-1.5">
               <label
-                htmlFor="track-email"
+                htmlFor="track-lookup"
                 className="editorial-label text-brand-navy/60"
               >
-                Email address
+                Email or phone
               </label>
               <Input
-                id="track-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="kwame@example.com"
+                id="track-lookup"
+                type="text"
+                inputMode="text"
+                value={lookup}
+                onChange={(e) => setLookup(e.target.value)}
+                placeholder="kwame@example.com  ·  0244 123 456"
                 autoComplete="email"
                 required
               />
               {formError && (
                 <p className="text-sm text-brand-red">{formError}</p>
               )}
-              {isError && submittedEmail && (
+              {isError && submittedLookup && (
                 <p className="text-sm text-brand-red">
                   {error instanceof ApiError
                     ? error.message
-                    : 'Order not found. Check your email address.'}
+                    : 'Order not found. Check your details.'}
                 </p>
               )}
             </div>
@@ -332,10 +354,10 @@ export default function OrderTracking() {
             </div>
 
             <button
-              onClick={() => setSubmittedEmail('')}
+              onClick={() => setSubmittedLookup('')}
               className="text-sm text-brand-navy/55 hover:text-brand-navy transition-colors underline"
             >
-              Use a different email address
+              Use a different email or phone
             </button>
           </motion.div>
         )}

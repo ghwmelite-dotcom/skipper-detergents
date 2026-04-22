@@ -152,12 +152,19 @@ export const productSearchQuerySchema = z.object({
 });
 export type ProductSearchQuery = z.infer<typeof productSearchQuerySchema>;
 
-export const orderTrackingQuerySchema = z.object({
-  email: z
-    .string()
-    .email()
-    .transform((s) => s.toLowerCase()),
-});
+export const orderTrackingQuerySchema = z
+  .object({
+    email: z
+      .string()
+      .email()
+      .transform((s) => s.toLowerCase())
+      .optional(),
+    phone: z.string().min(7).max(20).optional(),
+  })
+  .refine((v) => Boolean(v.email) || Boolean(v.phone), {
+    message: 'Provide either email or phone',
+    path: ['email'],
+  });
 export type OrderTrackingQuery = z.infer<typeof orderTrackingQuerySchema>;
 
 export const customerStatusSchema = z.enum(CUSTOMER_STATUSES);
