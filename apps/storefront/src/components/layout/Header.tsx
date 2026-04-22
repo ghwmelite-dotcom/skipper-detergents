@@ -44,9 +44,7 @@ export function Header() {
               to={link.to}
               className={({ isActive }) =>
                 `text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`
               }
             >
@@ -56,12 +54,7 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Search"
-            className="hidden sm:inline-flex"
-          >
+          <Button variant="ghost" size="icon" aria-label="Search" className="hidden sm:inline-flex">
             <Search className="h-5 w-5" aria-hidden="true" />
           </Button>
 

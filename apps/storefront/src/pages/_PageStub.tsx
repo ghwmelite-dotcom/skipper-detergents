@@ -12,7 +12,11 @@ export interface PageStubProps {
 export function PageStub({ title, description, breadcrumbs, noindex, children }: PageStubProps) {
   return (
     <>
-      <SEOHead title={title} {...(description !== undefined && { description })} {...(noindex !== undefined && { noindex })} />
+      <SEOHead
+        title={title}
+        {...(description !== undefined && { description })}
+        {...(noindex !== undefined && { noindex })}
+      />
       {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
       <div className="container py-12">
         <h1 className="text-3xl md:text-4xl font-semibold text-primary">{title}</h1>
