@@ -165,7 +165,10 @@ export function Header() {
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-7 ml-10" aria-label="Primary">
+        <nav
+          className="hidden md:flex items-center justify-center gap-7 flex-1"
+          aria-label="Primary"
+        >
           {NAV_LINKS.map((link) => {
             const isActive =
               link.to === '/'
