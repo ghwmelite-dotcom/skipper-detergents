@@ -21,5 +21,11 @@ export type DeliveryMethod = (typeof DELIVERY_METHODS)[number];
 
 export const CURRENCY = 'GHS' as const;
 
-export const ADMIN_ROLES = ['super_admin', 'admin'] as const;
+export const ADMIN_ROLES = ['super_admin', 'admin', 'store_manager'] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
+
+export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
+  super_admin: 'Super admin',
+  admin: 'Admin',
+  store_manager: 'Store manager',
+};

@@ -6,8 +6,10 @@ import {
   FolderTree,
   Activity,
   Settings,
+  Users,
   LogOut,
 } from 'lucide-react';
+import { ADMIN_ROLE_LABELS } from '@skipper/shared';
 import { cn } from '@/lib/cn';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -16,12 +18,14 @@ const navItems: Array<{
   label: string;
   icon: typeof LayoutDashboard;
   end?: boolean;
+  superAdminOnly?: boolean;
 }> = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/products', label: 'Products', icon: Package },
   { to: '/orders', label: 'Orders', icon: ShoppingCart },
   { to: '/categories', label: 'Categories', icon: FolderTree },
   { to: '/activity', label: 'Activity', icon: Activity },
+  { to: '/team', label: 'Team', icon: Users, superAdminOnly: true },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -45,7 +49,9 @@ export function Sidebar(): JSX.Element {
       </div>
 
       <nav className="flex-1 px-2 py-3 space-y-0.5">
-        {navItems.map(({ to, label, icon: Icon, end }) => (
+        {navItems
+          .filter((item) => !item.superAdminOnly || user?.role === 'super_admin')
+          .map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
@@ -70,7 +76,7 @@ export function Sidebar(): JSX.Element {
           <div className="mb-2">
             <div className="text-xs text-white font-medium truncate">{user.name}</div>
             <div className="text-2xs text-ink-300 uppercase tracking-wider">
-              {user.role === 'super_admin' ? 'Super admin' : 'Admin'}
+              {ADMIN_ROLE_LABELS[user.role] ?? user.role}
             </div>
           </div>
         )}

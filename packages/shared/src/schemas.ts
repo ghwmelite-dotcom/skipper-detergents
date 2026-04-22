@@ -152,6 +152,31 @@ export const orderTrackingQuerySchema = z.object({
 });
 export type OrderTrackingQuery = z.infer<typeof orderTrackingQuerySchema>;
 
+export const adminUserCreateSchema = z.object({
+  email: z.string().email().max(200).transform((s) => s.toLowerCase()),
+  name: z.string().min(1).max(120),
+  role: adminRoleSchema,
+  password: z.string().min(12).max(200),
+});
+export type AdminUserCreateInput = z.infer<typeof adminUserCreateSchema>;
+
+export const adminUserUpdateSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  role: adminRoleSchema.optional(),
+  is_active: z.boolean().optional(),
+});
+export type AdminUserUpdateInput = z.infer<typeof adminUserUpdateSchema>;
+
+export const adminUserResetPasswordSchema = z.object({
+  password: z.string().min(12).max(200),
+});
+
+export const adminChangePasswordSchema = z.object({
+  current_password: z.string().min(1).max(200),
+  new_password: z.string().min(12).max(200),
+});
+export type AdminChangePasswordInput = z.infer<typeof adminChangePasswordSchema>;
+
 export const uploadProofUrlSchema = z.object({
   proof_url: z
     .string()

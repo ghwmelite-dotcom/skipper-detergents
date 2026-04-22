@@ -10,6 +10,7 @@ import { OrderDetailPage } from '@/pages/OrderDetailPage';
 import { CategoriesPage } from '@/pages/CategoriesPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ActivityPage } from '@/pages/ActivityPage';
+import { TeamPage } from '@/pages/TeamPage';
 
 export default function App(): JSX.Element {
   return (
@@ -31,6 +32,7 @@ export default function App(): JSX.Element {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/team" element={<TeamPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
