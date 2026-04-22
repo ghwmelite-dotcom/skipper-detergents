@@ -160,9 +160,12 @@ CREATE TABLE IF NOT EXISTS customers (
   gps_address   TEXT,
   total_orders  INTEGER NOT NULL DEFAULT 0,
   total_spent   REAL NOT NULL DEFAULT 0,
+  status        TEXT NOT NULL DEFAULT 'regular',
+  notes         TEXT,
   created_at    TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE INDEX IF NOT EXISTS idx_customers_status ON customers(status);
 
 CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
 

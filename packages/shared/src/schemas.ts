@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { DELIVERY_METHODS, PAYMENT_METHODS, ORDER_STATUSES, ADMIN_ROLES } from './constants';
+import {
+  DELIVERY_METHODS,
+  PAYMENT_METHODS,
+  ORDER_STATUSES,
+  ADMIN_ROLES,
+  CUSTOMER_STATUSES,
+} from './constants';
 
 export const cartItemSchema = z.object({
   product_id: z.string().min(1),
@@ -151,6 +157,14 @@ export const orderTrackingQuerySchema = z.object({
     .transform((s) => s.toLowerCase()),
 });
 export type OrderTrackingQuery = z.infer<typeof orderTrackingQuerySchema>;
+
+export const customerStatusSchema = z.enum(CUSTOMER_STATUSES);
+
+export const customerUpdateSchema = z.object({
+  status: customerStatusSchema.optional(),
+  notes: z.string().max(2000).optional(),
+});
+export type CustomerUpdateInput = z.infer<typeof customerUpdateSchema>;
 
 export const adminUserCreateSchema = z.object({
   email: z.string().email().max(200).transform((s) => s.toLowerCase()),

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Copy, ExternalLink } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Input, Textarea } from '@/components/ui/Input';
@@ -7,6 +8,9 @@ import { Label } from '@/components/ui/Label';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { api } from '@/lib/api';
+import { API_BASE } from '@/lib/env';
+
+const PAYSTACK_WEBHOOK_URL = `${API_BASE}/webhooks/paystack`;
 
 interface SettingsResponse {
   settings: Record<string, string>;
@@ -90,6 +94,15 @@ export function SettingsPage(): JSX.Element {
     setDirty(true);
   };
 
+  const copyWebhook = async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(PAYSTACK_WEBHOOK_URL);
+      toast.push('Webhook URL copied', 'success');
+    } catch {
+      toast.push('Copy failed — select manually', 'warning');
+    }
+  };
+
   return (
     <div>
       <PageHeader
@@ -105,6 +118,40 @@ export function SettingsPage(): JSX.Element {
           </Button>
         }
       />
+
+      <Card className="mb-5 border-cyan-500/40 bg-cyan-50/30">
+        <CardHeader
+          title="Paystack webhook"
+          subtitle="Paste this into Paystack → Settings → API Keys & Webhooks. We verify each request against your secret key."
+        />
+        <CardBody className="space-y-3">
+          <div>
+            <Label>Webhook URL</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                value={PAYSTACK_WEBHOOK_URL}
+                className="font-mono text-xs"
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <Button type="button" variant="secondary" onClick={copyWebhook}>
+                <Copy className="h-3.5 w-3.5" /> Copy
+              </Button>
+              <a
+                href="https://dashboard.paystack.com/#/settings/developer"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-9 items-center gap-1 rounded border border-ink-200 bg-white px-3 text-sm font-medium text-ink-800 hover:bg-ink-50"
+              >
+                Open Paystack <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+            <p className="mt-1 text-xs text-ink-500">
+              Fill in your Paystack secret + webhook secret below so signatures verify.
+            </p>
+          </div>
+        </CardBody>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {SETTING_GROUPS.map((g) => (

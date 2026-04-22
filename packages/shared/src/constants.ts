@@ -21,6 +21,16 @@ export type DeliveryMethod = (typeof DELIVERY_METHODS)[number];
 
 export const CURRENCY = 'GHS' as const;
 
+export const CUSTOMER_STATUSES = ['regular', 'bulk', 'vip', 'blocked'] as const;
+export type CustomerStatus = (typeof CUSTOMER_STATUSES)[number];
+
+export const CUSTOMER_STATUS_LABELS: Record<CustomerStatus, string> = {
+  regular: 'Regular',
+  bulk: 'Bulk buyer',
+  vip: 'VIP',
+  blocked: 'Blocked',
+};
+
 export const ADMIN_ROLES = ['super_admin', 'admin', 'store_manager'] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
 

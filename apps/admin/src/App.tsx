@@ -11,6 +11,8 @@ import { CategoriesPage } from '@/pages/CategoriesPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ActivityPage } from '@/pages/ActivityPage';
 import { TeamPage } from '@/pages/TeamPage';
+import { CustomersListPage } from '@/pages/CustomersListPage';
+import { CustomerDetailPage } from '@/pages/CustomerDetailPage';
 
 export default function App(): JSX.Element {
   return (
@@ -33,6 +35,8 @@ export default function App(): JSX.Element {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/team" element={<TeamPage />} />
+        <Route path="/customers" element={<CustomersListPage />} />
+        <Route path="/customers/:email" element={<CustomerDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

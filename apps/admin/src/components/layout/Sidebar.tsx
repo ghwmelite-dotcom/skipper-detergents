@@ -7,6 +7,7 @@ import {
   Activity,
   Settings,
   Users,
+  UserCircle,
   LogOut,
 } from 'lucide-react';
 import { ADMIN_ROLE_LABELS } from '@skipper/shared';
@@ -23,6 +24,7 @@ const navItems: Array<{
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/products', label: 'Products', icon: Package },
   { to: '/orders', label: 'Orders', icon: ShoppingCart },
+  { to: '/customers', label: 'Customers', icon: UserCircle },
   { to: '/categories', label: 'Categories', icon: FolderTree },
   { to: '/activity', label: 'Activity', icon: Activity },
   { to: '/team', label: 'Team', icon: Users, superAdminOnly: true },
