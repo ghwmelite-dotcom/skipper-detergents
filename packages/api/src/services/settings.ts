@@ -1,4 +1,4 @@
-import { all } from '../utils/db';
+import { all, first } from '../utils/db';
 
 export const PUBLIC_SETTING_KEYS = [
   'store_name',
@@ -30,4 +30,14 @@ export async function getPublicSettings(
     map[row.key as PublicSettingKey] = row.value;
   }
   return map;
+}
+
+/** Read a single store setting by key. Returns null if unset. */
+export async function getSetting(db: D1Database, key: string): Promise<string | null> {
+  const row = await first<{ value: string }>(
+    db,
+    `SELECT value FROM store_settings WHERE key = ?`,
+    [key],
+  );
+  return row?.value ?? null;
 }

@@ -12,4 +12,8 @@ export interface Env {
   PAYSTACK_SECRET_KEY?: string;
   PAYSTACK_WEBHOOK_SECRET?: string;
   R2_PROOFS_PUBLIC_BASE?: string;
+  RESEND_API_KEY?: string;
+  MAIL_FROM?: string;
+  STOREFRONT_URL?: string;
+  ADMIN_URL?: string;
 }

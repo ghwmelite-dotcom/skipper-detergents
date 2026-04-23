@@ -5,6 +5,7 @@ import { ok, fail } from '../utils/response';
 import { validateAndPriceCart } from '../services/pricing';
 import { createOrder, getOrderForCustomer, updateOrderProof } from '../services/orders';
 import { getPublicSettings } from '../services/settings';
+import { sendOrderCreatedEmails } from '../services/orderEmails';
 
 export const ordersRouter = new Hono<{ Bindings: Env }>();
 
@@ -51,6 +52,10 @@ ordersRouter.post('/', async (c) => {
     ...(ua !== undefined && { user_agent: ua }),
   };
   const order = await createOrder(c.env.DB, orderInput);
+
+  // Notification emails (customer confirmation + admin alert) run after the
+  // response so a slow Resend call can't block the order acknowledgement.
+  c.executionCtx.waitUntil(sendOrderCreatedEmails(c.env, order));
 
   if (body.payment_method === 'paystack') {
     return c.json(ok({ order, next: { action: 'paystack_init' as const } }), 201);

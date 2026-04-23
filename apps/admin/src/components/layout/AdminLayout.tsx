@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
+import { useNewOrderAlerts } from '@/hooks/useNewOrderAlerts';
 
 export function AdminLayout({
   title,
@@ -12,6 +13,7 @@ export function AdminLayout({
   actions?: ReactNode;
   children?: ReactNode;
 }): JSX.Element {
+  useNewOrderAlerts();
   return (
     <div className="min-h-screen flex bg-ink-50 text-ink-900">
       <Sidebar />
