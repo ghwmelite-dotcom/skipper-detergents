@@ -6,6 +6,8 @@ import { validateAndPriceCart } from '../services/pricing';
 import { createOrder, getOrderForCustomer, updateOrderProof } from '../services/orders';
 import { getPublicSettings } from '../services/settings';
 import { sendOrderCreatedEmails } from '../services/orderEmails';
+import { createAdminNotification } from '../services/notifications';
+import { first } from '../utils/db';
 
 export const ordersRouter = new Hono<{ Bindings: Env }>();
 
@@ -53,6 +55,20 @@ ordersRouter.post('/', async (c) => {
   };
   const order = await createOrder(c.env.DB, orderInput);
 
+  await createAdminNotification(c.env.DB, {
+    type: 'order.created',
+    title: `New order · ${order.order_number}`,
+    body: `${order.delivery_name} · ${order.payment_method === 'paystack' ? 'Paystack' : 'Bank / MoMo transfer'}`,
+    entity_type: 'order',
+    entity_id: order.id,
+    metadata: {
+      order_number: order.order_number,
+      customer_name: order.delivery_name,
+      total_amount: order.total_amount,
+      payment_method: order.payment_method,
+    },
+  });
+
   // Notification emails (customer confirmation + admin alert) run after the
   // response so a slow Resend call can't block the order acknowledgement.
   c.executionCtx.waitUntil(sendOrderCreatedEmails(c.env, order));
@@ -82,6 +98,22 @@ ordersRouter.patch('/:id/proof', async (c) => {
   const updated = await updateOrderProof(c.env.DB, id, body.proof_url);
   if (!updated) {
     return c.json(fail('NOT_FOUND', 'Order not found'), 404);
+  }
+
+  const meta = await first<{ order_number: string; delivery_name: string }>(
+    c.env.DB,
+    `SELECT order_number, delivery_name FROM orders WHERE id = ?`,
+    [id],
+  );
+  if (meta) {
+    await createAdminNotification(c.env.DB, {
+      type: 'order.payment_proof_uploaded',
+      title: `Payment proof uploaded · ${meta.order_number}`,
+      body: `${meta.delivery_name} uploaded proof — review and confirm.`,
+      entity_type: 'order',
+      entity_id: id,
+      metadata: { order_number: meta.order_number },
+    });
   }
   return c.json(ok({ updated: true }));
 });

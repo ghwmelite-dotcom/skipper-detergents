@@ -270,6 +270,26 @@ CREATE INDEX IF NOT EXISTS idx_activity_log_action ON activity_log(action);
 CREATE INDEX IF NOT EXISTS idx_activity_log_created ON activity_log(created_at);
 
 -- ------------------------------------------------------------
+-- ADMIN NOTIFICATIONS (bell feed)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admin_notifications (
+  id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
+  type        TEXT NOT NULL,
+  entity_type TEXT,
+  entity_id   TEXT,
+  title       TEXT NOT NULL,
+  body        TEXT,
+  metadata    TEXT,
+  read_at     TEXT,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_created
+  ON admin_notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_unread
+  ON admin_notifications(read_at)
+  WHERE read_at IS NULL;
+
+-- ------------------------------------------------------------
 -- STORE SETTINGS (key/value)
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS store_settings (

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useAuthStore } from '@/stores/authStore';
+import { NotificationBell } from './NotificationBell';
 
 export function TopBar({
   title,
@@ -14,6 +15,7 @@ export function TopBar({
       <h1 className="text-base font-semibold text-ink-900">{title ?? ''}</h1>
       <div className="flex items-center gap-3">
         {actions}
+        <NotificationBell />
         {user && (
           <div className="flex items-center gap-2 rounded-full border border-ink-200 bg-ink-50 pl-3 pr-1 py-0.5">
             <span className="text-xs text-ink-700">{user.email}</span>

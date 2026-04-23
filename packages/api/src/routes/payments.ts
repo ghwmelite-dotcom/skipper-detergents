@@ -8,6 +8,7 @@ import {
   markOrderPaidFromWebhook,
   verifyPaystackSignature,
 } from '../services/paystack';
+import { createAdminNotification } from '../services/notifications';
 
 const paystackInitBodySchema = z.object({ order_id: z.string().min(1) });
 
@@ -91,5 +92,24 @@ webhooksRouter.post('/paystack', async (c) => {
   }
 
   const result = await markOrderPaidFromWebhook(c.env.DB, ref, amount);
+
+  if (result.action === 'marked_paid') {
+    const order = await first<{ id: string; order_number: string; total_amount: number; delivery_name: string }>(
+      c.env.DB,
+      `SELECT id, order_number, total_amount, delivery_name FROM orders WHERE paystack_reference = ?`,
+      [ref],
+    );
+    if (order) {
+      await createAdminNotification(c.env.DB, {
+        type: 'order.paystack_paid',
+        title: `Paystack payment received · ${order.order_number}`,
+        body: `${order.delivery_name} paid in full via Paystack.`,
+        entity_type: 'order',
+        entity_id: order.id,
+        metadata: { order_number: order.order_number, total_amount: order.total_amount },
+      });
+    }
+  }
+
   return c.json(ok({ received: true, handled: true, action: result.action }));
 });

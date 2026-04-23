@@ -4,7 +4,20 @@ import type {
   PaymentStatus,
   DeliveryMethod,
   AdminRole,
+  AdminNotificationType,
 } from './constants';
+
+export interface AdminNotification {
+  id: string;
+  type: AdminNotificationType;
+  entity_type: string | null;
+  entity_id: string | null;
+  title: string;
+  body: string | null;
+  metadata: string | null;
+  read_at: string | null;
+  created_at: string;
+}
 
 export interface Category {
   id: string;

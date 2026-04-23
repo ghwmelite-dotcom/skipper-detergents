@@ -20,6 +20,7 @@ import { adminActivityRouter } from './routes/admin/activity';
 import { adminSettingsRouter } from './routes/admin/settings';
 import { adminUsersRouter } from './routes/admin/users';
 import { adminCustomersRouter } from './routes/admin/customers';
+import { adminNotificationsRouter } from './routes/admin/notifications';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -54,6 +55,7 @@ app.route('/api/admin/activity', adminActivityRouter);
 app.route('/api/admin/settings', adminSettingsRouter);
 app.route('/api/admin/users', adminUsersRouter);
 app.route('/api/admin/customers', adminCustomersRouter);
+app.route('/api/admin/notifications', adminNotificationsRouter);
 
 // R2 image serving for product images (public cache, 1 day)
 app.get('/r2/products/*', async (c) => {

@@ -31,6 +31,14 @@ export const CUSTOMER_STATUS_LABELS: Record<CustomerStatus, string> = {
   blocked: 'Blocked',
 };
 
+export const ADMIN_NOTIFICATION_TYPES = [
+  'order.created',
+  'order.payment_proof_uploaded',
+  'order.paystack_paid',
+  'order.manual_payment_confirmed',
+] as const;
+export type AdminNotificationType = (typeof ADMIN_NOTIFICATION_TYPES)[number];
+
 export const ADMIN_ROLES = ['super_admin', 'admin', 'store_manager'] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
 
