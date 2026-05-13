@@ -121,7 +121,7 @@ function DetailsTab({ productId, isNew }: { productId: string | null; isNew: boo
       stock_quantity: 0,
       low_stock_threshold: 10,
       is_active: true,
-      is_featured: false,
+      is_featured: true,
       is_bulk_available: false,
       bulk_minimum_qty: 10,
       tags: '',

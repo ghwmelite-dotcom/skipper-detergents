@@ -33,6 +33,12 @@ export default function Home() {
   const { data: allProducts } = useProducts({ per_page: 48, sort: 'popular' });
   const allProductList = allProducts?.data ?? [];
 
+  // New arrivals: latest active products regardless of featured flag.
+  // Why: admin-added products that aren't toggled featured still need a home
+  // on the landing page so they don't feel invisible.
+  const { data: newestProducts } = useProducts({ per_page: 8, sort: 'newest' });
+  const newArrivals = newestProducts?.data ?? [];
+
   const leftProducts = useMemo(
     () =>
       allProductList.filter((p) => LEFT_CATEGORIES.includes(p.category_id)).slice(0, 4),
@@ -101,6 +107,9 @@ export default function Home() {
 
       {/* HERO */}
       <LivingHero />
+
+      {/* New arrivals — latest products regardless of featured */}
+      {newArrivals.length > 0 && <NewArrivalsStrip products={newArrivals} />}
 
       {/* ========================================================= */}
       {/* DESKTOP — The Spread (original editorial layout)           */}
@@ -655,6 +664,84 @@ function MarqueeSection({ products }: { products: Product[] }) {
 /* ------------------------------------------------------------------ */
 /* ACCESSORIES STRIP                                                   */
 /* ------------------------------------------------------------------ */
+
+function NewArrivalsStrip({ products }: { products: Product[] }) {
+  const reduced = useReducedMotion();
+
+  return (
+    <section className="bg-brand-ivory noise-texture py-10 md:py-16 border-b border-brand-navy/10">
+      <div className="container">
+        <div className="flex items-end justify-between gap-6 mb-5 md:mb-8">
+          <Reveal className="max-w-2xl">
+            <span className="editorial-label text-brand-cyan-deep">
+              <span className="accent-line mr-3" aria-hidden="true" />
+              Just arrived
+            </span>
+            <h2 className="mt-3 md:mt-4 font-display text-display-sm md:text-display-md text-brand-navy leading-[1.05]">
+              Fresh on the{' '}
+              <span className="font-display-italic text-brand-cyan-deep">shelf</span>
+            </h2>
+          </Reveal>
+          <Link
+            to="/shop?sort=newest"
+            className="hidden md:inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy hover:text-brand-cyan-deep transition-colors whitespace-nowrap"
+          >
+            View all
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </div>
+      <div
+        className="container overflow-x-auto scroll-touch scrollbar-none -mx-5 md:-mx-8 px-5 md:px-8"
+        style={{ scrollbarWidth: 'thin' }}
+      >
+        <div className="flex gap-4 md:gap-5 pb-3 w-max">
+          {products.map((p, i) => (
+            <motion.div
+              key={p.id}
+              initial={reduced ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{
+                duration: 0.5,
+                delay: Math.min(i * 0.05, 0.2),
+                ease: [0.2, 0.8, 0.2, 1],
+              }}
+              className="w-[180px] md:w-[240px] flex-none snap-start"
+            >
+              <Link to={`/product/${p.slug}`} className="block group">
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-sand/40 shadow-sm group-hover:shadow-editorial transition-shadow duration-300">
+                  <ProductIllustration product={p} className="h-full w-full" />
+                  <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy text-brand-ivory text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5">
+                    New
+                  </span>
+                </div>
+                <div className="pt-3 space-y-1">
+                  <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>
+                  <p className="font-display text-[15px] md:text-[16px] leading-tight text-brand-navy font-medium line-clamp-2">
+                    {p.name}
+                  </p>
+                  <p className="text-[13px] font-semibold text-brand-navy tabular-nums">
+                    {formatCurrency(p.unit_price)}
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+      <div className="container mt-4 md:hidden">
+        <Link
+          to="/shop?sort=newest"
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-navy"
+        >
+          View all
+          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
+  );
+}
 
 function AccessoriesStrip({ products }: { products: Product[] }) {
   const reduced = useReducedMotion();

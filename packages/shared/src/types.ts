@@ -98,6 +98,8 @@ export interface Product {
   total_sold: number;
   created_at: string;
   updated_at: string;
+  /** Primary image URL, joined from product_images on list/featured endpoints. */
+  image_url?: string | null;
 }
 
 export interface ProductWithRelations extends Product {

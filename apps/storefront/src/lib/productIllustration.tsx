@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import type { Product } from '@skipper/shared';
 
 /**
@@ -173,7 +173,7 @@ const SHAPES: Record<string, ReactElement> = {
 };
 
 export interface ProductIllustrationProps {
-  product: Pick<Product, 'category_id' | 'name' | 'brand'>;
+  product: Pick<Product, 'category_id' | 'name' | 'brand' | 'image_url'>;
   className?: string;
   /** Hide the brand label top-left (useful for very small thumbnails). */
   hideLabel?: boolean;
@@ -184,10 +184,24 @@ export function ProductIllustration({
   className,
   hideLabel = false,
 }: ProductIllustrationProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const imgUrl = product.image_url;
+  if (imgUrl && !imgFailed) {
+    return (
+      <img
+        src={imgUrl}
+        alt={product.name}
+        loading="lazy"
+        decoding="async"
+        className={className}
+        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+        onError={() => setImgFailed(true)}
+      />
+    );
+  }
   const palette = PALETTES[product.category_id] ?? PALETTES.default!;
   const shape = SHAPES[product.category_id] ?? SHAPES.default!;
   const brand = product.brand ?? 'Skipper';
-  // IDs need to be unique per category so stacked SVGs don't collide.
   const gradId = `bg-${product.category_id ?? 'default'}`;
 
   return (

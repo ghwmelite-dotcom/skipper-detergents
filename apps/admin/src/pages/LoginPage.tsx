@@ -47,7 +47,7 @@ export function LoginPage(): JSX.Element {
         email: values.email,
         password: values.password,
       });
-      login(data.token, data.user);
+      login(data.token, data.user, values.remember ?? true);
       navigate('/', { replace: true });
     } catch (e) {
       if (e instanceof ApiError) {

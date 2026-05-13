@@ -53,7 +53,11 @@ export async function listProducts(
   const offset = (query.page - 1) * query.per_page;
 
   const listSql = `
-    SELECT p.*
+    SELECT p.*,
+      (SELECT url FROM product_images
+        WHERE product_id = p.id
+        ORDER BY is_primary DESC, sort_order ASC
+        LIMIT 1) AS image_url
     FROM products p
     JOIN categories c ON c.id = p.category_id
     WHERE ${where}
@@ -78,9 +82,14 @@ export async function listProducts(
 export async function getFeaturedProducts(db: D1Database, limit: number): Promise<Product[]> {
   return all<Product>(
     db,
-    `SELECT * FROM products
-     WHERE is_active = 1 AND is_featured = 1
-     ORDER BY created_at DESC
+    `SELECT p.*,
+       (SELECT url FROM product_images
+         WHERE product_id = p.id
+         ORDER BY is_primary DESC, sort_order ASC
+         LIMIT 1) AS image_url
+     FROM products p
+     WHERE p.is_active = 1 AND p.is_featured = 1
+     ORDER BY p.created_at DESC
      LIMIT ?`,
     [limit],
   );
