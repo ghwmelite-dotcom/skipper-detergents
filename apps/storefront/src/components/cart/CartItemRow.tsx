@@ -5,7 +5,7 @@ import { formatCurrency } from '@skipper/shared';
 import type { CartItem } from '@/stores/cartStore';
 import { useCart } from '@/hooks/useCart';
 import { QuantityInput } from '@/components/product/QuantityInput';
-import { ProductIllustration, shouldUseRealImage } from '@/lib/productIllustration';
+import { ProductIllustration } from '@/lib/productIllustration';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -19,8 +19,12 @@ export function CartItemRow({ item, product, compact = false }: CartItemRowProps
   const variantId = item.variant_id ?? null;
 
   const lineTotal = product.unit_price * item.quantity;
-  const primaryUrl = product.images?.[0]?.url;
-  const useRealImage = shouldUseRealImage(primaryUrl);
+  // The by-id endpoint returns the full `images` array (ProductWithRelations);
+  // ProductIllustration consumes `image_url`. Bridge the two so the cart shows
+  // the same photo the customer saw on the listing.
+  const primaryUrl =
+    product.image_url ?? product.images?.[0]?.url ?? null;
+  const productForIllustration = { ...product, image_url: primaryUrl };
 
   return (
     <motion.div
@@ -36,20 +40,11 @@ export function CartItemRow({ item, product, compact = false }: CartItemRowProps
           compact ? 'h-16 w-16' : 'h-24 w-24'
         } flex-none overflow-hidden rounded-md bg-brand-sand/60 ring-1 ring-brand-navy/10`}
       >
-        {useRealImage && primaryUrl ? (
-          <img
-            src={primaryUrl}
-            alt={product.name}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <ProductIllustration
-            product={product}
-            className="h-full w-full"
-            hideLabel={compact}
-          />
-        )}
+        <ProductIllustration
+          product={productForIllustration}
+          className="h-full w-full"
+          hideLabel={compact}
+        />
       </div>
 
       <div className="flex flex-1 flex-col gap-3 min-w-0 justify-between">

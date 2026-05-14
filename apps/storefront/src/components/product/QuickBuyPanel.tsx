@@ -53,9 +53,12 @@ export function QuickBuyPanel({
     setQty((q) => Math.min(maxQty, q + 1));
   }
 
-  const btnH = compact ? 'h-7' : 'h-8';
-  const stepW = compact ? 'w-7' : 'w-8';
-  const stepIcon = compact ? 'h-3 w-3' : 'h-3.5 w-3.5';
+  // Touch targets are larger on small screens for easier tapping, then shrink
+  // on md+ where the panel is a hover affordance and density matters more.
+  const btnH = compact ? 'h-10 md:h-7' : 'h-11 md:h-8';
+  const stepW = compact ? 'w-10 md:w-7' : 'w-11 md:w-8';
+  const stepIcon = compact ? 'h-[18px] w-[18px] md:h-3 md:w-3' : 'h-5 w-5 md:h-3.5 md:w-3.5';
+  const stroke = 2.75;
 
   return (
     <div
@@ -88,13 +91,15 @@ export function QuickBuyPanel({
             stepW,
           )}
         >
-          <Minus className={stepIcon} strokeWidth={2.25} aria-hidden="true" />
+          <Minus className={stepIcon} strokeWidth={stroke} aria-hidden="true" />
         </button>
         <div
           className={cn(
             'inline-flex items-center justify-center text-brand-navy tabular-nums font-semibold',
             btnH,
-            compact ? 'min-w-[20px] px-0.5 text-[12px]' : 'min-w-[26px] px-1 text-[13px]',
+            compact
+              ? 'min-w-[28px] md:min-w-[20px] px-1 md:px-0.5 text-[15px] md:text-[12px]'
+              : 'min-w-[32px] md:min-w-[26px] px-1.5 md:px-1 text-[16px] md:text-[13px]',
           )}
           aria-live="polite"
           aria-atomic="true"
@@ -122,7 +127,7 @@ export function QuickBuyPanel({
             stepW,
           )}
         >
-          <Plus className={stepIcon} strokeWidth={2.25} aria-hidden="true" />
+          <Plus className={stepIcon} strokeWidth={stroke} aria-hidden="true" />
         </button>
       </div>
 
@@ -132,9 +137,9 @@ export function QuickBuyPanel({
         disabled={!inStock}
         aria-label={`Add ${qty} of ${product.name} to cart`}
         className={cn(
-          'flex-1 inline-flex items-center justify-center gap-1 rounded font-semibold tracking-wide transition-colors duration-200',
+          'flex-1 inline-flex items-center justify-center gap-1.5 rounded font-semibold tracking-wide transition-colors duration-200',
           btnH,
-          compact ? 'text-[11px]' : 'text-[12px]',
+          compact ? 'text-[13px] md:text-[11px]' : 'text-[14px] md:text-[12px]',
           justAdded
             ? 'bg-brand-cyan text-white'
             : 'bg-brand-navy text-brand-ivory hover:bg-brand-navy/90',
