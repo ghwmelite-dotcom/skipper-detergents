@@ -13,10 +13,11 @@ interface QuickBuyPanelProps {
 }
 
 /**
- * QuickBuyPanel — round stepper buttons + full-width Add-to-cart button,
- * stacked vertically. Lives below the product info, never on top of the
- * image. Buttons stop their own click propagation so callers can wrap the
- * card text in a Link to the PDP without the buy controls navigating.
+ * QuickBuyPanel — round cyan stepper + full-width navy "Add to cart" pill,
+ * stacked. The caller positions this as an absolute overlay over the bottom
+ * of the product image. The panel is hidden by default on hover-capable
+ * devices and revealed on group-hover; on touch devices it is always
+ * visible since hover isn't a meaningful gesture there.
  */
 export function QuickBuyPanel({ product, className, compact = false }: QuickBuyPanelProps) {
   const { addItem } = useCart();
@@ -49,20 +50,29 @@ export function QuickBuyPanel({ product, className, compact = false }: QuickBuyP
     setQty((q) => Math.min(maxQty, q + 1));
   }
 
-  const round = compact ? 'h-9 w-9' : 'h-11 w-11';
-  const icon = compact ? 'h-4 w-4' : 'h-[18px] w-[18px]';
-  const qtyText = compact ? 'text-[16px]' : 'text-[18px]';
-  const addH = compact ? 'h-10' : 'h-12';
-  const addText = compact ? 'text-[13px]' : 'text-[14px]';
+  const round = compact ? 'h-8 w-8' : 'h-10 w-10';
+  const icon = compact ? 'h-3.5 w-3.5' : 'h-4 w-4';
+  const qtyText = compact ? 'text-[14px]' : 'text-[16px]';
+  const addH = compact ? 'h-9' : 'h-11';
+  const addText = compact ? 'text-[12px]' : 'text-[13px]';
 
   return (
     <div
       onClick={stop}
       aria-label={`Quick add ${product.name}`}
-      className={cn('flex flex-col gap-2', className)}
+      className={cn(
+        'flex flex-col gap-1.5 rounded-md bg-brand-ivory/95 backdrop-blur-sm border border-brand-navy/8 shadow-md p-2',
+        // Mobile / touch: panel is always visible.
+        // Desktop (md+): hidden until the card is hovered or focused within.
+        'opacity-100 translate-y-0',
+        'md:opacity-0 md:translate-y-2 md:transition-all md:duration-300 md:ease-editorial',
+        'md:group-hover:opacity-100 md:group-hover:translate-y-0',
+        'md:focus-within:opacity-100 md:focus-within:translate-y-0',
+        className,
+      )}
     >
       {/* Stepper row */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <button
           type="button"
           onClick={decrement}
@@ -70,9 +80,9 @@ export function QuickBuyPanel({ product, className, compact = false }: QuickBuyP
           aria-label="Decrease quantity"
           className={cn(
             'inline-flex items-center justify-center rounded-full transition-colors duration-150',
-            'bg-amber-400 hover:bg-amber-500 active:bg-amber-500 text-brand-navy shadow-sm',
+            'bg-brand-cyan-deep hover:bg-brand-cyan active:bg-brand-cyan text-brand-ivory shadow-sm',
             'disabled:opacity-40 disabled:pointer-events-none',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan-deep focus-visible:ring-offset-1',
             round,
           )}
         >
@@ -89,9 +99,9 @@ export function QuickBuyPanel({ product, className, compact = false }: QuickBuyP
           <AnimatePresence mode="popLayout">
             <motion.span
               key={qty}
-              initial={reduced ? false : { y: 6, opacity: 0 }}
+              initial={reduced ? false : { y: 5, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={reduced ? { opacity: 0 } : { y: -6, opacity: 0 }}
+              exit={reduced ? { opacity: 0 } : { y: -5, opacity: 0 }}
               transition={{ duration: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
             >
               {qty}
@@ -105,9 +115,9 @@ export function QuickBuyPanel({ product, className, compact = false }: QuickBuyP
           aria-label="Increase quantity"
           className={cn(
             'inline-flex items-center justify-center rounded-full transition-colors duration-150',
-            'bg-amber-400 hover:bg-amber-500 active:bg-amber-500 text-brand-navy shadow-sm',
+            'bg-brand-cyan-deep hover:bg-brand-cyan active:bg-brand-cyan text-brand-ivory shadow-sm',
             'disabled:opacity-40 disabled:pointer-events-none',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan-deep focus-visible:ring-offset-1',
             round,
           )}
         >
@@ -122,24 +132,24 @@ export function QuickBuyPanel({ product, className, compact = false }: QuickBuyP
         disabled={!inStock}
         aria-label={`Add ${qty} of ${product.name} to cart`}
         className={cn(
-          'w-full inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-wide transition-colors duration-200 shadow-sm',
+          'w-full inline-flex items-center justify-center gap-1.5 rounded-full font-semibold tracking-wide transition-colors duration-200 shadow-sm',
           addH,
           addText,
           justAdded
-            ? 'bg-emerald-700 text-white'
-            : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-700 text-white',
+            ? 'bg-brand-cyan-deep text-brand-ivory'
+            : 'bg-brand-navy hover:bg-brand-navy/90 active:bg-brand-navy/80 text-brand-ivory',
           !inStock && 'opacity-50 cursor-not-allowed',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-1',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-1',
         )}
       >
         {justAdded ? (
           <>
-            <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
+            <Check className="h-3.5 w-3.5" strokeWidth={2.75} aria-hidden="true" />
             Added
           </>
         ) : (
           <>
-            <ShoppingBag className="h-4 w-4" strokeWidth={2.25} aria-hidden="true" />
+            <ShoppingBag className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />
             Add to cart
           </>
         )}

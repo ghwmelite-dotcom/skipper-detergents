@@ -287,32 +287,29 @@ function MobileCategoriesSection({ sections }: { sections: MobileSection[] }) {
             </div>
             <div className="grid grid-cols-2 gap-2">
               {s.products.map((p) => (
-                <div key={p.id} className="flex flex-col">
-                  <Link
-                    to={`/product/${p.slug}`}
-                    className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan-deep/60 rounded-md"
-                  >
-                    <div className="relative aspect-square w-full overflow-hidden rounded-md bg-brand-sand/50 ring-1 ring-brand-navy/8">
-                      <ProductIllustration product={p} className="h-full w-full" />
-                      {p.is_bulk_available && (
-                        <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy/90 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-brand-ivory uppercase">
-                          Bulk
-                        </span>
-                      )}
-                    </div>
-                    <div className="pt-2 px-0.5 space-y-0.5">
-                      <h4 className="font-sans text-[14px] font-semibold leading-[1.25] text-brand-navy line-clamp-2">
-                        {p.name}
-                      </h4>
-                      <p className="text-[14px] font-bold text-brand-navy tabular-nums">
-                        {formatCurrency(p.unit_price)}
-                      </p>
-                    </div>
-                  </Link>
-                  <div className="pt-2">
-                    <QuickBuyPanel product={p} compact />
+                <Link
+                  key={p.id}
+                  to={`/product/${p.slug}`}
+                  className="group flex flex-col h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan-deep/60 rounded-md"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-md bg-brand-sand/50 ring-1 ring-brand-navy/8">
+                    <ProductIllustration product={p} className="h-full w-full" />
+                    {p.is_bulk_available && (
+                      <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy/90 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-brand-ivory uppercase">
+                        Bulk
+                      </span>
+                    )}
+                    <QuickBuyPanel product={p} compact className="absolute inset-x-1 bottom-1" />
                   </div>
-                </div>
+                  <div className="pt-2 px-0.5 flex flex-col flex-1">
+                    <h4 className="font-sans text-[14px] font-semibold leading-[1.25] text-brand-navy line-clamp-2 min-h-[2.5em]">
+                      {p.name}
+                    </h4>
+                    <p className="text-[14px] font-bold text-brand-navy tabular-nums mt-auto pt-1">
+                      {formatCurrency(p.unit_price)}
+                    </p>
+                  </div>
+                </Link>
               ))}
             </div>
           </section>
@@ -542,6 +539,7 @@ function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
               Bulk-ready
             </span>
           )}
+          <QuickBuyPanel product={product} className="absolute inset-x-2 bottom-2" />
         </motion.div>
         <div
           className={cn(
@@ -572,9 +570,6 @@ function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
           </div>
         </div>
       </Link>
-      <div className={cn('mt-4', isLeft ? 'md:pl-4' : 'md:pr-4')}>
-        <QuickBuyPanel product={product} />
-      </div>
     </motion.div>
   );
 }
@@ -625,17 +620,18 @@ function MarqueeSection({ products }: { products: Product[] }) {
             <Link
               key={`${p.id}-${i}`}
               to={`/product/${p.slug}`}
-              className="flex-none w-[180px] md:w-[260px] group"
+              className="flex-none w-[180px] md:w-[260px] flex flex-col group"
             >
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand ring-1 ring-brand-ivory/10">
                 <ProductIllustration product={p} className="h-full w-full" />
+                <QuickBuyPanel product={p} compact className="absolute inset-x-1.5 bottom-1.5" />
               </div>
-              <div className="pt-3 space-y-1">
+              <div className="pt-3 flex flex-col flex-1">
                 <p className="editorial-label text-brand-cyan/80">{p.brand ?? 'Skipper'}</p>
-                <p className="font-display text-[15px] md:text-[17px] leading-tight text-brand-ivory font-medium line-clamp-2">
+                <p className="font-display text-[15px] md:text-[17px] leading-tight text-brand-ivory font-medium line-clamp-2 min-h-[2.4em] mt-1">
                   {p.name}
                 </p>
-                <p className="text-[13px] font-semibold text-brand-ivory/90 tabular-nums">
+                <p className="text-[13px] font-semibold text-brand-ivory/90 tabular-nums mt-auto pt-2">
                   {formatCurrency(p.unit_price)}
                 </p>
               </div>
@@ -695,26 +691,24 @@ function NewArrivalsStrip({ products }: { products: Product[] }) {
               }}
               className="w-[180px] md:w-[240px] flex-none snap-start"
             >
-              <Link to={`/product/${p.slug}`} className="block group">
+              <Link to={`/product/${p.slug}`} className="flex flex-col h-full group">
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-sand/40 shadow-sm group-hover:shadow-editorial transition-shadow duration-300">
                   <ProductIllustration product={p} className="h-full w-full" />
                   <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy text-brand-ivory text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5">
                     New
                   </span>
+                  <QuickBuyPanel product={p} compact className="absolute inset-x-1.5 bottom-1.5" />
                 </div>
-                <div className="pt-3 space-y-1">
+                <div className="pt-3 flex flex-col flex-1">
                   <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>
-                  <p className="font-display text-[15px] md:text-[16px] leading-tight text-brand-navy font-medium line-clamp-2">
+                  <p className="font-display text-[15px] md:text-[16px] leading-tight text-brand-navy font-medium line-clamp-2 min-h-[2.4em] mt-1">
                     {p.name}
                   </p>
-                  <p className="text-[13px] font-semibold text-brand-navy tabular-nums">
+                  <p className="text-[13px] font-semibold text-brand-navy tabular-nums mt-auto pt-2">
                     {formatCurrency(p.unit_price)}
                   </p>
                 </div>
               </Link>
-              <div className="pt-3">
-                <QuickBuyPanel product={p} compact />
-              </div>
             </motion.div>
           ))}
         </div>
@@ -767,23 +761,21 @@ function AccessoriesStrip({ products }: { products: Product[] }) {
               }}
               className="w-[180px] md:w-[240px] flex-none snap-start"
             >
-              <Link to={`/product/${p.slug}`} className="block group">
+              <Link to={`/product/${p.slug}`} className="flex flex-col h-full group">
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-ivory shadow-sm group-hover:shadow-editorial transition-shadow duration-300">
                   <ProductIllustration product={p} className="h-full w-full" />
+                  <QuickBuyPanel product={p} compact className="absolute inset-x-1.5 bottom-1.5" />
                 </div>
-                <div className="pt-3 space-y-1">
+                <div className="pt-3 flex flex-col flex-1">
                   <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>
-                  <p className="font-display text-[15px] md:text-[16px] leading-tight text-brand-navy font-medium line-clamp-2">
+                  <p className="font-display text-[15px] md:text-[16px] leading-tight text-brand-navy font-medium line-clamp-2 min-h-[2.4em] mt-1">
                     {p.name}
                   </p>
-                  <p className="text-[13px] font-semibold text-brand-navy tabular-nums">
+                  <p className="text-[13px] font-semibold text-brand-navy tabular-nums mt-auto pt-2">
                     {formatCurrency(p.unit_price)}
                   </p>
                 </div>
               </Link>
-              <div className="pt-3">
-                <QuickBuyPanel product={p} compact />
-              </div>
             </motion.div>
           ))}
         </div>

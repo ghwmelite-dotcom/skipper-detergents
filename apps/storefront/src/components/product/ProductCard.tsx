@@ -45,11 +45,11 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
         ease: [0.2, 0.8, 0.2, 1],
         delay: Math.min(index * 0.04, 0.3),
       }}
-      className={cn('group', className)}
+      className={cn('group h-full flex flex-col', className)}
     >
       <Link
         to={`/product/${product.slug}`}
-        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+        className="flex flex-col flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
         tabIndex={0}
       >
         {/* Image card */}
@@ -87,6 +87,8 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
             )}
           </div>
 
+          <QuickBuyPanel product={product} className="absolute inset-x-2 bottom-2" />
+
           {!inStock && (
             <div className="absolute inset-0 bg-brand-ivory/75 backdrop-blur-[1px] flex items-center justify-center">
               <span className="font-display-italic text-lg text-brand-navy">Out of stock</span>
@@ -94,15 +96,18 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
           )}
         </motion.div>
 
-        {/* Info */}
-        <div className="pt-4 px-0.5 space-y-1">
-          {product.brand && (
-            <p className="editorial-label text-brand-cyan-deep">{product.brand}</p>
-          )}
-          <h3 className="font-display text-[17px] leading-[1.2] text-brand-navy line-clamp-2 group-hover:text-brand-cyan-deep transition-colors duration-200 font-medium">
-            {product.name}
-          </h3>
-          <div className="flex items-baseline gap-2 pt-1 flex-wrap">
+        {/* Info — flex column with the price pushed to the bottom so every
+            card in a row aligns regardless of name length. */}
+        <div className="pt-4 px-0.5 flex flex-col flex-1">
+          <div className="space-y-1">
+            {product.brand && (
+              <p className="editorial-label text-brand-cyan-deep">{product.brand}</p>
+            )}
+            <h3 className="font-display text-[17px] leading-[1.2] text-brand-navy line-clamp-2 group-hover:text-brand-cyan-deep transition-colors duration-200 font-medium min-h-[2.4em]">
+              {product.name}
+            </h3>
+          </div>
+          <div className="mt-auto pt-2 flex items-baseline gap-2 flex-wrap">
             <span className="text-[15px] font-semibold text-brand-navy tabular-nums">
               {formatCurrency(product.unit_price)}
             </span>
@@ -124,12 +129,6 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
           </div>
         </div>
       </Link>
-
-      {/* Buy controls live outside the Link so taps on the panel never
-          navigate to the PDP. */}
-      <div className="pt-3 px-0.5">
-        <QuickBuyPanel product={product} />
-      </div>
     </motion.div>
   );
 }
