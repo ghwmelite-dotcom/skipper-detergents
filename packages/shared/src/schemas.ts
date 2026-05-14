@@ -205,6 +205,17 @@ export const adminChangePasswordSchema = z.object({
 });
 export type AdminChangePasswordInput = z.infer<typeof adminChangePasswordSchema>;
 
+export const adminForgotPasswordSchema = z.object({
+  email: z.string().email().max(200),
+});
+export type AdminForgotPasswordInput = z.infer<typeof adminForgotPasswordSchema>;
+
+export const adminResetPasswordSchema = z.object({
+  token: z.string().min(32).max(200),
+  new_password: z.string().min(12).max(200),
+});
+export type AdminResetPasswordInput = z.infer<typeof adminResetPasswordSchema>;
+
 export const uploadProofUrlSchema = z.object({
   proof_url: z
     .string()

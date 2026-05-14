@@ -1,5 +1,11 @@
 import { Hono } from 'hono';
-import { adminLoginSchema, type AdminUser, type AdminRole } from '@skipper/shared';
+import {
+  adminLoginSchema,
+  adminForgotPasswordSchema,
+  adminResetPasswordSchema,
+  type AdminUser,
+  type AdminRole,
+} from '@skipper/shared';
 import { z } from 'zod';
 import type { Env } from '../../types/env';
 import { ok, fail } from '../../utils/response';
@@ -8,6 +14,13 @@ import { hashPassword, verifyPassword } from '../../utils/password';
 import { signJwt } from '../../utils/jwt';
 import { logActivity } from '../../services/activity';
 import { adminAuth, type AdminVariables } from '../../middleware/adminAuth';
+import {
+  generateResetToken,
+  hashResetToken,
+  RESET_TOKEN_TTL_MS,
+  sendResetConfirmationEmail,
+  sendResetEmail,
+} from '../../services/passwordReset';
 
 const TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 const LOGIN_RATE_LIMIT = 5;
@@ -100,6 +113,154 @@ adminAuthRouter.post('/login', async (c) => {
       },
     }),
   );
+});
+
+/**
+ * Issue a password-reset email. Always returns 200 so callers can't enumerate
+ * which addresses are registered. Rate-limited per IP to slow down abuse.
+ */
+adminAuthRouter.post('/forgot-password', async (c) => {
+  const body = adminForgotPasswordSchema.parse(await c.req.json());
+  const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
+
+  const rateKey = `rl:admin_forgot:${ip}`;
+  const currentStr = await c.env.KV_RATE_LIMIT.get(rateKey);
+  const current = currentStr ? Number.parseInt(currentStr, 10) : 0;
+  // Allow 5 forgot requests per 15 minutes from any single IP.
+  if (current >= 5) {
+    return c.json(fail('RATE_LIMITED', 'Too many reset requests — try again later'), 429);
+  }
+  await c.env.KV_RATE_LIMIT.put(rateKey, String(current + 1), {
+    expirationTtl: 15 * 60,
+  });
+
+  const email = body.email.toLowerCase();
+  const user = await first<AdminUser>(
+    c.env.DB,
+    `SELECT * FROM admin_users WHERE LOWER(email) = ? AND is_active = 1`,
+    [email],
+  );
+
+  // We always succeed publicly to avoid leaking whether an address exists.
+  // If the user does exist, issue a token + send mail.
+  if (user) {
+    const token = generateResetToken();
+    const tokenHash = await hashResetToken(token);
+    const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
+
+    await run(
+      c.env.DB,
+      `INSERT INTO admin_password_resets (id, admin_user_id, token_hash, expires_at, ip_address)
+       VALUES (?, ?, ?, ?, ?)`,
+      [idHex(), user.id, tokenHash, expiresAt, ip],
+    );
+
+    const adminUrl = c.env.ADMIN_URL ?? 'https://skipper-admin.pages.dev';
+    const resetUrl = `${adminUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    const storeName = 'Skipper CleanCare';
+    const expiresInMinutes = Math.round(RESET_TOKEN_TTL_MS / 60000);
+
+    c.executionCtx.waitUntil(
+      sendResetEmail(c.env, {
+        toEmail: user.email,
+        toName: user.name,
+        resetUrl,
+        storeName,
+        expiresInMinutes,
+      }).catch((err) => console.error('[forgot-password] email failed', err)),
+    );
+
+    await logActivity(c.env.DB, {
+      admin_id: user.id,
+      action: 'admin_user.password_reset_requested',
+      entity_type: 'admin_user',
+      entity_id: user.id,
+      ip_address: ip,
+    });
+  }
+
+  return c.json(
+    ok({
+      success: true,
+      message: 'If an account exists for that email, a reset link is on its way.',
+    }),
+  );
+});
+
+/**
+ * Consume a reset token and set a new password. Rate-limited per IP. Tokens
+ * are one-shot — marked used_at on success.
+ */
+adminAuthRouter.post('/reset-password', async (c) => {
+  const body = adminResetPasswordSchema.parse(await c.req.json());
+  const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
+
+  const rateKey = `rl:admin_reset:${ip}`;
+  const currentStr = await c.env.KV_RATE_LIMIT.get(rateKey);
+  const current = currentStr ? Number.parseInt(currentStr, 10) : 0;
+  if (current >= 10) {
+    return c.json(fail('RATE_LIMITED', 'Too many reset attempts — try again later'), 429);
+  }
+  await c.env.KV_RATE_LIMIT.put(rateKey, String(current + 1), {
+    expirationTtl: 15 * 60,
+  });
+
+  const tokenHash = await hashResetToken(body.token);
+  const reset = await first<{
+    id: string;
+    admin_user_id: string;
+    expires_at: string;
+    used_at: string | null;
+  }>(
+    c.env.DB,
+    `SELECT id, admin_user_id, expires_at, used_at FROM admin_password_resets WHERE token_hash = ?`,
+    [tokenHash],
+  );
+
+  if (!reset || reset.used_at !== null || new Date(reset.expires_at).getTime() < Date.now()) {
+    return c.json(fail('INVALID_TOKEN', 'This reset link is invalid or has expired'), 400);
+  }
+
+  const user = await first<AdminUser>(
+    c.env.DB,
+    `SELECT * FROM admin_users WHERE id = ? AND is_active = 1`,
+    [reset.admin_user_id],
+  );
+  if (!user) {
+    return c.json(fail('NOT_FOUND', 'Account not found'), 404);
+  }
+
+  const newHash = await hashPassword(body.new_password);
+  await run(c.env.DB, `UPDATE admin_users SET password_hash = ? WHERE id = ?`, [
+    newHash,
+    user.id,
+  ]);
+  await run(
+    c.env.DB,
+    `UPDATE admin_password_resets SET used_at = datetime('now') WHERE id = ?`,
+    [reset.id],
+  );
+  // Clear any failed-login rate-limit counter so the user can sign in
+  // immediately with their new password.
+  await c.env.KV_RATE_LIMIT.delete(`rl:admin_login:${ip}`);
+
+  await logActivity(c.env.DB, {
+    admin_id: user.id,
+    action: 'admin_user.password_reset_completed',
+    entity_type: 'admin_user',
+    entity_id: user.id,
+    ip_address: ip,
+  });
+
+  c.executionCtx.waitUntil(
+    sendResetConfirmationEmail(c.env, {
+      toEmail: user.email,
+      toName: user.name,
+      storeName: 'Skipper CleanCare',
+    }).catch((err) => console.error('[reset-password] confirm email failed', err)),
+  );
+
+  return c.json(ok({ success: true }));
 });
 
 adminAuthRouter.post('/logout', adminAuth, async (c) => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -28,6 +28,8 @@ export function LoginPage(): JSX.Element {
   const { token, login } = useAuthStore();
   const [showPass, setShowPass] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [params] = useSearchParams();
+  const justReset = params.get('reset') === '1';
 
   const {
     register,
@@ -106,15 +108,29 @@ export function LoginPage(): JSX.Element {
             </div>
             <FieldError message={errors.password?.message} />
           </div>
-          <label className="inline-flex items-center gap-2 text-xs text-ink-600 select-none">
-            <input
-              type="checkbox"
-              className="h-3.5 w-3.5 rounded border-ink-300"
-              {...register('remember')}
-            />
-            Remember me on this device
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="inline-flex items-center gap-2 text-xs text-ink-600 select-none">
+              <input
+                type="checkbox"
+                className="h-3.5 w-3.5 rounded border-ink-300"
+                {...register('remember')}
+              />
+              Remember me on this device
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-xs font-medium text-cyan-700 hover:text-cyan-800"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
+
+        {justReset && !serverError && (
+          <div className="mt-3 rounded border border-success-500/30 bg-success-50 px-3 py-2 text-xs text-success-700">
+            Password updated — sign in with your new password.
+          </div>
+        )}
 
         {serverError && (
           <div className="mt-3 rounded border border-danger-500/30 bg-danger-50 px-3 py-2 text-xs text-danger-600">

@@ -165,7 +165,8 @@
       "PowerShell($r = Invoke-RestMethod -Uri 'https://skipper-api.ghwmelite.workers.dev/api/products?page=1&per_page=5&sort=newest' -Method Get; \"Public API now includes image_url:\"; $r.data | ForEach-Object { \"  - $\\($_.name\\) -> $\\($_.image_url\\)\" })",
       "PowerShell($h = \\(Invoke-WebRequest -Uri 'https://skipperdetergents.pages.dev/' -UseBasicParsing\\).Content; $m = [regex]::Match\\($h, '/assets/index-[A-Za-z0-9_-]+\\\\.js'\\).Value; \"main: $m\"; $idx = \\(Invoke-WebRequest -Uri \"https://skipperdetergents.pages.dev$m\" -UseBasicParsing\\).Content; \"img-onError-fallback in bundle: \" + \\($idx -match 'imgFailed'\\))",
       "PowerShell($idx = \\(Invoke-WebRequest -Uri 'https://skipperdetergents.pages.dev/assets/index-EJBg3ZBr.js' -UseBasicParsing\\).Content; \"loading lazy hits: \" + \\([regex]::Matches\\($idx, 'loading:\"lazy\"'\\).Count\\); \"decoding async hits: \" + \\([regex]::Matches\\($idx, 'decoding:\"async\"'\\).Count\\))",
-      "PowerShell(npx wrangler kv:key delete --namespace-id=d30776a368924a4b83b7f9bd996d65bf 'rl:admin_login:102.22.14.72' 2>&1 | Select-Object -Last 5)"
+      "PowerShell(npx wrangler kv:key delete --namespace-id=d30776a368924a4b83b7f9bd996d65bf 'rl:admin_login:102.22.14.72' 2>&1 | Select-Object -Last 5)",
+      "PowerShell($body = @{ email = 'nonexistent@test.com' } | ConvertTo-Json; try { $r = Invoke-RestMethod -Uri 'https://skipper-api.ghwmelite.workers.dev/api/admin/auth/forgot-password' -Method Post -Body $body -ContentType 'application/json'; \"non-existent email -> success=$\\($r.success\\) msg=$\\($r.data.message\\)\" } catch { \"FAIL: $\\($_.ErrorDetails.Message\\)\" })"
     ]
   }
 }

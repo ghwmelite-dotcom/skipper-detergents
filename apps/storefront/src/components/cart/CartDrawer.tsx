@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { X, ShoppingBag, ArrowRight } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { Sheet } from '@/components/ui/sheet';
@@ -15,6 +16,18 @@ export function CartDrawer() {
   const open = useUiStore((s) => s.cartDrawerOpen);
   const closeCartDrawer = useUiStore((s) => s.closeCartDrawer);
   const { items, totalQuantity } = useCart();
+  const location = useLocation();
+
+  // Auto-close the drawer on any route change. If a user reaches /checkout or
+  // /cart with the drawer still open, the page chrome hides the cart icon, so
+  // they'd be stranded behind the overlay with no fallback close affordance.
+  const lastPathRef = useRef(location.pathname);
+  useEffect(() => {
+    if (location.pathname !== lastPathRef.current) {
+      lastPathRef.current = location.pathname;
+      if (open) closeCartDrawer();
+    }
+  }, [location.pathname, open, closeCartDrawer]);
 
   const productQueries = useQueries({
     queries: items.map((item) => ({
@@ -52,9 +65,14 @@ export function CartDrawer() {
               )}
             </h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={closeCartDrawer} aria-label="Close cart">
+          <button
+            type="button"
+            onClick={closeCartDrawer}
+            aria-label="Close cart"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-brand-navy/70 hover:bg-brand-navy/5 hover:text-brand-navy transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan-deep/60"
+          >
             <X className="h-5 w-5" aria-hidden="true" />
-          </Button>
+          </button>
         </div>
 
         {/* Body */}

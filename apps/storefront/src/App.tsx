@@ -12,6 +12,7 @@ const Cart = lazy(() => import('@/pages/Cart'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const OrderConfirmation = lazy(() => import('@/pages/OrderConfirmation'));
 const OrderTracking = lazy(() => import('@/pages/OrderTracking'));
+const TrackOrderLookup = lazy(() => import('@/pages/TrackOrderLookup'));
 const About = lazy(() => import('@/pages/About'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const FAQ = lazy(() => import('@/pages/FAQ'));
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="cart" element={<Cart />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="order/:orderNumber" element={<OrderConfirmation />} />
+        <Route path="track" element={<TrackOrderLookup />} />
         <Route path="track/:orderNumber" element={<OrderTracking />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
