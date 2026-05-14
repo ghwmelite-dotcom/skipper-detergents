@@ -49,11 +49,20 @@ export function QuickBuyPanel({ product, className, compact = false }: QuickBuyP
     setQty((q) => Math.min(maxQty, q + 1));
   }
 
-  const round = compact ? 'h-8 w-8' : 'h-10 w-10';
-  const icon = compact ? 'h-3.5 w-3.5' : 'h-4 w-4';
-  const qtyText = compact ? 'text-[14px]' : 'text-[16px]';
-  const addH = compact ? 'h-9' : 'h-11';
-  const addText = compact ? 'text-[12px]' : 'text-[13px]';
+  // Touch targets are larger on small screens (where the panel is always
+  // visible and finger taps need room) and collapse to tighter dimensions
+  // on md+ where it's a hover affordance and cards are denser.
+  const round = compact
+    ? 'h-10 w-10 md:h-8 md:w-8'
+    : 'h-11 w-11 md:h-10 md:w-10';
+  const icon = compact
+    ? 'h-4 w-4 md:h-3.5 md:w-3.5'
+    : 'h-[18px] w-[18px] md:h-4 md:w-4';
+  const qtyText = compact
+    ? 'text-[15px] md:text-[14px]'
+    : 'text-[17px] md:text-[16px]';
+  const addH = compact ? 'h-11 md:h-9' : 'h-12 md:h-11';
+  const addText = compact ? 'text-[13px] md:text-[12px]' : 'text-[14px] md:text-[13px]';
 
   return (
     <div

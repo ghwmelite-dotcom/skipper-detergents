@@ -30,10 +30,6 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
     product.compare_at_price !== null && product.compare_at_price > product.unit_price;
   const inStock = product.stock_quantity > 0;
   const savings = hasDiscount ? product.compare_at_price! - product.unit_price : 0;
-  const bulkSavingsPct =
-    bulkCapable && firstTier && product.unit_price > 0
-      ? Math.round(((product.unit_price - firstTier.unit_price) / product.unit_price) * 100)
-      : 0;
 
   return (
     <motion.div
@@ -63,19 +59,10 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
             className="h-full w-full object-cover transition-transform duration-[600ms] ease-editorial group-hover:scale-[1.04]"
           />
 
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-            {bulkCapable && bulkSavingsPct > 0 && (
-              <motion.span
-                initial={reduced ? false : { scale: 0.85, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.1, type: 'spring', stiffness: 400, damping: 24 }}
-                className="inline-flex items-center rounded-full bg-brand-navy px-2 py-0.5 text-[10px] font-medium tracking-wider text-brand-ivory uppercase"
-              >
-                Bulk -{bulkSavingsPct}%
-              </motion.span>
-            )}
-            {hasDiscount && (
+          {/* Badges (Sale only — bulk-related badges have been removed from
+              the cover image so it stays a clean product photo). */}
+          {hasDiscount && (
+            <div className="absolute top-3 left-3">
               <motion.span
                 initial={reduced ? false : { scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -84,8 +71,8 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
               >
                 Sale
               </motion.span>
-            )}
-          </div>
+            </div>
+          )}
 
           {!inStock && (
             <div className="absolute inset-0 bg-brand-ivory/75 backdrop-blur-[1px] flex items-center justify-center">

@@ -294,11 +294,6 @@ function MobileCategoriesSection({ sections }: { sections: MobileSection[] }) {
                 >
                   <div className="relative aspect-square w-full overflow-hidden rounded-md bg-brand-sand/50 ring-1 ring-brand-navy/8">
                     <ProductIllustration product={p} className="h-full w-full" />
-                    {p.is_bulk_available && (
-                      <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy/90 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-brand-ivory uppercase">
-                        Bulk
-                      </span>
-                    )}
                   </div>
                   <div className="pt-2 px-0.5 flex flex-col flex-1">
                     <h4 className="font-sans text-[14px] font-semibold leading-[1.25] text-brand-navy line-clamp-2 min-h-[2.5em]">
@@ -538,11 +533,6 @@ function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
           className="relative aspect-square w-full overflow-hidden rounded-lg shadow-editorial ring-1 ring-brand-navy/10 bg-brand-ivory"
         >
           <ProductIllustration product={product} className="h-full w-full" />
-          {bulkAvailable && (
-            <span className="absolute top-3 left-3 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase bg-brand-navy text-brand-ivory">
-              Bulk-ready
-            </span>
-          )}
         </motion.div>
         <div
           className={cn(
