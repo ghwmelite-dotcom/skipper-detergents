@@ -37,9 +37,6 @@ adminAuthRouter.post('/login', async (c) => {
   if (current >= LOGIN_RATE_LIMIT) {
     return c.json(fail('RATE_LIMITED', 'Too many login attempts — try again later'), 429);
   }
-  await c.env.KV_RATE_LIMIT.put(rateKey, String(current + 1), {
-    expirationTtl: LOGIN_RATE_WINDOW,
-  });
 
   const email = body.email.toLowerCase();
   const secret = c.env.JWT_SECRET;
@@ -62,8 +59,16 @@ adminAuthRouter.post('/login', async (c) => {
   );
 
   if (!result) {
+    // Count only failed attempts so legitimate users aren't locked out by
+    // their own successful logins.
+    await c.env.KV_RATE_LIMIT.put(rateKey, String(current + 1), {
+      expirationTtl: LOGIN_RATE_WINDOW,
+    });
     return c.json(fail('UNAUTHORIZED', 'Invalid email or password'), 401);
   }
+
+  // Successful login clears the failure counter for this IP.
+  await c.env.KV_RATE_LIMIT.delete(rateKey);
 
   const token = await signJwt(
     { sub: result.id, email: result.email, role: result.role as AdminRole },
