@@ -8,7 +8,8 @@ import {
 } from '@skipper/shared';
 import type { Env } from '../../types/env';
 import { ok, fail } from '../../utils/response';
-import { adminAuth, type AdminVariables } from '../../middleware/adminAuth';
+import { adminAuth, requireSuperAdmin, type AdminVariables } from '../../middleware/adminAuth';
+import { first, all, run } from '../../utils/db';
 import {
   adminListProducts,
   adminGetProduct,
@@ -114,6 +115,74 @@ adminProductsRouter.delete('/:id', async (c) => {
     ip_address: c.req.header('cf-connecting-ip') ?? null,
   });
   return c.json(ok({ id, is_active: false }));
+});
+
+/**
+ * Permanent delete — removes the product row, its images (R2 + DB),
+ * variants, and bulk pricing tiers. Refuses if any order_items reference
+ * the product (those are historical records and must be preserved).
+ * Super-admin only.
+ */
+adminProductsRouter.delete('/:id/permanent', requireSuperAdmin, async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await first<{ id: string; name: string }>(
+    c.env.DB,
+    `SELECT id, name FROM products WHERE id = ?`,
+    [id],
+  );
+  if (!existing) return c.json(fail('NOT_FOUND', 'Product not found'), 404);
+
+  // Past orders reference products via order_items.product_id (no cascade).
+  // If any exist, the row can't be removed without losing order history;
+  // tell the admin to deactivate instead.
+  const linked = await first<{ n: number }>(
+    c.env.DB,
+    `SELECT COUNT(*) AS n FROM order_items WHERE product_id = ?`,
+    [id],
+  );
+  if ((linked?.n ?? 0) > 0) {
+    return c.json(
+      fail(
+        'PRODUCT_HAS_ORDERS',
+        `This product appears in ${linked?.n ?? 0} past order item(s) and can't be permanently deleted. Deactivate it instead.`,
+      ),
+      409,
+    );
+  }
+
+  // Collect image URLs first so we can clean R2 after the DB cascade.
+  const images = await all<{ url: string }>(
+    c.env.DB,
+    `SELECT url FROM product_images WHERE product_id = ?`,
+    [id],
+  );
+
+  // Cascade deletes product_images, product_variants, bulk_pricing_tiers
+  // (per schema FK ON DELETE CASCADE).
+  await run(c.env.DB, `DELETE FROM products WHERE id = ?`, [id]);
+
+  // R2 cleanup — best-effort, non-fatal on individual failures.
+  for (const img of images) {
+    try {
+      const m = img.url.match(/\/r2\/products\/(products\/[^?]+)/);
+      const key = m?.[1];
+      if (key) await c.env.R2_PRODUCTS.delete(key);
+    } catch (err) {
+      console.warn('[products] R2 cleanup failed for', img.url, err);
+    }
+  }
+
+  const admin = c.get('adminUser');
+  await logActivity(c.env.DB, {
+    admin_id: admin.id,
+    action: 'product.deleted_permanently',
+    entity_type: 'product',
+    entity_id: id,
+    ip_address: c.req.header('cf-connecting-ip') ?? null,
+  });
+
+  return c.json(ok({ id, deleted: true, name: existing.name }));
 });
 
 adminProductsRouter.post('/:id/images', async (c) => {

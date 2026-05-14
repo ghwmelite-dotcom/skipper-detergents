@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, ChevronLeft, ChevronRight, EyeOff, Eye, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Input, Select } from '@/components/ui/Input';
@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/components/ui/Toast';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
 import { formatCurrency } from '@/lib/format';
 import type { Category, Product } from '@skipper/shared';
 
@@ -34,6 +35,11 @@ export function ProductsListPage(): JSX.Element {
   const [category, setCategory] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [confirmPermanent, setConfirmPermanent] = useState<{ id: string; name: string } | null>(
+    null,
+  );
+  const me = useAuthStore((s) => s.user);
+  const isSuperAdmin = me?.role === 'super_admin';
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -67,6 +73,32 @@ export function ProductsListPage(): JSX.Element {
       setConfirmDelete(null);
     },
     onError: (e: Error) => toast.push(e.message, 'error'),
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: (id: string) => api.patch(`/api/admin/products/${id}`, { is_active: true }),
+    onSuccess: () => {
+      toast.push('Product activated', 'success');
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+    },
+    onError: (e: Error) => toast.push(e.message, 'error'),
+  });
+
+  const permanentDeleteMutation = useMutation({
+    mutationFn: (id: string) => api.del(`/api/admin/products/${id}/permanent`),
+    onSuccess: (_, id) => {
+      toast.push('Product permanently deleted', 'success');
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+      setConfirmPermanent(null);
+      // The deactivate dialog could still be open on the same product —
+      // close it so the UI stays consistent.
+      if (confirmDelete?.id === id) setConfirmDelete(null);
+    },
+    onError: (e: unknown) => {
+      const message =
+        e instanceof ApiError ? e.message : 'Could not delete — try again';
+      toast.push(message, 'error');
+    },
   });
 
   const bulkMutation = useMutation({
@@ -221,19 +253,20 @@ export function ProductsListPage(): JSX.Element {
                 <th className="text-right">Price</th>
                 <th className="text-right">Stock</th>
                 <th>Status</th>
-                <th className="pr-4">Flags</th>
+                <th>Flags</th>
+                <th className="pr-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-ink-500">
+                  <td colSpan={9} className="text-center py-10 text-ink-500">
                     Loading…
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-ink-500">
+                  <td colSpan={9} className="text-center py-10 text-ink-500">
                     No products match these filters.
                   </td>
                 </tr>
@@ -293,10 +326,47 @@ export function ProductsListPage(): JSX.Element {
                         <Badge tone="neutral">Inactive</Badge>
                       )}
                     </td>
-                    <td className="pr-4">
+                    <td>
                       <div className="flex items-center gap-1">
                         {p.is_featured && <Badge tone="info">Featured</Badge>}
                         {p.is_bulk_available && <Badge tone="navy">Bulk</Badge>}
+                      </div>
+                    </td>
+                    <td className="pr-4 text-right">
+                      <div className="inline-flex items-center gap-1">
+                        {p.is_active ? (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelete({ id: p.id, name: p.name })}
+                            title="Deactivate (hide from storefront)"
+                            aria-label={`Deactivate ${p.name}`}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded text-ink-600 hover:bg-ink-100 hover:text-ink-900 transition-colors"
+                          >
+                            <EyeOff className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => activateMutation.mutate(p.id)}
+                            disabled={activateMutation.isPending}
+                            title="Activate (show on storefront)"
+                            aria-label={`Activate ${p.name}`}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded text-ink-600 hover:bg-ink-100 hover:text-ink-900 transition-colors disabled:opacity-50"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        )}
+                        {isSuperAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmPermanent({ id: p.id, name: p.name })}
+                            title="Delete permanently"
+                            aria-label={`Delete ${p.name} permanently`}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded text-danger-600 hover:bg-danger-50 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -347,6 +417,21 @@ export function ProductsListPage(): JSX.Element {
         loading={deleteMutation.isPending}
         onCancel={() => setConfirmDelete(null)}
         onConfirm={() => confirmDelete && deleteMutation.mutate(confirmDelete.id)}
+      />
+
+      <ConfirmDialog
+        open={!!confirmPermanent}
+        title="Delete this product permanently?"
+        description={
+          confirmPermanent
+            ? `"${confirmPermanent.name}" and all its images and bulk pricing will be removed from the database. This cannot be undone. If the product appears in past orders, the deletion will be blocked — deactivate it instead.`
+            : ''
+        }
+        tone="danger"
+        confirmLabel="Delete permanently"
+        loading={permanentDeleteMutation.isPending}
+        onCancel={() => setConfirmPermanent(null)}
+        onConfirm={() => confirmPermanent && permanentDeleteMutation.mutate(confirmPermanent.id)}
       />
     </div>
   );

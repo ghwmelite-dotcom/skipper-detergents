@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, ShoppingBag, Search, ArrowLeft } from 'lucide-react';
+import { Menu, ShoppingBag, Search, ArrowLeft, Package } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import {
   AnimatePresence,
   motion,
@@ -14,11 +15,18 @@ import { useUiStore } from '@/stores/uiStore';
 import { STORE_NAME } from '@/lib/env';
 import { cn } from '@/lib/cn';
 
-const NAV_LINKS = [
+interface NavLink {
+  to: string;
+  label: string;
+  icon?: LucideIcon;
+}
+
+const NAV_LINKS: NavLink[] = [
   { to: '/shop', label: 'Shop' },
   { to: '/bulk', label: 'Bulk' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
+  { to: '/track', label: 'Track order', icon: Package },
 ];
 
 export function Header() {
@@ -162,10 +170,13 @@ export function Header() {
                 to={link.to}
                 data-active={isActive ? 'true' : 'false'}
                 className={cn(
-                  'nav-underline text-[13px] font-medium tracking-wide transition-colors duration-200',
+                  'nav-underline inline-flex items-center gap-1.5 text-[13px] font-medium tracking-wide transition-colors duration-200',
                   isActive ? 'text-brand-navy' : 'text-brand-navy/65 hover:text-brand-navy',
                 )}
               >
+                {link.icon && (
+                  <link.icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                )}
                 {link.label}
               </Link>
             );

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { X, User, ChevronRight } from 'lucide-react';
+import { X, User, ChevronRight, Package } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Sheet } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -8,9 +9,16 @@ import { useCategories } from '@/hooks/useCategories';
 import { haptic } from '@/lib/haptic';
 import { cn } from '@/lib/cn';
 
-const NAV_LINKS = [
+interface NavLink {
+  to: string;
+  label: string;
+  icon?: LucideIcon;
+}
+
+const NAV_LINKS: NavLink[] = [
   { to: '/shop', label: 'Shop' },
   { to: '/bulk', label: 'Bulk' },
+  { to: '/track', label: 'Track order', icon: Package },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
   { to: '/faq', label: 'FAQ' },
@@ -102,7 +110,16 @@ export function MobileNav() {
                   'transition-colors active:bg-brand-navy/5 hover:text-brand-cyan-deep',
                 )}
               >
-                <span>{link.label}</span>
+                <span className="inline-flex items-center gap-2.5">
+                  {link.icon && (
+                    <link.icon
+                      className="h-5 w-5 text-brand-cyan-deep"
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {link.label}
+                </span>
                 <ChevronRight
                   className="h-4 w-4 text-brand-navy/30 group-hover:text-brand-cyan-deep group-hover:translate-x-0.5 transition-all"
                   aria-hidden="true"
