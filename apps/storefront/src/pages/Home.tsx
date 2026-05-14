@@ -285,17 +285,17 @@ function MobileCategoriesSection({ sections }: { sections: MobileSection[] }) {
                 See all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-5">
               {s.products.map((p) => (
                 <Link
                   key={p.id}
                   to={`/product/${p.slug}`}
-                  className="group flex flex-col h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan-deep/60 rounded-md"
+                  className="group flex flex-col h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan-deep/60 bg-brand-ivory rounded-2xl border border-brand-navy/8 p-3 shadow-[0_4px_20px_rgba(11,37,69,0.06)] active:shadow-[0_8px_24px_rgba(11,37,69,0.1)] transition-shadow duration-300"
                 >
-                  <div className="relative aspect-square w-full overflow-hidden rounded-md bg-brand-sand/50 ring-1 ring-brand-navy/8">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand/50">
                     <ProductIllustration product={p} className="h-full w-full" />
                   </div>
-                  <div className="pt-2 px-0.5 flex flex-col flex-1">
+                  <div className="pt-2 flex flex-col flex-1">
                     <h4 className="font-sans text-[14px] font-semibold leading-[1.25] text-brand-navy line-clamp-2 min-h-[2.5em]">
                       {p.name}
                     </h4>
@@ -616,18 +616,23 @@ function MarqueeSection({ products }: { products: Product[] }) {
             <Link
               key={`${p.id}-${i}`}
               to={`/product/${p.slug}`}
-              className="flex-none w-[180px] md:w-[260px] flex flex-col group"
+              className={cn(
+                'flex-none w-[200px] md:w-[260px] flex flex-col group bg-brand-ivory rounded-2xl border border-brand-navy/10 p-3',
+                'shadow-[0_4px_20px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_36px_rgba(0,0,0,0.32)]',
+                !reduced && 'hover:-translate-y-1',
+                'transition-[transform,box-shadow] duration-300 ease-editorial',
+              )}
             >
-              <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand ring-1 ring-brand-ivory/10">
+              <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand">
                 <ProductIllustration product={p} className="h-full w-full" />
               </div>
               <div className="pt-3 flex flex-col flex-1">
-                <p className="editorial-label text-brand-cyan/80">{p.brand ?? 'Skipper'}</p>
-                <p className="font-display text-[15px] md:text-[17px] leading-tight text-brand-ivory font-medium line-clamp-2 min-h-[2.4em] mt-1">
+                <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>
+                <p className="font-display text-[15px] md:text-[17px] leading-tight text-brand-navy font-medium line-clamp-2 min-h-[2.4em] mt-1">
                   {p.name}
                 </p>
                 <div className="mt-auto">
-                  <p className="text-[15px] font-bold text-brand-cyan tabular-nums pt-2">
+                  <p className="text-[15px] font-bold text-brand-cyan-deep tabular-nums pt-2">
                     {formatCurrency(p.unit_price)}
                   </p>
                   <div className="pt-2 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 md:transition-opacity md:duration-300 md:ease-editorial">
@@ -689,10 +694,15 @@ function NewArrivalsStrip({ products }: { products: Product[] }) {
                 delay: Math.min(i * 0.05, 0.2),
                 ease: [0.2, 0.8, 0.2, 1],
               }}
-              className="w-[180px] md:w-[240px] flex-none snap-start"
+              className={cn(
+                'w-[200px] md:w-[260px] flex-none snap-start group bg-brand-ivory rounded-2xl border border-brand-navy/8 p-3',
+                'shadow-[0_4px_20px_rgba(11,37,69,0.06)] hover:shadow-[0_14px_36px_rgba(11,37,69,0.14)]',
+                !reduced && 'hover:-translate-y-1',
+                'transition-[transform,box-shadow] duration-300 ease-editorial',
+              )}
             >
-              <Link to={`/product/${p.slug}`} className="flex flex-col h-full group">
-                <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-sand/40 shadow-sm group-hover:shadow-editorial transition-shadow duration-300">
+              <Link to={`/product/${p.slug}`} className="flex flex-col h-full">
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand/40">
                   <ProductIllustration product={p} className="h-full w-full" />
                   <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy text-brand-ivory text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5">
                     New
@@ -763,10 +773,15 @@ function AccessoriesStrip({ products }: { products: Product[] }) {
                 delay: Math.min(i * 0.05, 0.2),
                 ease: [0.2, 0.8, 0.2, 1],
               }}
-              className="w-[180px] md:w-[240px] flex-none snap-start"
+              className={cn(
+                'w-[200px] md:w-[260px] flex-none snap-start group bg-brand-ivory rounded-2xl border border-brand-navy/8 p-3',
+                'shadow-[0_4px_20px_rgba(11,37,69,0.06)] hover:shadow-[0_14px_36px_rgba(11,37,69,0.14)]',
+                !reduced && 'hover:-translate-y-1',
+                'transition-[transform,box-shadow] duration-300 ease-editorial',
+              )}
             >
-              <Link to={`/product/${p.slug}`} className="flex flex-col h-full group">
-                <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-ivory shadow-sm group-hover:shadow-editorial transition-shadow duration-300">
+              <Link to={`/product/${p.slug}`} className="flex flex-col h-full">
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand/40">
                   <ProductIllustration product={p} className="h-full w-full" />
                 </div>
                 <div className="pt-3 flex flex-col flex-1">

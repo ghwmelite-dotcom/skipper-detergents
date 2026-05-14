@@ -41,19 +41,21 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
         ease: [0.2, 0.8, 0.2, 1],
         delay: Math.min(index * 0.04, 0.3),
       }}
-      className={cn('group h-full flex flex-col', className)}
+      className={cn(
+        'group h-full flex flex-col bg-brand-ivory rounded-2xl border border-brand-navy/8 p-3 md:p-4',
+        'shadow-[0_4px_20px_rgba(11,37,69,0.06)] hover:shadow-[0_14px_36px_rgba(11,37,69,0.14)]',
+        !reduced && 'hover:-translate-y-1',
+        'transition-[transform,box-shadow] duration-300 ease-editorial',
+        className,
+      )}
     >
       <Link
         to={`/product/${product.slug}`}
         className="flex flex-col flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
         tabIndex={0}
       >
-        {/* Image card */}
-        <motion.div
-          {...(reduced ? {} : { whileHover: { y: -6 } })}
-          transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-          className="relative aspect-square overflow-hidden rounded-lg border border-brand-navy/8 bg-brand-sand/60 transition-shadow duration-300 ease-editorial group-hover:shadow-editorial"
-        >
+        {/* Image */}
+        <div className="relative aspect-square overflow-hidden rounded-lg bg-brand-sand/60">
           <ProductIllustration
             product={product}
             className="h-full w-full object-cover transition-transform duration-[600ms] ease-editorial group-hover:scale-[1.04]"
@@ -79,11 +81,11 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
               <span className="font-display-italic text-lg text-brand-navy">Out of stock</span>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Info — flex column with the price pushed to the bottom so every
             card in a row aligns regardless of name length. */}
-        <div className="pt-4 px-0.5 flex flex-col flex-1">
+        <div className="pt-3 md:pt-4 flex flex-col flex-1">
           <div className="space-y-1">
             {product.brand && (
               <p className="editorial-label text-brand-cyan-deep">{product.brand}</p>

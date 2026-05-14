@@ -19,12 +19,12 @@ export function ProductGrid({
   columns = 4,
 }: ProductGridProps) {
   const colClasses = {
-    2: 'grid-cols-1 sm:grid-cols-2',
-    3: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
-    4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+    2: 'grid-cols-2',
+    3: 'grid-cols-2 md:grid-cols-3',
+    4: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
   }[columns];
 
-  const gridClass = cn('grid gap-x-5 gap-y-10', colClasses, className);
+  const gridClass = cn('grid gap-x-4 gap-y-6 sm:gap-x-5 sm:gap-y-10', colClasses, className);
 
   if (loading) {
     return (
