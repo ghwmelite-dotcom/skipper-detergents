@@ -11,6 +11,7 @@ import { useFeaturedProducts, useProducts } from '@/hooks/useProducts';
 import { usePublicSettings } from '@/hooks/useSettings';
 import { formatCurrency } from '@skipper/shared';
 import { ProductIllustration } from '@/lib/productIllustration';
+import { QuickBuyPanel } from '@/components/product/QuickBuyPanel';
 import { STORE_NAME } from '@/lib/env';
 import { cn } from '@/lib/cn';
 
@@ -298,6 +299,7 @@ function MobileCategoriesSection({ sections }: { sections: MobileSection[] }) {
                         Bulk
                       </span>
                     )}
+                    <QuickBuyPanel product={p} className="absolute inset-x-1 bottom-1" compact />
                   </div>
                   <div className="pt-2 px-0.5 space-y-0.5">
                     <h4 className="font-sans text-[14px] font-semibold leading-[1.25] text-brand-navy line-clamp-2">
@@ -537,6 +539,7 @@ function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
               Bulk-ready
             </span>
           )}
+          <QuickBuyPanel product={product} className="absolute inset-x-2 bottom-2" />
         </motion.div>
         <div
           className={cn(
@@ -617,10 +620,11 @@ function MarqueeSection({ products }: { products: Product[] }) {
             <Link
               key={`${p.id}-${i}`}
               to={`/product/${p.slug}`}
-              className="flex-none w-[180px] md:w-[260px]"
+              className="flex-none w-[180px] md:w-[260px] group"
             >
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand ring-1 ring-brand-ivory/10">
                 <ProductIllustration product={p} className="h-full w-full" />
+                <QuickBuyPanel product={p} className="absolute inset-x-1.5 bottom-1.5" compact />
               </div>
               <div className="pt-3 space-y-1">
                 <p className="editorial-label text-brand-cyan/80">{p.brand ?? 'Skipper'}</p>
@@ -693,6 +697,7 @@ function NewArrivalsStrip({ products }: { products: Product[] }) {
                   <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy text-brand-ivory text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5">
                     New
                   </span>
+                  <QuickBuyPanel product={p} className="absolute inset-x-1.5 bottom-1.5" compact />
                 </div>
                 <div className="pt-3 space-y-1">
                   <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>
@@ -759,6 +764,7 @@ function AccessoriesStrip({ products }: { products: Product[] }) {
               <Link to={`/product/${p.slug}`} className="block group">
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-ivory shadow-sm group-hover:shadow-editorial transition-shadow duration-300">
                   <ProductIllustration product={p} className="h-full w-full" />
+                  <QuickBuyPanel product={p} className="absolute inset-x-1.5 bottom-1.5" compact />
                 </div>
                 <div className="pt-3 space-y-1">
                   <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>

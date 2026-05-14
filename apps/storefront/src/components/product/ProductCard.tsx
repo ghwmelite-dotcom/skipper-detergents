@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Minus, Check, ShoppingBag } from 'lucide-react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { Product } from '@skipper/shared';
 import { formatCurrency } from '@skipper/shared';
-import { useCart } from '@/hooks/useCart';
 import { ProductIllustration } from '@/lib/productIllustration';
+import { QuickBuyPanel } from './QuickBuyPanel';
 import { cn } from '@/lib/cn';
 
 interface ProductCardProps {
@@ -24,48 +22,18 @@ function lowestBulkUnitPrice(
 }
 
 export function ProductCard({ product, className, index = 0 }: ProductCardProps) {
-  const { addItem } = useCart();
   const reduced = useReducedMotion();
-  const [qty, setQty] = useState(1);
-  const [justAdded, setJustAdded] = useState(false);
 
   const bulkCapable = product.is_bulk_available;
   const firstTier = lowestBulkUnitPrice(product);
   const hasDiscount =
     product.compare_at_price !== null && product.compare_at_price > product.unit_price;
   const inStock = product.stock_quantity > 0;
-  const maxQty = product.stock_quantity > 0 ? product.stock_quantity : 1;
   const savings = hasDiscount ? product.compare_at_price! - product.unit_price : 0;
-
-  const minBulkQty = firstTier?.min_quantity ?? product.bulk_minimum_qty ?? 0;
-  const reachedBulkTier = bulkCapable && firstTier !== null && qty >= minBulkQty;
-  const effectiveUnitPrice = reachedBulkTier ? firstTier.unit_price : product.unit_price;
   const bulkSavingsPct =
     bulkCapable && firstTier && product.unit_price > 0
       ? Math.round(((product.unit_price - firstTier.unit_price) / product.unit_price) * 100)
       : 0;
-
-  function stop(e: React.MouseEvent | React.PointerEvent | React.TouchEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  function handleAdd(e: React.MouseEvent) {
-    stop(e);
-    if (!inStock) return;
-    addItem({ product_id: product.id, quantity: qty });
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1400);
-  }
-
-  function decrement(e: React.MouseEvent) {
-    stop(e);
-    setQty((q) => Math.max(1, q - 1));
-  }
-  function increment(e: React.MouseEvent) {
-    stop(e);
-    setQty((q) => Math.min(maxQty, q + 1));
-  }
 
   return (
     <motion.div
@@ -119,87 +87,7 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
             )}
           </div>
 
-          {/* Quick-buy panel — slides up from bottom on hover (desktop),
-              always visible on touch devices. */}
-          <div
-            onClick={stop}
-            className={cn(
-              'absolute inset-x-2 bottom-2 rounded-md bg-brand-ivory/95 backdrop-blur-sm border border-brand-navy/8 shadow-md',
-              'px-2 py-1.5 flex items-center gap-1.5',
-              // On screens that support hover (desktop), hide-then-reveal.
-              // Mobile / touch keeps the panel always visible.
-              'opacity-100 translate-y-0',
-              'md:opacity-0 md:translate-y-2 md:transition-all md:duration-300 md:ease-editorial',
-              'md:group-hover:opacity-100 md:group-hover:translate-y-0',
-              'md:focus-within:opacity-100 md:focus-within:translate-y-0',
-            )}
-            aria-label={`Quick add ${product.name}`}
-          >
-            {/* Compact qty stepper */}
-            <div className="inline-flex items-center rounded border border-brand-navy/15 bg-brand-ivory overflow-hidden">
-              <button
-                type="button"
-                onClick={decrement}
-                disabled={qty <= 1 || !inStock}
-                aria-label="Decrease quantity"
-                className="h-8 w-8 inline-flex items-center justify-center text-brand-navy hover:bg-brand-navy/5 disabled:opacity-30 disabled:pointer-events-none"
-              >
-                <Minus className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />
-              </button>
-              <div
-                className="h-8 min-w-[26px] px-1 flex items-center justify-center text-[13px] font-semibold text-brand-navy tabular-nums"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                <AnimatePresence mode="popLayout">
-                  <motion.span
-                    key={qty}
-                    initial={reduced ? false : { y: 4, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={reduced ? { opacity: 0 } : { y: -4, opacity: 0 }}
-                    transition={{ duration: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
-                  >
-                    {qty}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-              <button
-                type="button"
-                onClick={increment}
-                disabled={qty >= maxQty || !inStock}
-                aria-label="Increase quantity"
-                className="h-8 w-8 inline-flex items-center justify-center text-brand-navy hover:bg-brand-navy/5 disabled:opacity-30 disabled:pointer-events-none"
-              >
-                <Plus className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleAdd}
-              disabled={!inStock}
-              aria-label={`Add ${qty} of ${product.name} to cart`}
-              className={cn(
-                'flex-1 h-8 inline-flex items-center justify-center gap-1 rounded text-[12px] font-semibold tracking-wide transition-colors duration-200',
-                justAdded
-                  ? 'bg-brand-cyan text-white'
-                  : 'bg-brand-navy text-brand-ivory hover:bg-brand-navy/90',
-                !inStock && 'opacity-50 cursor-not-allowed',
-              )}
-            >
-              {justAdded ? (
-                <>
-                  <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
-                  Added
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
-                  Add
-                </>
-              )}
-            </button>
-          </div>
+          <QuickBuyPanel product={product} className="absolute inset-x-2 bottom-2" />
 
           {!inStock && (
             <div className="absolute inset-0 bg-brand-ivory/75 backdrop-blur-[1px] flex items-center justify-center">
@@ -218,14 +106,9 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
           </h3>
           <div className="flex items-baseline gap-2 pt-1 flex-wrap">
             <span className="text-[15px] font-semibold text-brand-navy tabular-nums">
-              {formatCurrency(effectiveUnitPrice)}
+              {formatCurrency(product.unit_price)}
             </span>
-            {reachedBulkTier && (
-              <span className="text-[11px] font-medium text-brand-cyan-deep tracking-wide uppercase">
-                Bulk price
-              </span>
-            )}
-            {!reachedBulkTier && hasDiscount && (
+            {hasDiscount && (
               <>
                 <span className="text-[13px] text-brand-navy/45 line-through tabular-nums">
                   {formatCurrency(product.compare_at_price!)}
@@ -235,7 +118,7 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
                 </span>
               </>
             )}
-            {!reachedBulkTier && bulkCapable && firstTier && (
+            {!hasDiscount && bulkCapable && firstTier && (
               <span className="text-[11px] text-brand-navy/55 tabular-nums">
                 · {formatCurrency(firstTier.unit_price)}/ea @ {firstTier.min_quantity}+
               </span>
