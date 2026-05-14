@@ -3,7 +3,6 @@ import { X, User, ChevronRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Sheet } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { ModeToggle } from '@/components/shared/ModeToggle';
 import { useUiStore } from '@/stores/uiStore';
 import { useCategories } from '@/hooks/useCategories';
 import { haptic } from '@/lib/haptic';
@@ -77,15 +76,6 @@ export function MobileNav() {
           </span>
           <ChevronRight className="h-4 w-4 text-brand-navy/40" aria-hidden="true" />
         </button>
-
-        {/* Purchase mode row */}
-        <div className="flex items-center justify-between mb-6 pb-5 border-b border-brand-navy/10">
-          <div>
-            <p className="editorial-label text-brand-navy/60">Buying mode</p>
-            <p className="font-display text-[17px] text-brand-navy mt-0.5">Single or bulk</p>
-          </div>
-          <ModeToggle size="md" layoutIdPrefix="mobile-nav-mode" />
-        </div>
 
         {/* Primary nav */}
         <nav className="flex flex-col gap-0.5 mb-6" aria-label="Mobile">

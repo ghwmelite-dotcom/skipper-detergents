@@ -9,10 +9,8 @@ import {
   useScroll,
 } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ModeToggle } from '@/components/shared/ModeToggle';
 import { useCart } from '@/hooks/useCart';
 import { useUiStore } from '@/stores/uiStore';
-import { usePurchaseModeStore } from '@/stores/purchaseModeStore';
 import { STORE_NAME } from '@/lib/env';
 import { cn } from '@/lib/cn';
 
@@ -27,10 +25,8 @@ export function Header() {
   const { totalQuantity } = useCart();
   const openMobileNav = useUiStore((s) => s.openMobileNav);
   const openCartDrawer = useUiStore((s) => s.openCartDrawer);
-  const mode = usePurchaseModeStore((s) => s.mode);
   const reduced = useReducedMotion();
   const location = useLocation();
-  const isBulkPage = location.pathname.startsWith('/bulk');
   const isHomePage = location.pathname === '/';
   const isCheckoutPage = location.pathname.startsWith('/checkout');
 
@@ -97,20 +93,6 @@ export function Header() {
           : 'border-transparent',
       )}
     >
-      {/* Navy stripe — signals bulk mode is active globally */}
-      <AnimatePresence>
-        {mode === 'bulk' && !isBulkPage && (
-          <motion.div
-            initial={reduced ? { opacity: 1 } : { opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduced ? { opacity: 0 } : { opacity: 0, y: -4 }}
-            transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
-            className="h-[3px] w-full bg-gradient-to-r from-brand-navy via-brand-cyan-deep to-brand-navy"
-            aria-hidden="true"
-          />
-        )}
-      </AnimatePresence>
-
       <div
         className={cn(
           'container flex items-center gap-3 md:gap-4 transition-[height] duration-300 ease-editorial',
@@ -191,19 +173,6 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1.5 md:gap-2">
-          {!isBulkPage && !isCheckoutPage && (
-            <>
-              {/* Mobile: compact pill-only mode toggle */}
-              <div className="md:hidden">
-                <ModeToggle size="sm" layoutIdPrefix="header-mode-mobile" />
-              </div>
-              {/* Desktop: same pill at sm scale */}
-              <div className="hidden md:block">
-                <ModeToggle size="sm" layoutIdPrefix="header-mode" />
-              </div>
-            </>
-          )}
-
           {/* Mobile: search icon (navigates to /shop as a search jump-point). No cart icon — moves to tab bar. */}
           {!isCheckoutPage && (
             <Link

@@ -9,7 +9,6 @@ import { Reveal } from '@/components/motion/Reveal';
 import LivingHero from '@/components/hero/LivingHero';
 import { useFeaturedProducts, useProducts } from '@/hooks/useProducts';
 import { usePublicSettings } from '@/hooks/useSettings';
-import { usePurchaseModeStore } from '@/stores/purchaseModeStore';
 import { formatCurrency } from '@skipper/shared';
 import { ProductIllustration } from '@/lib/productIllustration';
 import { STORE_NAME } from '@/lib/env';
@@ -28,7 +27,6 @@ interface MobileSection {
 export default function Home() {
   const { data: settings } = usePublicSettings();
   const { data: featured } = useFeaturedProducts(12);
-  const mode = usePurchaseModeStore((s) => s.mode);
 
   const { data: allProducts } = useProducts({ per_page: 48, sort: 'popular' });
   const allProductList = allProducts?.data ?? [];
@@ -118,7 +116,6 @@ export default function Home() {
         <SpreadSection
           leftProducts={leftProducts}
           rightProducts={rightProducts}
-          mode={mode}
         />
       </div>
 
@@ -337,10 +334,9 @@ function MobileCategoriesSection({ sections }: { sections: MobileSection[] }) {
 interface SpreadSectionProps {
   leftProducts: Product[];
   rightProducts: Product[];
-  mode: 'single' | 'bulk';
 }
 
-function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps) {
+function SpreadSection({ leftProducts, rightProducts }: SpreadSectionProps) {
   const reduced = useReducedMotion();
 
   return (
@@ -375,7 +371,6 @@ function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps
           label="Wet goods"
           meta="Detergents & cleaners"
           products={leftProducts}
-          mode={mode}
         />
 
         <div className="hidden md:flex relative items-stretch justify-center">
@@ -403,7 +398,6 @@ function SpreadSection({ leftProducts, rightProducts, mode }: SpreadSectionProps
           label="Paper goods"
           meta="Tissue, toilet roll, kitchen"
           products={rightProducts}
-          mode={mode}
         />
 
         <div
@@ -435,10 +429,9 @@ interface SpreadColumnProps {
   label: string;
   meta: string;
   products: Product[];
-  mode: 'single' | 'bulk';
 }
 
-function SpreadColumn({ side, label, meta, products, mode }: SpreadColumnProps) {
+function SpreadColumn({ side, label, meta, products }: SpreadColumnProps) {
   const reduced = useReducedMotion();
   const isLeft = side === 'left';
 
@@ -471,7 +464,6 @@ function SpreadColumn({ side, label, meta, products, mode }: SpreadColumnProps) 
                 product={p}
                 side={side}
                 index={i}
-                mode={mode}
                 reduced={Boolean(reduced)}
               />
             ))}
@@ -498,15 +490,13 @@ interface SpreadCardProps {
   product: Product;
   side: 'left' | 'right';
   index: number;
-  mode: 'single' | 'bulk';
   reduced: boolean;
 }
 
-function SpreadCard({ product, side, index, mode, reduced }: SpreadCardProps) {
+function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
   const tilt = index % 2 === 0 ? -1.5 : 1.5;
   const isLeft = side === 'left';
   const bulkAvailable = product.is_bulk_available;
-  const inBulk = mode === 'bulk' && bulkAvailable;
 
   return (
     <motion.div
@@ -543,15 +533,8 @@ function SpreadCard({ product, side, index, mode, reduced }: SpreadCardProps) {
         >
           <ProductIllustration product={product} className="h-full w-full" />
           {bulkAvailable && (
-            <span
-              className={cn(
-                'absolute top-3 left-3 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase',
-                inBulk
-                  ? 'bg-brand-red text-white'
-                  : 'bg-brand-navy text-brand-ivory',
-              )}
-            >
-              {inBulk ? 'Save bulk' : 'Bulk-ready'}
+            <span className="absolute top-3 left-3 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase bg-brand-navy text-brand-ivory">
+              Bulk-ready
             </span>
           )}
         </motion.div>
@@ -573,17 +556,12 @@ function SpreadCard({ product, side, index, mode, reduced }: SpreadCardProps) {
               isLeft ? 'md:justify-end' : 'md:justify-start',
             )}
           >
-            {inBulk && (
-              <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-brand-red">
-                From
-              </span>
-            )}
             <span className="text-[15px] font-semibold text-brand-navy tabular-nums">
               {formatCurrency(product.unit_price)}
             </span>
             {bulkAvailable && (
               <span className="text-[11px] text-brand-navy/55 tabular-nums">
-                {mode === 'bulk' ? `min ${product.bulk_minimum_qty}` : 'bulk available'}
+                bulk available
               </span>
             )}
           </div>
