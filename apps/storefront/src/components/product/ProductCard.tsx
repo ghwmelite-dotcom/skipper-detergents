@@ -87,8 +87,6 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
             )}
           </div>
 
-          <QuickBuyPanel product={product} className="absolute inset-x-2 bottom-2" />
-
           {!inStock && (
             <div className="absolute inset-0 bg-brand-ivory/75 backdrop-blur-[1px] flex items-center justify-center">
               <span className="font-display-italic text-lg text-brand-navy">Out of stock</span>
@@ -126,6 +124,12 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
           </div>
         </div>
       </Link>
+
+      {/* Buy controls live outside the Link so taps on the panel never
+          navigate to the PDP. */}
+      <div className="pt-3 px-0.5">
+        <QuickBuyPanel product={product} />
+      </div>
     </motion.div>
   );
 }
