@@ -14,10 +14,9 @@ interface QuickBuyPanelProps {
 
 /**
  * QuickBuyPanel — round cyan stepper + full-width navy "Add to cart" pill,
- * stacked. The caller positions this as an absolute overlay over the bottom
- * of the product image. The panel is hidden by default on hover-capable
- * devices and revealed on group-hover; on touch devices it is always
- * visible since hover isn't a meaningful gesture there.
+ * stacked. Always renders at full opacity; the caller is responsible for any
+ * hover-reveal animation (so the panel can live inside the card content
+ * flow instead of overlapping the image).
  */
 export function QuickBuyPanel({ product, className, compact = false }: QuickBuyPanelProps) {
   const { addItem } = useCart();
@@ -61,13 +60,7 @@ export function QuickBuyPanel({ product, className, compact = false }: QuickBuyP
       onClick={stop}
       aria-label={`Quick add ${product.name}`}
       className={cn(
-        'flex flex-col gap-1.5 rounded-md bg-brand-ivory/95 backdrop-blur-sm border border-brand-navy/8 shadow-md p-2',
-        // Mobile / touch: panel is always visible.
-        // Desktop (md+): hidden until the card is hovered or focused within.
-        'opacity-100 translate-y-0',
-        'md:opacity-0 md:translate-y-2 md:transition-all md:duration-300 md:ease-editorial',
-        'md:group-hover:opacity-100 md:group-hover:translate-y-0',
-        'md:focus-within:opacity-100 md:focus-within:translate-y-0',
+        'flex flex-col gap-1.5',
         className,
       )}
     >

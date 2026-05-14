@@ -299,15 +299,19 @@ function MobileCategoriesSection({ sections }: { sections: MobileSection[] }) {
                         Bulk
                       </span>
                     )}
-                    <QuickBuyPanel product={p} compact className="absolute inset-x-1 bottom-1" />
                   </div>
                   <div className="pt-2 px-0.5 flex flex-col flex-1">
                     <h4 className="font-sans text-[14px] font-semibold leading-[1.25] text-brand-navy line-clamp-2 min-h-[2.5em]">
                       {p.name}
                     </h4>
-                    <p className="text-[14px] font-bold text-brand-navy tabular-nums mt-auto pt-1">
-                      {formatCurrency(p.unit_price)}
-                    </p>
+                    <div className="mt-auto">
+                      <p className="text-[15px] font-bold text-brand-cyan-deep tabular-nums pt-1">
+                        {formatCurrency(p.unit_price)}
+                      </p>
+                      <div className="pt-2">
+                        <QuickBuyPanel product={p} compact />
+                      </div>
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -539,7 +543,6 @@ function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
               Bulk-ready
             </span>
           )}
-          <QuickBuyPanel product={product} className="absolute inset-x-2 bottom-2" />
         </motion.div>
         <div
           className={cn(
@@ -559,7 +562,7 @@ function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
               isLeft ? 'md:justify-end' : 'md:justify-start',
             )}
           >
-            <span className="text-[15px] font-semibold text-brand-navy tabular-nums">
+            <span className="text-[17px] font-bold text-brand-cyan-deep tabular-nums">
               {formatCurrency(product.unit_price)}
             </span>
             {bulkAvailable && (
@@ -567,6 +570,9 @@ function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
                 bulk available
               </span>
             )}
+          </div>
+          <div className={cn('pt-3 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 md:transition-opacity md:duration-300 md:ease-editorial', isLeft ? 'md:pl-0' : 'md:pr-0')}>
+            <QuickBuyPanel product={product} />
           </div>
         </div>
       </Link>
@@ -624,16 +630,20 @@ function MarqueeSection({ products }: { products: Product[] }) {
             >
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-brand-sand ring-1 ring-brand-ivory/10">
                 <ProductIllustration product={p} className="h-full w-full" />
-                <QuickBuyPanel product={p} compact className="absolute inset-x-1.5 bottom-1.5" />
               </div>
               <div className="pt-3 flex flex-col flex-1">
                 <p className="editorial-label text-brand-cyan/80">{p.brand ?? 'Skipper'}</p>
                 <p className="font-display text-[15px] md:text-[17px] leading-tight text-brand-ivory font-medium line-clamp-2 min-h-[2.4em] mt-1">
                   {p.name}
                 </p>
-                <p className="text-[13px] font-semibold text-brand-ivory/90 tabular-nums mt-auto pt-2">
-                  {formatCurrency(p.unit_price)}
-                </p>
+                <div className="mt-auto">
+                  <p className="text-[15px] font-bold text-brand-cyan tabular-nums pt-2">
+                    {formatCurrency(p.unit_price)}
+                  </p>
+                  <div className="pt-2 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 md:transition-opacity md:duration-300 md:ease-editorial">
+                    <QuickBuyPanel product={p} compact />
+                  </div>
+                </div>
               </div>
             </Link>
           ))}
@@ -697,16 +707,20 @@ function NewArrivalsStrip({ products }: { products: Product[] }) {
                   <span className="absolute top-2 left-2 inline-flex items-center rounded-full bg-brand-navy text-brand-ivory text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5">
                     New
                   </span>
-                  <QuickBuyPanel product={p} compact className="absolute inset-x-1.5 bottom-1.5" />
                 </div>
                 <div className="pt-3 flex flex-col flex-1">
                   <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>
                   <p className="font-display text-[15px] md:text-[16px] leading-tight text-brand-navy font-medium line-clamp-2 min-h-[2.4em] mt-1">
                     {p.name}
                   </p>
-                  <p className="text-[13px] font-semibold text-brand-navy tabular-nums mt-auto pt-2">
-                    {formatCurrency(p.unit_price)}
-                  </p>
+                  <div className="mt-auto">
+                    <p className="text-[15px] font-bold text-brand-cyan-deep tabular-nums pt-2">
+                      {formatCurrency(p.unit_price)}
+                    </p>
+                    <div className="pt-2 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 md:transition-opacity md:duration-300 md:ease-editorial">
+                      <QuickBuyPanel product={p} compact />
+                    </div>
+                  </div>
                 </div>
               </Link>
             </motion.div>
@@ -764,16 +778,20 @@ function AccessoriesStrip({ products }: { products: Product[] }) {
               <Link to={`/product/${p.slug}`} className="flex flex-col h-full group">
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg ring-1 ring-brand-navy/10 bg-brand-ivory shadow-sm group-hover:shadow-editorial transition-shadow duration-300">
                   <ProductIllustration product={p} className="h-full w-full" />
-                  <QuickBuyPanel product={p} compact className="absolute inset-x-1.5 bottom-1.5" />
                 </div>
                 <div className="pt-3 flex flex-col flex-1">
                   <p className="editorial-label text-brand-cyan-deep">{p.brand ?? 'Skipper'}</p>
                   <p className="font-display text-[15px] md:text-[16px] leading-tight text-brand-navy font-medium line-clamp-2 min-h-[2.4em] mt-1">
                     {p.name}
                   </p>
-                  <p className="text-[13px] font-semibold text-brand-navy tabular-nums mt-auto pt-2">
-                    {formatCurrency(p.unit_price)}
-                  </p>
+                  <div className="mt-auto">
+                    <p className="text-[15px] font-bold text-brand-cyan-deep tabular-nums pt-2">
+                      {formatCurrency(p.unit_price)}
+                    </p>
+                    <div className="pt-2 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 md:transition-opacity md:duration-300 md:ease-editorial">
+                      <QuickBuyPanel product={p} compact />
+                    </div>
+                  </div>
                 </div>
               </Link>
             </motion.div>

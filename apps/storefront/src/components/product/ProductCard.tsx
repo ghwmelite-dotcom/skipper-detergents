@@ -87,8 +87,6 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
             )}
           </div>
 
-          <QuickBuyPanel product={product} className="absolute inset-x-2 bottom-2" />
-
           {!inStock && (
             <div className="absolute inset-0 bg-brand-ivory/75 backdrop-blur-[1px] flex items-center justify-center">
               <span className="font-display-italic text-lg text-brand-navy">Out of stock</span>
@@ -107,25 +105,30 @@ export function ProductCard({ product, className, index = 0 }: ProductCardProps)
               {product.name}
             </h3>
           </div>
-          <div className="mt-auto pt-2 flex items-baseline gap-2 flex-wrap">
-            <span className="text-[15px] font-semibold text-brand-navy tabular-nums">
-              {formatCurrency(product.unit_price)}
-            </span>
-            {hasDiscount && (
-              <>
-                <span className="text-[13px] text-brand-navy/45 line-through tabular-nums">
-                  {formatCurrency(product.compare_at_price!)}
-                </span>
-                <span className="text-[11px] font-medium text-brand-red tracking-wide uppercase">
-                  Save {formatCurrency(savings)}
-                </span>
-              </>
-            )}
-            {!hasDiscount && bulkCapable && firstTier && (
-              <span className="text-[11px] text-brand-navy/55 tabular-nums">
-                · {formatCurrency(firstTier.unit_price)}/ea @ {firstTier.min_quantity}+
+          <div className="mt-auto">
+            <div className="pt-2 flex items-baseline gap-2 flex-wrap">
+              <span className="text-[16px] font-bold text-brand-cyan-deep tabular-nums">
+                {formatCurrency(product.unit_price)}
               </span>
-            )}
+              {hasDiscount && (
+                <>
+                  <span className="text-[13px] text-brand-navy/45 line-through tabular-nums">
+                    {formatCurrency(product.compare_at_price!)}
+                  </span>
+                  <span className="text-[11px] font-medium text-brand-red tracking-wide uppercase">
+                    Save {formatCurrency(savings)}
+                  </span>
+                </>
+              )}
+              {!hasDiscount && bulkCapable && firstTier && (
+                <span className="text-[11px] text-brand-navy/55 tabular-nums">
+                  · {formatCurrency(firstTier.unit_price)}/ea @ {firstTier.min_quantity}+
+                </span>
+              )}
+            </div>
+            <div className="pt-3 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 md:transition-opacity md:duration-300 md:ease-editorial">
+              <QuickBuyPanel product={product} />
+            </div>
           </div>
         </div>
       </Link>
