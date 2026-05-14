@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Copy, ExternalLink } from 'lucide-react';
+import { Copy, ExternalLink, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Input, Textarea } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
+import { Label, FieldError } from '@/components/ui/Label';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
 import { API_BASE } from '@/lib/env';
 
 const PAYSTACK_WEBHOOK_URL = `${API_BASE}/webhooks/paystack`;
@@ -119,6 +120,8 @@ export function SettingsPage(): JSX.Element {
         }
       />
 
+      <ChangePasswordCard />
+
       <Card className="mb-5 border-cyan-500/40 bg-cyan-50/30">
         <CardHeader
           title="Paystack webhook"
@@ -190,5 +193,150 @@ export function SettingsPage(): JSX.Element {
         </div>
       )}
     </div>
+  );
+}
+
+function ChangePasswordCard(): JSX.Element {
+  const toast = useToast();
+  const user = useAuthStore((s) => s.user);
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNext, setShowNext] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const passwordsMatch = next === confirm;
+  const longEnough = next.length >= 12;
+  const formValid =
+    current.length > 0 && next.length > 0 && confirm.length > 0 && passwordsMatch && longEnough;
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      api.post('/api/admin/users/me/change-password', {
+        current_password: current,
+        new_password: next,
+      }),
+    onSuccess: () => {
+      toast.push('Password updated', 'success');
+      setCurrent('');
+      setNext('');
+      setConfirm('');
+      setError(null);
+    },
+    onError: (e: unknown) => {
+      const message =
+        e instanceof ApiError ? e.message : 'Could not update password — try again';
+      setError(message);
+    },
+  });
+
+  const submit = (e: React.FormEvent): void => {
+    e.preventDefault();
+    if (!formValid) {
+      if (!longEnough) setError('New password must be at least 12 characters');
+      else if (!passwordsMatch) setError('New password and confirmation do not match');
+      else setError('Please fill in every field');
+      return;
+    }
+    setError(null);
+    mutation.mutate();
+  };
+
+  return (
+    <Card className="mb-5 border-ink-200">
+      <CardHeader
+        title="Your password"
+        subtitle={
+          user
+            ? `Signed in as ${user.email}. Change the password for this account.`
+            : 'Change the password for this account.'
+        }
+      />
+      <CardBody>
+        <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl">
+          <div className="md:col-span-3">
+            <Label htmlFor="current-password">Current password</Label>
+            <div className="relative">
+              <Input
+                id="current-password"
+                type={showCurrent ? 'text' : 'password'}
+                autoComplete="current-password"
+                value={current}
+                onChange={(e) => setCurrent(e.target.value)}
+                className="pr-9"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrent((v) => !v)}
+                aria-label={showCurrent ? 'Hide current password' : 'Show current password'}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-700"
+              >
+                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="new-password">New password</Label>
+            <div className="relative">
+              <Input
+                id="new-password"
+                type={showNext ? 'text' : 'password'}
+                autoComplete="new-password"
+                value={next}
+                onChange={(e) => setNext(e.target.value)}
+                invalid={next.length > 0 && !longEnough}
+                className="pr-9"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNext((v) => !v)}
+                aria-label={showNext ? 'Hide new password' : 'Show new password'}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-700"
+              >
+                {showNext ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <p className="mt-1 text-[11px] text-ink-500">Minimum 12 characters.</p>
+          </div>
+
+          <div>
+            <Label htmlFor="confirm-password">Confirm new password</Label>
+            <Input
+              id="confirm-password"
+              type={showNext ? 'text' : 'password'}
+              autoComplete="new-password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              invalid={confirm.length > 0 && !passwordsMatch}
+            />
+            <FieldError
+              message={
+                confirm.length > 0 && !passwordsMatch ? 'Does not match new password' : undefined
+              }
+            />
+          </div>
+
+          <div className="flex items-end">
+            <Button
+              type="submit"
+              loading={mutation.isPending}
+              disabled={!formValid}
+              className="gap-1.5"
+            >
+              <KeyRound className="h-4 w-4" />
+              Update password
+            </Button>
+          </div>
+
+          {error && (
+            <div className="md:col-span-3 rounded border border-danger-500/30 bg-danger-50 px-3 py-2 text-xs text-danger-600">
+              {error}
+            </div>
+          )}
+        </form>
+      </CardBody>
+    </Card>
   );
 }
