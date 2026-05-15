@@ -10,9 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useProducts } from '@/hooks/useProducts';
 import { usePublicSettings } from '@/hooks/useSettings';
 import { formatCurrency } from '@skipper/shared';
+import { ProductIllustration } from '@/lib/productIllustration';
 import { cn } from '@/lib/cn';
-
-const PLACEHOLDER = 'https://placehold.co/400x400/F4EDE0/0B2545?text=S&font=Roboto';
 
 const BENEFITS = [
   { label: 'Offices', desc: 'Stock the kitchen and bathrooms without the runaround.' },
@@ -173,13 +172,8 @@ export default function BulkOrder() {
                     to={`/product/${product.slug}`}
                     className="group flex gap-5 rounded-lg bg-brand-ivory ring-1 ring-brand-navy/8 p-5 hover:ring-brand-navy/20 hover:shadow-md transition-all duration-300 ease-editorial"
                   >
-                    <div className="h-24 w-24 flex-none overflow-hidden rounded-md bg-brand-sand/60 ring-1 ring-brand-navy/8">
-                      <img
-                        src={PLACEHOLDER}
-                        alt={product.name}
-                        className="h-full w-full object-cover transition-transform duration-500 ease-editorial group-hover:scale-105"
-                        loading="lazy"
-                      />
+                    <div className="h-24 w-24 flex-none overflow-hidden rounded-md bg-brand-sand/60 ring-1 ring-brand-navy/8 transition-transform duration-500 ease-editorial group-hover:scale-105">
+                      <ProductIllustration product={product} className="h-full w-full" />
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col gap-1">
                       {product.brand && (

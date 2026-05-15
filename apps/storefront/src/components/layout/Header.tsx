@@ -19,14 +19,17 @@ interface NavLink {
   to: string;
   label: string;
   icon?: LucideIcon;
+  /** Set true to render this as a distinctive pill (utility action) rather
+   *  than a regular category link. */
+  utility?: boolean;
 }
 
 const NAV_LINKS: NavLink[] = [
+  { to: '/', label: 'Home' },
   { to: '/shop', label: 'Shop' },
-  { to: '/bulk', label: 'Bulk' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
-  { to: '/track', label: 'Track order', icon: Package },
+  { to: '/track', label: 'Track order', icon: Package, utility: true },
 ];
 
 export function Header() {
@@ -156,7 +159,7 @@ export function Header() {
         </Link>
 
         <nav
-          className="hidden md:flex items-center justify-center gap-7 flex-1"
+          className="hidden md:flex items-center justify-center gap-1.5 lg:gap-2 flex-1"
           aria-label="Primary"
         >
           {NAV_LINKS.map((link) => {
@@ -164,20 +167,68 @@ export function Header() {
               link.to === '/'
                 ? location.pathname === '/'
                 : location.pathname === link.to || location.pathname.startsWith(`${link.to}/`);
+            const Icon = link.icon;
+
+            if (link.utility) {
+              return (
+                <span key={link.to} className="inline-flex items-center gap-3 lg:gap-4 pl-2 lg:pl-3 ml-1">
+                  <span
+                    className="h-5 w-px bg-brand-navy/15"
+                    aria-hidden="true"
+                  />
+                  <Link
+                    to={link.to}
+                    data-active={isActive ? 'true' : 'false'}
+                    className={cn(
+                      'group inline-flex items-center gap-2 h-10 px-5 rounded-full',
+                      'text-[14px] font-semibold tracking-[0.005em]',
+                      'transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-editorial',
+                      'shadow-[0_2px_8px_rgba(11,37,69,0.06)] hover:shadow-[0_6px_18px_rgba(11,37,69,0.14)]',
+                      'hover:-translate-y-[1px]',
+                      isActive
+                        ? 'bg-brand-navy text-brand-ivory border border-brand-navy'
+                        : 'bg-brand-ivory text-brand-navy border border-brand-navy/20 hover:border-brand-cyan-deep hover:text-brand-cyan-deep hover:bg-brand-cyan-deep/[0.06]',
+                    )}
+                  >
+                    {Icon && (
+                      <Icon
+                        className="h-4 w-4 transition-transform duration-300 ease-editorial group-hover:rotate-[10deg]"
+                        strokeWidth={2.25}
+                        aria-hidden="true"
+                      />
+                    )}
+                    {link.label}
+                  </Link>
+                </span>
+              );
+            }
+
             return (
               <Link
                 key={link.to}
                 to={link.to}
                 data-active={isActive ? 'true' : 'false'}
                 className={cn(
-                  'nav-underline inline-flex items-center gap-1.5 text-[13px] font-medium tracking-wide transition-colors duration-200',
-                  isActive ? 'text-brand-navy' : 'text-brand-navy/65 hover:text-brand-navy',
+                  'relative inline-flex items-center gap-1.5 h-10 px-4 rounded-full',
+                  'text-[14px] font-semibold tracking-[0.005em]',
+                  'transition-[background-color,color] duration-200 ease-editorial',
+                  isActive
+                    ? 'bg-brand-navy/[0.06] text-brand-navy'
+                    : 'text-brand-navy/75 hover:text-brand-navy hover:bg-brand-navy/[0.04]',
                 )}
               >
-                {link.icon && (
-                  <link.icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                {Icon && (
+                  <Icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
                 )}
                 {link.label}
+                {/* Cyan underline accent for the active category link —
+                    sits just inside the pill's bottom edge. */}
+                {isActive && (
+                  <span
+                    className="absolute left-1/2 -translate-x-1/2 bottom-1.5 h-[2px] w-6 rounded-full bg-brand-cyan-deep"
+                    aria-hidden="true"
+                  />
+                )}
               </Link>
             );
           })}

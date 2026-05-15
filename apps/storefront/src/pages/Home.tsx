@@ -38,14 +38,17 @@ export default function Home() {
   const { data: newestProducts } = useProducts({ per_page: 8, sort: 'newest' });
   const newArrivals = newestProducts?.data ?? [];
 
+  // Up to 8 per side so wide-screen lg+ 2-col grids stay populated; on md
+  // the SpreadColumn still renders single-column and naturally caps via
+  // overflow without needing a separate slice.
   const leftProducts = useMemo(
     () =>
-      allProductList.filter((p) => LEFT_CATEGORIES.includes(p.category_id)).slice(0, 4),
+      allProductList.filter((p) => LEFT_CATEGORIES.includes(p.category_id)).slice(0, 8),
     [allProductList],
   );
   const rightProducts = useMemo(
     () =>
-      allProductList.filter((p) => RIGHT_CATEGORIES.includes(p.category_id)).slice(0, 4),
+      allProductList.filter((p) => RIGHT_CATEGORIES.includes(p.category_id)).slice(0, 8),
     [allProductList],
   );
   const accessoryProducts = useMemo(
@@ -446,17 +449,51 @@ function SpreadColumn({ side, label, meta, products }: SpreadColumnProps) {
     >
       <div
         className={cn(
-          'w-full max-w-[480px] space-y-1.5',
-          isLeft ? 'md:text-right' : 'md:text-left',
+          'w-full max-w-[480px] lg:max-w-[560px] flex flex-col gap-3',
+          isLeft ? 'md:items-end md:text-right' : 'md:items-start md:text-left',
         )}
       >
-        <p className="editorial-label text-brand-cyan-deep">{label}</p>
-        <p className="font-display-italic text-brand-navy/60 text-lg">{meta}</p>
+        {/* Cyan accent rule + label. On the left column the rule sits on
+            the right of the label (toward the spine); on the right column
+            it sits on the left. */}
+        <div
+          className={cn(
+            'inline-flex items-center gap-3',
+            isLeft ? 'flex-row md:flex-row-reverse' : 'flex-row',
+          )}
+        >
+          <span
+            className="inline-block h-px w-10 bg-brand-cyan-deep"
+            aria-hidden="true"
+          />
+          <span className="editorial-label text-brand-cyan-deep text-[12px]">
+            {label}
+          </span>
+        </div>
+
+        {/* Title — large editorial italic, full navy weight for contrast. */}
+        <p className="font-display-italic text-[clamp(2rem,4.5vw,3.25rem)] leading-[0.95] tracking-[-0.015em] text-brand-navy">
+          {meta}.
+        </p>
+
+        {/* Decorative underline anchored toward the spine. */}
+        <span
+          className="inline-block h-[3px] w-14 rounded-full bg-brand-cyan-deep/45"
+          aria-hidden="true"
+        />
       </div>
 
-      <div className={cn('w-full max-w-[480px] space-y-8 md:space-y-10')}>
+      {/* Single column up to md (dramatic editorial), 2-col grid from lg
+          (denser, fills wide screens). The inner cards drop their edge-
+          bleed offsets in 2-col mode (see SpreadCard). */}
+      <div
+        className={cn(
+          'w-full max-w-[480px] lg:max-w-[560px] space-y-8 md:space-y-10',
+          'lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-12',
+        )}
+      >
         {products.length === 0
-          ? Array.from({ length: 3 }).map((_, i) => (
+          ? Array.from({ length: 4 }).map((_, i) => (
               <SpreadCardSkeleton key={i} side={side} index={i} />
             ))
           : products.map((p, i) => (
@@ -495,6 +532,11 @@ interface SpreadCardProps {
 }
 
 function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
+  // At md (single column) the tilt + bleed offset toward the spine carry
+  // the editorial feel. At lg+ we drop to a 2-col grid per side, so we
+  // half the tilt and skip the offsets — otherwise cards would overlap
+  // their grid neighbours. Framer Motion's initial transform always uses
+  // the larger tilt; CSS then overrides it at lg+ via a class.
   const tilt = index % 2 === 0 ? -1.5 : 1.5;
   const isLeft = side === 'left';
   const bulkAvailable = product.is_bulk_available;
@@ -520,7 +562,10 @@ function SpreadCard({ product, side, index, reduced }: SpreadCardProps) {
       style={{ transform: reduced ? undefined : `rotate(${tilt}deg)` }}
       className={cn(
         'group relative w-full',
-        isLeft ? 'md:-mr-10' : 'md:-ml-10',
+        // Edge-bleed offsets only make sense in 1-col where cards flow
+        // toward the central spine. Drop them in 2-col so cards don't
+        // overlap their grid neighbours.
+        isLeft ? 'md:-mr-10 lg:mr-0' : 'md:-ml-10 lg:ml-0',
       )}
     >
       <Link

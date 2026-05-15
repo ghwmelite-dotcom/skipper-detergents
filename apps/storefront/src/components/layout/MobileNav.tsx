@@ -16,8 +16,8 @@ interface NavLink {
 }
 
 const NAV_LINKS: NavLink[] = [
+  { to: '/', label: 'Home' },
   { to: '/shop', label: 'Shop' },
-  { to: '/bulk', label: 'Bulk' },
   { to: '/track', label: 'Track order', icon: Package },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
