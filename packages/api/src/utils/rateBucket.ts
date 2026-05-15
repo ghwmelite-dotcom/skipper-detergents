@@ -56,7 +56,10 @@ export async function consumeRateBucket(
   // Persist with a TTL that mirrors the remaining window so KV evicts on its
   // own. We always write — even on rejection — so the count reflects the
   // attacker's full pressure (a rejected hit still costs them).
-  const ttlSeconds = Math.max(1, Math.ceil((resetAt - now) / 1000));
+  // Cloudflare KV enforces a 60s minimum on expirationTtl, so we floor at 60
+  // even if the logical window is nearly over (the resetAt stored in the
+  // value still controls when callers see a fresh bucket).
+  const ttlSeconds = Math.max(60, Math.ceil((resetAt - now) / 1000));
   await kv.put(key, JSON.stringify({ count, resetAt }), { expirationTtl: ttlSeconds });
 
   return {
