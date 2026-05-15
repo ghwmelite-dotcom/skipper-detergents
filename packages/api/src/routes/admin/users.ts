@@ -1,17 +1,27 @@
 import { Hono } from 'hono';
+import { setCookie } from 'hono/cookie';
 import {
   adminUserCreateSchema,
   adminUserUpdateSchema,
   adminUserResetPasswordSchema,
   adminChangePasswordSchema,
   type AdminUser,
+  type AdminRole,
 } from '@skipper/shared';
 import type { Env } from '../../types/env';
 import { ok, fail } from '../../utils/response';
 import { all, first, run } from '../../utils/db';
 import { hashPassword, verifyPassword } from '../../utils/password';
+import { signJwt } from '../../utils/jwt';
 import { logActivity } from '../../services/activity';
-import { adminAuth, requireSuperAdmin, type AdminVariables } from '../../middleware/adminAuth';
+import {
+  adminAuth,
+  requireSuperAdmin,
+  type AdminVariables,
+  ADMIN_SESSION_COOKIE,
+} from '../../middleware/adminAuth';
+
+const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 function idHex(): string {
   const bytes = new Uint8Array(8);
@@ -35,7 +45,7 @@ adminUsersRouter.use('*', adminAuth);
 adminUsersRouter.post('/me/change-password', async (c) => {
   const body = adminChangePasswordSchema.parse(await c.req.json());
   const me = c.get('adminUser');
-  const user = await first<AdminUser>(
+  const user = await first<AdminUser & { token_version: number }>(
     c.env.DB,
     `SELECT * FROM admin_users WHERE id = ? AND is_active = 1`,
     [me.id],
@@ -43,8 +53,37 @@ adminUsersRouter.post('/me/change-password', async (c) => {
   if (!user) return c.json(fail('NOT_FOUND', 'User not found'), 404);
   const ok_ = await verifyPassword(body.current_password, user.password_hash);
   if (!ok_) return c.json(fail('UNAUTHORIZED', 'Current password is incorrect'), 401);
+
   const hash = await hashPassword(body.new_password);
-  await run(c.env.DB, `UPDATE admin_users SET password_hash = ? WHERE id = ?`, [hash, me.id]);
+  // Bumping token_version invalidates every JWT we've issued for this user
+  // (other devices, browser tabs in the same account). The current device's
+  // session is then re-minted below so the active admin stays signed in.
+  const updated = await first<{ token_version: number }>(
+    c.env.DB,
+    `UPDATE admin_users
+       SET password_hash = ?, token_version = token_version + 1
+     WHERE id = ?
+     RETURNING token_version`,
+    [hash, me.id],
+  );
+
+  const secret = c.env.JWT_SECRET;
+  if (secret && updated) {
+    const token = await signJwt(
+      { sub: me.id, email: me.email, role: me.role as AdminRole, tv: updated.token_version },
+      secret,
+      SESSION_TTL_SECONDS,
+    );
+    const isProd = c.env.APP_ENV === 'production';
+    setCookie(c, ADMIN_SESSION_COOKIE, token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'None' : 'Lax',
+      path: '/',
+      maxAge: SESSION_TTL_SECONDS,
+    });
+  }
+
   await logActivity(c.env.DB, {
     admin_id: me.id,
     action: 'admin_user.password_changed',
@@ -52,7 +91,12 @@ adminUsersRouter.post('/me/change-password', async (c) => {
     entity_id: me.id,
     ip_address: c.req.header('cf-connecting-ip') ?? null,
   });
-  return c.json(ok({ success: true }));
+  return c.json(
+    ok({
+      success: true,
+      sessions_invalidated: true,
+    }),
+  );
 });
 
 // Everything below is super_admin only.

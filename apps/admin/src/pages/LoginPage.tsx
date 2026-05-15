@@ -18,14 +18,15 @@ const loginSchema = z.object({
 type LoginInput = z.infer<typeof loginSchema>;
 
 interface LoginResponse {
-  token: string;
   expires_in: number;
   user: AdminSessionUser;
 }
 
 export function LoginPage(): JSX.Element {
   const navigate = useNavigate();
-  const { token, login } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const setReady = useAuthStore((s) => s.setReady);
   const [showPass, setShowPass] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [params] = useSearchParams();
@@ -40,7 +41,7 @@ export function LoginPage(): JSX.Element {
     defaultValues: { email: '', password: '', remember: true },
   });
 
-  if (token) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/" replace />;
 
   const onSubmit = async (values: LoginInput): Promise<void> => {
     setServerError(null);
@@ -49,7 +50,8 @@ export function LoginPage(): JSX.Element {
         email: values.email,
         password: values.password,
       });
-      login(data.token, data.user, values.remember ?? true);
+      setUser(data.user, values.remember ?? true);
+      setReady(true);
       navigate('/', { replace: true });
     } catch (e) {
       if (e instanceof ApiError) {

@@ -20,7 +20,6 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/components/ui/Toast';
 import { api } from '@/lib/api';
-import { useAuthStore } from '@/stores/authStore';
 import { formatCurrency, formatDateTime } from '@/lib/format';
 
 interface OrderDetail extends Order {
@@ -33,7 +32,6 @@ export function OrderDetailPage(): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
   const toast = useToast();
-  const { token } = useAuthStore();
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['admin-order', id],
@@ -283,24 +281,10 @@ export function OrderDetailPage(): JSX.Element {
                   <span className="font-mono text-ink-800">{order.paystack_reference}</span>
                 </div>
               )}
-              {order.manual_payment_proof_url && (
+              {order.manual_payment_proof_url && id && (
                 <div>
                   <div className="text-xs text-ink-500 mb-1">Proof of payment</div>
-                  <a
-                    href={
-                      token
-                        ? `${order.manual_payment_proof_url}${
-                            order.manual_payment_proof_url.includes('?') ? '&' : '?'
-                          }token=${encodeURIComponent(token)}`
-                        : order.manual_payment_proof_url
-                    }
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-cyan-600 hover:underline"
-                  >
-                    Open proof image
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
+                  <ProofImageLink orderId={id} />
                 </div>
               )}
               {canConfirmManual && (
@@ -517,6 +501,47 @@ function Row({
       <dd className={tone === 'success' ? 'text-success-600 tabular-nums' : 'tabular-nums'}>
         {value}
       </dd>
+    </div>
+  );
+}
+
+/**
+ * Lazily fetches a short-lived signed URL for the order's payment proof. We
+ * never embed the admin JWT in image URLs — that would leak the token into
+ * browser history, R2 access logs, and Referer headers.
+ */
+function ProofImageLink({ orderId }: { orderId: string }): JSX.Element {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onClick = async (e: React.MouseEvent): Promise<void> => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const { url } = await api.get<{ url: string; expires_at: number }>(
+        `/api/admin/orders/${orderId}/proof-url`,
+      );
+      window.open(url, '_blank', 'noreferrer');
+    } catch {
+      setError('Could not load proof');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1">
+      <a
+        href="#"
+        onClick={onClick}
+        className="inline-flex items-center gap-1 text-xs text-cyan-600 hover:underline disabled:opacity-50"
+        aria-busy={busy}
+      >
+        {busy ? 'Loading…' : 'Open proof image'}
+        <ExternalLink className="h-3 w-3" />
+      </a>
+      {error && <div className="text-xs text-danger-600">{error}</div>}
     </div>
   );
 }

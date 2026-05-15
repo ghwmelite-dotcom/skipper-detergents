@@ -37,8 +37,8 @@ async function parseEnvelope<T>(res: Response): Promise<ApiResponse<T>> {
 
 function handle401(status: number): void {
   if (status === 401) {
-    const { logout, token } = useAuthStore.getState();
-    if (token) logout();
+    const { user, logout } = useAuthStore.getState();
+    if (user) logout();
     if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
       window.location.assign('/login');
     }
@@ -55,8 +55,6 @@ interface RequestOptions {
 async function request(path: string, opts: RequestOptions = {}): Promise<Response> {
   const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
   const headers: Record<string, string> = { ...(opts.headers ?? {}) };
-  const token = useAuthStore.getState().token;
-  if (token) headers['Authorization'] = `Bearer ${token}`;
 
   let body: BodyInit | undefined;
   if (opts.body !== undefined) {
@@ -71,6 +69,10 @@ async function request(path: string, opts: RequestOptions = {}): Promise<Respons
   const init: RequestInit = {
     method: opts.method ?? 'GET',
     headers,
+    // The admin session JWT lives in an httpOnly cookie on the API origin —
+    // including credentials is REQUIRED for every cross-site fetch or the
+    // browser strips the cookie and the API will 401.
+    credentials: 'include',
     ...(body !== undefined && { body }),
   };
   const res = await fetch(url, init);

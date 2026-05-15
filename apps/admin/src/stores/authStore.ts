@@ -10,16 +10,21 @@ export interface AdminSessionUser {
 }
 
 interface PersistedAuth {
-  token: string | null;
   user: AdminSessionUser | null;
 }
 
 interface AuthState extends PersistedAuth {
-  login: (token: string, user: AdminSessionUser, remember?: boolean) => void;
+  /** True once the bootstrap /me check has resolved (success or 401). */
+  ready: boolean;
+  setUser: (user: AdminSessionUser | null, remember?: boolean) => void;
+  setReady: (ready: boolean) => void;
   logout: () => void;
 }
 
-const STORAGE_KEY = 'skipper-admin-auth';
+// The admin JWT itself lives in an httpOnly cookie set by the API. We only
+// persist display info about the user — it's not sensitive, and persisting it
+// avoids the login-flash on hard refresh while we revalidate against /me.
+const STORAGE_KEY = 'skipper-admin-user';
 const SESSION_FLAG = 'skipper-admin-session-only';
 
 function isSessionOnly(): boolean {
@@ -49,9 +54,9 @@ const dynamicStorage: PersistStorage<PersistedAuth> = {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      token: null,
       user: null,
-      login: (token, user, remember = true) => {
+      ready: false,
+      setUser: (user, remember = true) => {
         if (typeof window !== 'undefined') {
           if (remember) {
             window.localStorage.removeItem(SESSION_FLAG);
@@ -61,20 +66,22 @@ export const useAuthStore = create<AuthState>()(
             window.localStorage.removeItem(STORAGE_KEY);
           }
         }
-        set({ token, user });
+        set({ user });
       },
+      setReady: (ready) => set({ ready }),
       logout: () => {
         if (typeof window !== 'undefined') {
           window.localStorage.removeItem(SESSION_FLAG);
           window.localStorage.removeItem(STORAGE_KEY);
           window.sessionStorage.removeItem(STORAGE_KEY);
         }
-        set({ token: null, user: null });
+        set({ user: null });
       },
     }),
     {
       name: STORAGE_KEY,
       storage: dynamicStorage,
+      partialize: (state) => ({ user: state.user }),
     },
   ),
 );

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { House, LayoutGrid, Package, ShoppingBag, Menu } from 'lucide-react';
+import { House, LayoutGrid, ShoppingBag, Menu } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useCart } from '@/hooks/useCart';
 import { useUiStore } from '@/stores/uiStore';
 import { haptic } from '@/lib/haptic';
 import { cn } from '@/lib/cn';
 
-type TabId = 'home' | 'shop' | 'bulk' | 'cart' | 'menu';
+type TabId = 'home' | 'shop' | 'cart' | 'menu';
 
 interface Tab {
   id: TabId;
@@ -20,7 +20,6 @@ interface Tab {
 const TABS: Tab[] = [
   { id: 'home', label: 'Home', to: '/', Icon: House },
   { id: 'shop', label: 'Shop', to: '/shop', Icon: LayoutGrid },
-  { id: 'bulk', label: 'Bulk', to: '/bulk', Icon: Package },
   { id: 'cart', label: 'Cart', to: '/cart', Icon: ShoppingBag },
   { id: 'menu', label: 'Menu', Icon: Menu, action: 'menu' },
 ];

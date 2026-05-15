@@ -48,14 +48,14 @@ function playChime(): void {
  * count, and fires a toast + chime on each genuinely new arrival.
  */
 export function useAdminNotifications() {
-  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
   const toast = useToast();
   const qc = useQueryClient();
 
   const query = useQuery<AdminNotificationsFeed>({
     queryKey: ['admin-notifications'],
     queryFn: () => api.get<AdminNotificationsFeed>('/api/admin/notifications?limit=15'),
-    enabled: Boolean(token),
+    enabled: Boolean(user),
     refetchInterval: () => (document.hidden ? HIDDEN_POLL_INTERVAL_MS : POLL_INTERVAL_MS),
     refetchIntervalInBackground: true,
     staleTime: 10_000,

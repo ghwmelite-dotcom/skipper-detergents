@@ -1,6 +1,7 @@
 import type { MiddlewareHandler } from 'hono';
 import type { Env } from '../types/env';
 import { fail } from '../utils/response';
+import { consumeRateBucket } from '../utils/rateBucket';
 
 export interface RateLimitOptions {
   limit: number;
@@ -12,22 +13,19 @@ export function rateLimit(options: RateLimitOptions): MiddlewareHandler<{ Bindin
   return async (c, next) => {
     const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
     const key = `${options.keyPrefix}:${ip}`;
-    const currentStr = await c.env.KV_RATE_LIMIT.get(key);
-    const current = currentStr ? Number.parseInt(currentStr, 10) : 0;
+    const result = await consumeRateBucket(c.env.KV_RATE_LIMIT, key, {
+      limit: options.limit,
+      windowSeconds: options.windowSeconds,
+    });
 
-    if (current >= options.limit) {
+    if (!result.allowed) {
       return c.json(fail('RATE_LIMITED', 'Too many requests — slow down'), 429);
     }
-
-    const next_ = current + 1;
-    await c.env.KV_RATE_LIMIT.put(key, String(next_), {
-      expirationTtl: options.windowSeconds,
-    });
 
     await next();
 
     c.res.headers.set('X-RateLimit-Limit', String(options.limit));
-    c.res.headers.set('X-RateLimit-Remaining', String(Math.max(0, options.limit - next_)));
+    c.res.headers.set('X-RateLimit-Remaining', String(result.remaining));
     return;
   };
 }

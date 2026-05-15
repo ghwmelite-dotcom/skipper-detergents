@@ -23,7 +23,7 @@ interface OrderResult {
 interface CheckoutFormProps {
   cartItems: CartItem[];
   settings: PublicSettings;
-  onOrderCreated: (result: OrderResult) => void;
+  onOrderCreated: (result: OrderResult, email: string) => void;
 }
 
 export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFormProps) {
@@ -40,7 +40,6 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
   });
 
   const feeAccra = parseFloat(settings.delivery_fee_accra ?? '0');
-  const feeOther = parseFloat(settings.delivery_fee_other ?? '0');
 
   function set(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -89,7 +88,10 @@ export function CheckoutForm({ cartItems, settings, onOrderCreated }: CheckoutFo
       if (email) {
         localStorage.setItem('skipper-last-email', email);
       }
-      onOrderCreated(result);
+      // Pass email straight through to the parent — reading it from
+      // localStorage in the parent's callback was a race because Zustand's
+      // setState commits before localStorage finishes flushing.
+      onOrderCreated(result, email);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

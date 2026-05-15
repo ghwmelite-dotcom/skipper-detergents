@@ -64,7 +64,6 @@ export default function ProductDetail() {
   }, [product?.id]);
 
   const bulkTiers = product?.bulk_tiers ?? [];
-  const bulkCapable = Boolean(product?.is_bulk_available);
 
   const resolved = product ? resolveBulkPrice(quantity, product.unit_price, bulkTiers) : null;
   const displayPrice = resolved ? resolved.unit_price : 0;

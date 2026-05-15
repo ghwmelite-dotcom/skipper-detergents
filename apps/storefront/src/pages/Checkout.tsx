@@ -98,10 +98,7 @@ export default function Checkout() {
                   <CheckoutForm
                     cartItems={items}
                     settings={settings ?? {}}
-                    onOrderCreated={(result) => {
-                      const email = localStorage.getItem('skipper-last-email') ?? '';
-                      handleOrderCreated(result, email);
-                    }}
+                    onOrderCreated={handleOrderCreated}
                   />
                 </motion.div>
               ) : (

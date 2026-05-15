@@ -1,14 +1,14 @@
-name: Deploy Storefront
+name: Deploy Admin
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'apps/storefront/**'
+      - 'apps/admin/**'
       - 'packages/shared/**'
       - 'pnpm-lock.yaml'
-      - '.github/workflows/deploy-storefront.yml'
+      - '.github/workflows/deploy-admin.yml'
 
 jobs:
   deploy:
@@ -27,16 +27,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm --filter @skipper/storefront typecheck
+      - run: pnpm --filter @skipper/admin typecheck
 
-      - run: pnpm --filter @skipper/storefront test
-
-      - run: pnpm --filter @skipper/storefront build
+      - run: pnpm --filter @skipper/admin build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/storefront
-          command: pages deploy ./dist --project-name=skipperdetergents --branch=main --commit-dirty=true
+          workingDirectory: apps/admin
+          command: pages deploy ./dist --project-name=skipper-admin --branch=main --commit-dirty=true

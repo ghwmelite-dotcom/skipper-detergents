@@ -31,8 +31,10 @@ describe('createOrderSchema', () => {
     expect(() => createOrderSchema.parse({ ...validOrder, items: [] })).toThrow();
   });
 
-  it('requires delivery_address when delivery_method is delivery', () => {
-    expect(() => createOrderSchema.parse({ ...validOrder, delivery_address: undefined })).toThrow();
+  it('accepts delivery orders without a delivery_address (admin sets fee on call)', () => {
+    expect(() =>
+      createOrderSchema.parse({ ...validOrder, delivery_address: undefined }),
+    ).not.toThrow();
   });
 
   it('does not require delivery_address for pickup', () => {

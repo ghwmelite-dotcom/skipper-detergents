@@ -61,6 +61,9 @@ app.route('/api/admin/notifications', adminNotificationsRouter);
 app.get('/r2/products/*', async (c) => {
   const url = new URL(c.req.url);
   const key = url.pathname.replace(/^\/r2\/products\//, '');
+  if (key.includes('..')) {
+    return c.json(fail('BAD_REQUEST', 'Invalid object key'), 400);
+  }
   const obj = await c.env.R2_PRODUCTS.get(key);
   if (!obj) return c.notFound();
   const headers = new Headers();
@@ -70,23 +73,39 @@ app.get('/r2/products/*', async (c) => {
   return new Response(obj.body, { headers });
 });
 
-// R2 serving for payment proofs — private-ish; admin UI needs these, so gate by JWT.
+// R2 serving for payment proofs — private. Authorised either by:
+//   1. a fresh admin JWT (Authorization: Bearer) for direct admin requests, OR
+//   2. a short-lived HMAC signature in the URL (?sig=&exp=) issued by the API
+//      and embedded in <img src=...>, so we never put the raw JWT in a URL.
+// The path must begin with `payment-proofs/` so an attacker can't pivot to
+// other R2 prefixes (e.g. /r2/payment-proofs/../foo).
 app.get('/r2/payment-proofs/*', async (c) => {
-  // Accept token either via Authorization header OR ?token= query param (useful for img tags).
   const url = new URL(c.req.url);
-  const auth = c.req.header('Authorization');
-  const queryToken = url.searchParams.get('token');
-  const token =
-    auth?.startsWith('Bearer ') ? auth.slice('Bearer '.length).trim() : queryToken?.trim();
-  if (!token || !c.env.JWT_SECRET) {
-    return c.json(fail('UNAUTHORIZED', 'Admin token required'), 401);
-  }
-  const { verifyJwt } = await import('./utils/jwt');
-  const payload = await verifyJwt<{ sub: string }>(token, c.env.JWT_SECRET);
-  if (!payload?.sub) {
-    return c.json(fail('UNAUTHORIZED', 'Invalid or expired admin token'), 401);
-  }
   const key = url.pathname.replace(/^\/r2\//, '');
+  if (!key.startsWith('payment-proofs/') || key.includes('..')) {
+    return c.json(fail('BAD_REQUEST', 'Invalid object key'), 400);
+  }
+
+  const sig = url.searchParams.get('sig');
+  const exp = url.searchParams.get('exp');
+  const authHeader = c.req.header('Authorization');
+
+  let authorised = false;
+  const { verifyJwt } = await import('./utils/jwt');
+  const { verifyProofSignature } = await import('./utils/proofSignature');
+
+  if (sig && exp && c.env.JWT_SECRET) {
+    authorised = await verifyProofSignature(c.env.JWT_SECRET, key, exp, sig);
+  } else if (authHeader?.startsWith('Bearer ') && c.env.JWT_SECRET) {
+    const token = authHeader.slice('Bearer '.length).trim();
+    const payload = await verifyJwt<{ sub: string }>(token, c.env.JWT_SECRET);
+    authorised = Boolean(payload?.sub);
+  }
+
+  if (!authorised) {
+    return c.json(fail('UNAUTHORIZED', 'Admin authorisation required'), 401);
+  }
+
   const obj = await c.env.R2_PROOFS.get(key);
   if (!obj) return c.notFound();
   const headers = new Headers();

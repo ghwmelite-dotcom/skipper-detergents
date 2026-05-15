@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, ShoppingBag, Search, ArrowLeft, Package } from 'lucide-react';
+import { ShoppingBag, Search, ArrowLeft, Package } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
   AnimatePresence,
@@ -9,7 +9,6 @@ import {
   useReducedMotion,
   useScroll,
 } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
 import { useUiStore } from '@/stores/uiStore';
 import { STORE_NAME } from '@/lib/env';
@@ -34,7 +33,6 @@ const NAV_LINKS: NavLink[] = [
 
 export function Header() {
   const { totalQuantity } = useCart();
-  const openMobileNav = useUiStore((s) => s.openMobileNav);
   const openCartDrawer = useUiStore((s) => s.openCartDrawer);
   const reduced = useReducedMotion();
   const location = useLocation();
@@ -110,8 +108,10 @@ export function Header() {
           scrolled ? 'h-14' : 'h-[60px] md:h-[68px]',
         )}
       >
-        {/* Checkout mode — show a "Back to cart" button in place of the menu button */}
-        {isCheckoutPage ? (
+        {/* Checkout mode — show a "Back to cart" button in place of the menu button.
+            Non-checkout: mobile uses the bottom tab bar for menu access, so no
+            header menu button is rendered. */}
+        {isCheckoutPage && (
           <Link
             to="/cart"
             className="inline-flex items-center gap-1.5 h-11 -ml-1 pr-2 pl-1 rounded-md text-[14px] font-medium text-brand-navy/80 hover:text-brand-navy transition-colors"
@@ -121,16 +121,6 @@ export function Header() {
             <span className="hidden sm:inline">Back to cart</span>
             <span className="sm:hidden">Back</span>
           </Link>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden -ml-2 hidden"
-            onClick={openMobileNav}
-            aria-label="Open navigation menu"
-          >
-            <Menu className="h-5 w-5" aria-hidden="true" />
-          </Button>
         )}
 
         <Link

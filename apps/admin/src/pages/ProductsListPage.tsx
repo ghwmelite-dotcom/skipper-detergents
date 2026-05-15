@@ -35,6 +35,7 @@ export function ProductsListPage(): JSX.Element {
   const [category, setCategory] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [permanentTyped, setPermanentTyped] = useState('');
   const [confirmPermanent, setConfirmPermanent] = useState<{ id: string; name: string } | null>(
     null,
   );
@@ -430,9 +431,41 @@ export function ProductsListPage(): JSX.Element {
         tone="danger"
         confirmLabel="Delete permanently"
         loading={permanentDeleteMutation.isPending}
-        onCancel={() => setConfirmPermanent(null)}
-        onConfirm={() => confirmPermanent && permanentDeleteMutation.mutate(confirmPermanent.id)}
-      />
+        confirmDisabled={
+          !confirmPermanent || permanentTyped.trim() !== confirmPermanent.name.trim()
+        }
+        onCancel={() => {
+          setConfirmPermanent(null);
+          setPermanentTyped('');
+        }}
+        onConfirm={() => {
+          if (!confirmPermanent) return;
+          if (permanentTyped.trim() !== confirmPermanent.name.trim()) return;
+          permanentDeleteMutation.mutate(confirmPermanent.id);
+          setPermanentTyped('');
+        }}
+      >
+        {confirmPermanent && (
+          <div className="space-y-1.5">
+            <label htmlFor="permanent-confirm" className="block text-xs font-medium text-ink-700">
+              Type the product name to confirm:
+            </label>
+            <input
+              id="permanent-confirm"
+              autoFocus
+              type="text"
+              value={permanentTyped}
+              onChange={(e) => setPermanentTyped(e.target.value)}
+              placeholder={confirmPermanent.name}
+              className="w-full rounded border border-ink-300 px-2.5 py-1.5 text-sm focus:border-danger-500 focus:outline-none focus:ring-1 focus:ring-danger-500"
+            />
+            <p className="text-[11px] text-ink-500">
+              Must match exactly:{' '}
+              <span className="font-mono text-ink-700">{confirmPermanent.name}</span>
+            </p>
+          </div>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }

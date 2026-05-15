@@ -16,4 +16,8 @@ export interface Env {
   MAIL_FROM?: string;
   STOREFRONT_URL?: string;
   ADMIN_URL?: string;
+  /** One-time secret required to call POST /api/admin/auth/bootstrap. Removes the
+   *  race window that would otherwise let anyone mint a super_admin if the
+   *  admin_users table is ever empty. */
+  BOOTSTRAP_TOKEN?: string;
 }

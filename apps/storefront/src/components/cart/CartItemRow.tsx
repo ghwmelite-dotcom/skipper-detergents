@@ -64,9 +64,9 @@ export function CartItemRow({ item, product, compact = false }: CartItemRowProps
             type="button"
             onClick={() => removeItem(product.id, variantId)}
             aria-label={`Remove ${product.name} from cart`}
-            className="flex-none inline-flex h-7 w-7 items-center justify-center rounded-full text-brand-navy/50 hover:bg-brand-navy/5 hover:text-brand-red transition-colors"
+            className="flex-none inline-flex h-11 w-11 items-center justify-center rounded-full text-brand-navy/50 hover:bg-brand-navy/5 hover:text-brand-red transition-colors"
           >
-            <X className="h-3.5 w-3.5" aria-hidden="true" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 

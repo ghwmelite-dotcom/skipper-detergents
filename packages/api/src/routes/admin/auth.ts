@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { setCookie, deleteCookie } from 'hono/cookie';
 import {
   adminLoginSchema,
   adminForgotPasswordSchema,
@@ -13,7 +14,37 @@ import { first, run } from '../../utils/db';
 import { hashPassword, verifyPassword } from '../../utils/password';
 import { signJwt } from '../../utils/jwt';
 import { logActivity } from '../../services/activity';
-import { adminAuth, type AdminVariables } from '../../middleware/adminAuth';
+import {
+  adminAuth,
+  type AdminVariables,
+  ADMIN_SESSION_COOKIE,
+} from '../../middleware/adminAuth';
+import { clearRateBucket, consumeRateBucket } from '../../utils/rateBucket';
+import type { Context } from 'hono';
+
+/** Apply the admin session cookie. SameSite=None+Secure is required in
+ *  production because the admin SPA and API live on different registrable
+ *  domains (*.pages.dev vs *.workers.dev). In local dev (http on localhost)
+ *  we fall back to Lax so the cookie is accepted without HTTPS. */
+function setSessionCookie(c: Context<{ Bindings: Env; Variables: AdminVariables }>, token: string, ttlSeconds: number): void {
+  const isProd = c.env.APP_ENV === 'production';
+  setCookie(c, ADMIN_SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'None' : 'Lax',
+    path: '/',
+    maxAge: ttlSeconds,
+  });
+}
+
+function clearSessionCookie(c: Context<{ Bindings: Env; Variables: AdminVariables }>): void {
+  const isProd = c.env.APP_ENV === 'production';
+  deleteCookie(c, ADMIN_SESSION_COOKIE, {
+    path: '/',
+    secure: isProd,
+    sameSite: isProd ? 'None' : 'Lax',
+  });
+}
 import {
   generateResetToken,
   hashResetToken,
@@ -45,11 +76,6 @@ adminAuthRouter.post('/login', async (c) => {
   const body = adminLoginSchema.parse(await c.req.json());
   const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
   const rateKey = `rl:admin_login:${ip}`;
-  const currentStr = await c.env.KV_RATE_LIMIT.get(rateKey);
-  const current = currentStr ? Number.parseInt(currentStr, 10) : 0;
-  if (current >= LOGIN_RATE_LIMIT) {
-    return c.json(fail('RATE_LIMITED', 'Too many login attempts — try again later'), 429);
-  }
 
   const email = body.email.toLowerCase();
   const secret = c.env.JWT_SECRET;
@@ -59,7 +85,7 @@ adminAuthRouter.post('/login', async (c) => {
 
   const result = await ensureMinDelay(
     (async () => {
-      const user = await first<AdminUser>(
+      const user = await first<AdminUser & { token_version: number }>(
         c.env.DB,
         `SELECT * FROM admin_users WHERE LOWER(email) = ? AND is_active = 1`,
         [email],
@@ -72,19 +98,28 @@ adminAuthRouter.post('/login', async (c) => {
   );
 
   if (!result) {
-    // Count only failed attempts so legitimate users aren't locked out by
-    // their own successful logins.
-    await c.env.KV_RATE_LIMIT.put(rateKey, String(current + 1), {
-      expirationTtl: LOGIN_RATE_WINDOW,
+    // Only failed attempts consume rate budget. Successful logins don't lock
+    // legitimate users out of their own account.
+    const bucket = await consumeRateBucket(c.env.KV_RATE_LIMIT, rateKey, {
+      limit: LOGIN_RATE_LIMIT,
+      windowSeconds: LOGIN_RATE_WINDOW,
     });
+    if (!bucket.allowed) {
+      return c.json(fail('RATE_LIMITED', 'Too many login attempts — try again later'), 429);
+    }
     return c.json(fail('UNAUTHORIZED', 'Invalid email or password'), 401);
   }
 
   // Successful login clears the failure counter for this IP.
-  await c.env.KV_RATE_LIMIT.delete(rateKey);
+  await clearRateBucket(c.env.KV_RATE_LIMIT, rateKey);
 
   const token = await signJwt(
-    { sub: result.id, email: result.email, role: result.role as AdminRole },
+    {
+      sub: result.id,
+      email: result.email,
+      role: result.role as AdminRole,
+      tv: result.token_version,
+    },
     secret,
     TOKEN_TTL_SECONDS,
   );
@@ -101,9 +136,10 @@ adminAuthRouter.post('/login', async (c) => {
     ip_address: ip,
   });
 
+  setSessionCookie(c, token, TOKEN_TTL_SECONDS);
+
   return c.json(
     ok({
-      token,
       expires_in: TOKEN_TTL_SECONDS,
       user: {
         id: result.id,
@@ -123,16 +159,13 @@ adminAuthRouter.post('/forgot-password', async (c) => {
   const body = adminForgotPasswordSchema.parse(await c.req.json());
   const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
 
-  const rateKey = `rl:admin_forgot:${ip}`;
-  const currentStr = await c.env.KV_RATE_LIMIT.get(rateKey);
-  const current = currentStr ? Number.parseInt(currentStr, 10) : 0;
-  // Allow 5 forgot requests per 15 minutes from any single IP.
-  if (current >= 5) {
+  const rateBucket = await consumeRateBucket(c.env.KV_RATE_LIMIT, `rl:admin_forgot:${ip}`, {
+    limit: 5,
+    windowSeconds: 15 * 60,
+  });
+  if (!rateBucket.allowed) {
     return c.json(fail('RATE_LIMITED', 'Too many reset requests — try again later'), 429);
   }
-  await c.env.KV_RATE_LIMIT.put(rateKey, String(current + 1), {
-    expirationTtl: 15 * 60,
-  });
 
   const email = body.email.toLowerCase();
   const user = await first<AdminUser>(
@@ -195,15 +228,13 @@ adminAuthRouter.post('/reset-password', async (c) => {
   const body = adminResetPasswordSchema.parse(await c.req.json());
   const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
 
-  const rateKey = `rl:admin_reset:${ip}`;
-  const currentStr = await c.env.KV_RATE_LIMIT.get(rateKey);
-  const current = currentStr ? Number.parseInt(currentStr, 10) : 0;
-  if (current >= 10) {
+  const rateBucket = await consumeRateBucket(c.env.KV_RATE_LIMIT, `rl:admin_reset:${ip}`, {
+    limit: 10,
+    windowSeconds: 15 * 60,
+  });
+  if (!rateBucket.allowed) {
     return c.json(fail('RATE_LIMITED', 'Too many reset attempts — try again later'), 429);
   }
-  await c.env.KV_RATE_LIMIT.put(rateKey, String(current + 1), {
-    expirationTtl: 15 * 60,
-  });
 
   const tokenHash = await hashResetToken(body.token);
   const reset = await first<{
@@ -231,10 +262,12 @@ adminAuthRouter.post('/reset-password', async (c) => {
   }
 
   const newHash = await hashPassword(body.new_password);
-  await run(c.env.DB, `UPDATE admin_users SET password_hash = ? WHERE id = ?`, [
-    newHash,
-    user.id,
-  ]);
+  // Bump token_version so any session JWTs from before the reset stop working.
+  await run(
+    c.env.DB,
+    `UPDATE admin_users SET password_hash = ?, token_version = token_version + 1 WHERE id = ?`,
+    [newHash, user.id],
+  );
   await run(
     c.env.DB,
     `UPDATE admin_password_resets SET used_at = datetime('now') WHERE id = ?`,
@@ -242,7 +275,7 @@ adminAuthRouter.post('/reset-password', async (c) => {
   );
   // Clear any failed-login rate-limit counter so the user can sign in
   // immediately with their new password.
-  await c.env.KV_RATE_LIMIT.delete(`rl:admin_login:${ip}`);
+  await clearRateBucket(c.env.KV_RATE_LIMIT, `rl:admin_login:${ip}`);
 
   await logActivity(c.env.DB, {
     admin_id: user.id,
@@ -273,6 +306,7 @@ adminAuthRouter.post('/logout', adminAuth, async (c) => {
     entity_id: user.id,
     ip_address: ip,
   });
+  clearSessionCookie(c);
   return c.json(ok({ success: true }));
 });
 
@@ -306,35 +340,47 @@ const bootstrapSchema = z.object({
 
 adminAuthRouter.post('/bootstrap', async (c) => {
   const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
-  const rateKey = `rl:admin_bootstrap:${ip}`;
-  const currentStr = await c.env.KV_RATE_LIMIT.get(rateKey);
-  const current = currentStr ? Number.parseInt(currentStr, 10) : 0;
-  if (current >= 5) {
+
+  // Bootstrap MUST present the operator-owned secret. Without this guard, the
+  // "no admins exist" check is racy and any internet caller can mint a
+  // super_admin if the table ever empties (truncated DB, fresh migration).
+  const expectedToken = c.env.BOOTSTRAP_TOKEN;
+  if (!expectedToken) {
+    return c.json(fail('CONFIG', 'Bootstrap is disabled — BOOTSTRAP_TOKEN not set'), 503);
+  }
+  const presented = c.req.header('x-bootstrap-token')?.trim();
+  if (!presented || presented !== expectedToken) {
+    return c.json(fail('UNAUTHORIZED', 'Bootstrap token invalid or missing'), 401);
+  }
+
+  const rateBucket = await consumeRateBucket(c.env.KV_RATE_LIMIT, `rl:admin_bootstrap:${ip}`, {
+    limit: 5,
+    windowSeconds: 3600,
+  });
+  if (!rateBucket.allowed) {
     return c.json(fail('RATE_LIMITED', 'Too many bootstrap attempts'), 429);
   }
-  await c.env.KV_RATE_LIMIT.put(rateKey, String(current + 1), { expirationTtl: 3600 });
 
   const body = bootstrapSchema.parse(await c.req.json());
-
-  const existing = await first<{ n: number }>(
-    c.env.DB,
-    `SELECT COUNT(*) AS n FROM admin_users`,
-    [],
-  );
-  if ((existing?.n ?? 0) > 0) {
-    return c.json(fail('CONFLICT', 'Admin already bootstrapped'), 409);
-  }
 
   const id = idHex();
   const hash = await hashPassword(body.password);
   const email = body.email.toLowerCase();
 
-  await run(
+  // Atomic claim: the row is only inserted if no admin currently exists. Two
+  // racing callers cannot both succeed because D1 serializes the statement.
+  const inserted = await first<{ id: string }>(
     c.env.DB,
     `INSERT INTO admin_users (id, email, password_hash, name, role, is_active)
-     VALUES (?, ?, ?, ?, 'super_admin', 1)`,
+     SELECT ?, ?, ?, ?, 'super_admin', 1
+     WHERE NOT EXISTS (SELECT 1 FROM admin_users)
+     RETURNING id`,
     [id, email, hash, body.name],
   );
+
+  if (!inserted) {
+    return c.json(fail('CONFLICT', 'Admin already bootstrapped'), 409);
+  }
 
   await logActivity(c.env.DB, {
     admin_id: id,

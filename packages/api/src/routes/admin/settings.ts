@@ -2,8 +2,8 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../../types/env';
 import { ok } from '../../utils/response';
-import { adminAuth, type AdminVariables } from '../../middleware/adminAuth';
-import { all, run } from '../../utils/db';
+import { adminAuth, requireSuperAdmin } from '../../middleware/adminAuth';
+import { all } from '../../utils/db';
 import { PUBLIC_SETTING_KEYS } from '../../services/settings';
 import { logActivity } from '../../services/activity';
 
@@ -42,7 +42,9 @@ adminSettingsRouter.get('/', async (c) => {
   );
 });
 
-adminSettingsRouter.patch('/', async (c) => {
+// Writes touch Paystack/Resend secrets — restrict to super_admin to prevent
+// privilege escalation by a compromised regular admin account.
+adminSettingsRouter.patch('/', requireSuperAdmin, async (c) => {
   const body = patchSchema.parse(await c.req.json());
   const admin = c.get('adminUser');
   const keys = Object.keys(body.settings);

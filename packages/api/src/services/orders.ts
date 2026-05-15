@@ -174,15 +174,41 @@ export async function createOrder(db: D1Database, input: CreateOrderInput): Prom
       throw new HTTPException(409, { message: 'Failed to place order' });
     }
   }
-  // Stock updates use RETURNING id — an empty results array means the
-  // `stock_quantity >= ?` guard failed and no row was updated.
-  // (meta.changes is unreliable here: FTS5 triggers on products amplify it.)
+
+  // Stock updates use `RETURNING id` — an empty results array means the
+  // `stock_quantity >= ?` guard failed and no row was updated. D1 treats this
+  // as success (zero rows is not an error), so the order + items + any earlier
+  // stock decrements have already committed. We need to compensate by undoing
+  // the partial state before raising.
+  const failedItems: number[] = [];
   for (let i = 0; i < input.cart.line_items.length; i++) {
     const stockUpdateIdx = 1 + i * 2 + 1;
     const r = results[stockUpdateIdx] ?? null;
     if (!r?.results || r.results.length !== 1) {
-      throw new HTTPException(409, { message: 'Insufficient stock' });
+      failedItems.push(i);
     }
+  }
+
+  if (failedItems.length > 0) {
+    const compensations: D1PreparedStatement[] = [];
+    // Roll back the stock decrements that succeeded — anything not in
+    // failedItems came back with exactly one updated row.
+    for (let i = 0; i < input.cart.line_items.length; i++) {
+      if (failedItems.includes(i)) continue;
+      const li = input.cart.line_items[i];
+      if (!li) continue;
+      compensations.push(
+        db
+          .prepare(
+            `UPDATE products SET stock_quantity = stock_quantity + ?, total_sold = total_sold - ? WHERE id = ?`,
+          )
+          .bind(li.quantity, li.quantity, li.product_id),
+      );
+    }
+    compensations.push(db.prepare(`DELETE FROM order_items WHERE order_id = ?`).bind(order_id));
+    compensations.push(db.prepare(`DELETE FROM orders WHERE id = ?`).bind(order_id));
+    await db.batch(compensations);
+    throw new HTTPException(409, { message: 'Insufficient stock' });
   }
 
   const order = await first<Order>(db, `SELECT * FROM orders WHERE id = ?`, [order_id]);

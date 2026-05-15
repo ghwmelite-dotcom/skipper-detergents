@@ -135,7 +135,7 @@ Track: ${trackUrl}
 function renderAdminEmail(
   ctx: EmailContext & { adminUrl: string },
 ): { html: string; text: string; subject: string } {
-  const { order, items, storeName, adminUrl } = ctx;
+  const { order, items, adminUrl } = ctx;
   const detailUrl = `${adminUrl}/orders/${order.id}`;
 
   const html = `<!doctype html>

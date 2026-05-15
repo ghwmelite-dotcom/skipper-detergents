@@ -10,7 +10,7 @@ STOREFRONT_ORIGIN = "https://skipperdetergents.pages.dev,http://localhost:5173"
 ADMIN_ORIGIN = "https://skipper-admin.pages.dev,http://localhost:5174"
 STOREFRONT_URL = "https://skipperdetergents.pages.dev"
 ADMIN_URL = "https://skipper-admin.pages.dev"
-MAIL_FROM = "Skipper CleanCare <onboarding@resend.dev>"
+MAIL_FROM = "Skipper CleanCare <mail@skipperdetergents.com>"
 
 [[d1_databases]]
 binding = "DB"

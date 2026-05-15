@@ -168,6 +168,7 @@ CREATE TABLE IF NOT EXISTS customers (
 CREATE INDEX IF NOT EXISTS idx_customers_status ON customers(status);
 
 CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
 
 -- ------------------------------------------------------------
 -- ADMIN USERS (created BEFORE orders because orders.manual_payment_confirmed_by references it)
@@ -180,8 +181,16 @@ CREATE TABLE IF NOT EXISTS admin_users (
   role          TEXT NOT NULL DEFAULT 'admin',
   is_active     INTEGER NOT NULL DEFAULT 1,
   last_login    TEXT,
+  -- Bumped on password change / reset. JWTs carry the `tv` claim and are
+  -- rejected if their value is older than the current row.
+  token_version INTEGER NOT NULL DEFAULT 0,
   created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Case-insensitive uniqueness: prevents `Foo@x.com` and `foo@x.com` coexisting
+-- (login normalizes to lowercase, so two such rows would shadow each other).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_users_email_lower
+  ON admin_users(LOWER(email));
 
 -- ------------------------------------------------------------
 -- ORDERS
@@ -228,6 +237,10 @@ CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status);
 CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_tracking_number ON orders(tracking_number);
+CREATE INDEX IF NOT EXISTS idx_orders_paystack_reference ON orders(paystack_reference);
+CREATE INDEX IF NOT EXISTS idx_orders_manual_payment_confirmed_by
+  ON orders(manual_payment_confirmed_by);
 
 -- ------------------------------------------------------------
 -- ORDER ITEMS
@@ -250,6 +263,8 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_variant ON order_items(variant_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_bulk_tier ON order_items(bulk_tier_id);
 
 -- ------------------------------------------------------------
 -- ACTIVITY LOG
@@ -297,6 +312,20 @@ CREATE TABLE IF NOT EXISTS store_settings (
   value      TEXT NOT NULL,
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- ------------------------------------------------------------
+-- PROCESSED WEBHOOK EVENTS — idempotency guard for Paystack (and future
+-- providers). The webhook handler INSERTs the event id with ON CONFLICT DO
+-- NOTHING; a successful insert is the licence to apply the side-effect, a
+-- conflict is a replay we silently drop.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS processed_webhook_events (
+  event_id     TEXT PRIMARY KEY,
+  source       TEXT NOT NULL,
+  processed_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_processed_webhook_events_source
+  ON processed_webhook_events(source, processed_at);
 
 -- ------------------------------------------------------------
 -- DELIVERY ZONES

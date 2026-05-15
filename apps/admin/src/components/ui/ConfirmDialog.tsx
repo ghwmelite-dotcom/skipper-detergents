@@ -10,6 +10,8 @@ export interface ConfirmDialogProps {
   cancelLabel?: string;
   tone?: 'danger' | 'primary';
   loading?: boolean;
+  /** Disable the confirm button (e.g. while waiting for a typed-name match). */
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   /** Optional content rendered between description and buttons (e.g., a reason textarea). */
@@ -24,6 +26,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancel',
   tone = 'primary',
   loading,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
   children,
@@ -70,6 +73,7 @@ export function ConfirmDialog({
             variant={tone === 'danger' ? 'danger' : 'primary'}
             onClick={onConfirm}
             loading={loading ?? false}
+            disabled={confirmDisabled}
           >
             {confirmLabel}
           </Button>

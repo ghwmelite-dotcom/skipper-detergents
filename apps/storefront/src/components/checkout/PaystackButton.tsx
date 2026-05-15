@@ -48,11 +48,18 @@ export function PaystackButton({ orderId, orderNumber, email, publicKey }: Payst
         reference: result.reference,
         accessCode: result.access_code,
         onSuccess: () => {
+          setLoading(false);
           clear();
           navigate(`/order/${orderNumber}?reference=${result.reference}`);
         },
         onCancel: () => {
           alert('Payment cancelled. You can try again from your order page.');
+          setLoading(false);
+        },
+        // onClose fires whenever the iframe closes, including the user
+        // closing the X. Without it, neither onSuccess nor onCancel may
+        // fire in some browsers and the Pay button stays disabled forever.
+        onClose: () => {
           setLoading(false);
         },
       });

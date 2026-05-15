@@ -168,7 +168,6 @@ export default function Shop() {
       });
     }
     return filters;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, brand, bulkOnly, minPrice, maxPrice, categories]);
 
   const filterPanel = (

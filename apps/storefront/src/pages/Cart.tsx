@@ -16,7 +16,7 @@ import { CartSummary } from '@/components/cart/CartSummary';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCart } from '@/hooks/useCart';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { formatCurrency } from '@skipper/shared';
 import type { Product } from '@skipper/shared';
 import { cn } from '@/lib/cn';
@@ -32,11 +32,16 @@ export default function Cart() {
       queryFn: async (): Promise<Product | null> => {
         try {
           return await api.get<Product>(`/api/products/id/${item.product_id}`);
-        } catch {
-          return null;
+        } catch (err) {
+          // Treat a real 404 as "product deleted/archived" → null (will be
+          // pruned). Treat anything else (network, 5xx) as a transient error
+          // so the cart isn't silently emptied by an API blip.
+          if (err instanceof ApiError && err.status === 404) return null;
+          throw err;
         }
       },
       staleTime: 5 * 60_000,
+      retry: 1,
     })),
   });
 
@@ -45,13 +50,13 @@ export default function Cart() {
     .map((q) => q.data)
     .filter((p): p is Product => p !== null && p !== undefined);
 
-  // Auto-prune cart entries whose product has been deleted/archived.
-  // Only after the query has actually settled — don't drop items while they
-  // might still be loading or the API is momentarily down.
+  // Auto-prune cart entries whose product has been deleted (404 → null).
+  // Skip while loading or while the query is in an error state so a transient
+  // outage doesn't wipe the user's cart.
   useEffect(() => {
     items.forEach((item, i) => {
       const q = productQueries[i];
-      if (q && q.isFetched && !q.isFetching && q.data === null) {
+      if (q && q.isFetched && !q.isFetching && !q.isError && q.data === null) {
         removeItem(item.product_id, item.variant_id ?? null);
       }
     });
@@ -213,9 +218,9 @@ export default function Cart() {
           <span className="text-brand-navy/60 text-[12px] font-medium inline-flex items-center gap-1">
             {summaryExpanded ? 'Hide' : 'Details'}
             {summaryExpanded ? (
-              <ChevronDown className="h-4 w-4" aria-hidden="true" />
-            ) : (
               <ChevronUp className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
             )}
           </span>
         </button>

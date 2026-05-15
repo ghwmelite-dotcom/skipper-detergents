@@ -21,6 +21,7 @@ import {
 } from '../../services/adminOrders';
 import { logActivity } from '../../services/activity';
 import { first } from '../../utils/db';
+import { signProofUrl } from '../../utils/proofSignature';
 
 const numericFromString = z
   .union([z.string(), z.number()])
@@ -55,6 +56,39 @@ adminOrdersRouter.get('/:id', async (c) => {
   const order = await adminGetOrder(c.env.DB, c.req.param('id'));
   if (!order) return c.json(fail('NOT_FOUND', 'Order not found'), 404);
   return c.json(ok(order));
+});
+
+// Issue a short-lived signed URL for the payment proof image. The proof URL
+// itself (stored in orders.manual_payment_proof_url) points at the API's R2
+// proxy at /r2/payment-proofs/<key>; we add ?exp=&sig= so the proxy can verify
+// the request without the admin's JWT ever appearing in a URL.
+adminOrdersRouter.get('/:id/proof-url', async (c) => {
+  const id = c.req.param('id');
+  const order = await first<{ manual_payment_proof_url: string | null }>(
+    c.env.DB,
+    `SELECT manual_payment_proof_url FROM orders WHERE id = ?`,
+    [id],
+  );
+  if (!order) return c.json(fail('NOT_FOUND', 'Order not found'), 404);
+  if (!order.manual_payment_proof_url) {
+    return c.json(fail('NOT_FOUND', 'No proof uploaded for this order'), 404);
+  }
+  const secret = c.env.JWT_SECRET;
+  if (!secret) return c.json(fail('CONFIG', 'JWT_SECRET not configured'), 500);
+
+  // Extract the R2 key from the stored public URL — everything after
+  // `/r2/payment-proofs/` is the key under the proofs bucket prefix.
+  const proofUrl = order.manual_payment_proof_url;
+  const marker = '/payment-proofs/';
+  const idx = proofUrl.indexOf(marker);
+  if (idx === -1) {
+    return c.json(fail('INVALID', 'Stored proof URL is malformed'), 500);
+  }
+  const key = `payment-proofs/${proofUrl.slice(idx + marker.length)}`;
+
+  const { exp, sig } = await signProofUrl(secret, key);
+  const signedUrl = `${proofUrl}${proofUrl.includes('?') ? '&' : '?'}exp=${exp}&sig=${sig}`;
+  return c.json(ok({ url: signedUrl, expires_at: Number(exp) }));
 });
 
 adminOrdersRouter.patch('/:id/status', async (c) => {

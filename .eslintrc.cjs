@@ -12,7 +12,10 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
   ],
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      { argsIgnorePattern: '^_', varsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
+    ],
     '@typescript-eslint/no-explicit-any': 'error',
     // Allow `interface Foo extends Bar {}` as the idiomatic pattern for
     // ambient module augmentation (e.g. extending `ProvidedEnv` in
